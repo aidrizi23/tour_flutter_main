@@ -49,24 +49,32 @@ class MyApp extends StatelessWidget {
   }
 
   ThemeData _buildLightTheme() {
-    const seedColor = Color(0xFF1B9A59); // Modern teal/green
+    const primaryColor = Color(0xFF003580); // Booking.com blue
+    const secondaryColor = Color(0xFF0077CC);
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: seedColor,
+        seedColor: primaryColor,
         brightness: Brightness.light,
-        primary: seedColor,
-        secondary: const Color(0xFF2ECC71),
-        tertiary: const Color(0xFF3498DB),
+        primary: primaryColor,
+        secondary: secondaryColor,
+        tertiary: const Color(0xFF00AA6C),
         surface: Colors.white,
-        background: const Color(0xFFF8F9FA),
-        error: const Color(0xFFE74C3C),
+        surfaceContainerLowest: const Color(0xFFFAFAFA),
+        surfaceContainerLow: const Color(0xFFF5F5F5),
+        surfaceContainer: const Color(0xFFF0F0F0),
+        background: const Color(0xFFFAFAFA),
+        error: const Color(0xFFD32F2F),
+        outline: const Color(0xFFE0E0E0),
+        onPrimary: Colors.white,
+        onSurface: const Color(0xFF1A1A1A),
+        onSurfaceVariant: const Color(0xFF757575),
       ),
       appBarTheme: const AppBarTheme(
         centerTitle: false,
         elevation: 0,
-        scrolledUnderElevation: 1,
+        scrolledUnderElevation: 2,
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         titleTextStyle: TextStyle(
@@ -79,102 +87,103 @@ class MyApp extends StatelessWidget {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
+            letterSpacing: 0.2,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
+            letterSpacing: 0.2,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
+            letterSpacing: 0.2,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
           ),
-          side: BorderSide(color: seedColor.withOpacity(0.5)),
+          side: BorderSide(color: primaryColor.withOpacity(0.5)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFFF5F5F5),
+        fillColor: const Color(0xFFF8F9FA),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: seedColor, width: 2),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: primaryColor, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFE74C3C), width: 2),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFD32F2F), width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
+          horizontal: 16,
           vertical: 16,
         ),
         hintStyle: TextStyle(color: Colors.grey[600]),
+        labelStyle: TextStyle(color: primaryColor.withOpacity(0.8)),
       ),
       cardTheme: CardTheme(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: Colors.grey[200]!, width: 1),
-        ),
+        elevation: 2,
+        shadowColor: Colors.black.withOpacity(0.05),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         clipBehavior: Clip.antiAlias,
         margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        elevation: 0,
+        elevation: 8,
         backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        indicatorColor: seedColor.withOpacity(0.1),
+        surfaceTintColor: Colors.white,
+        indicatorColor: primaryColor.withOpacity(0.1),
+        shadowColor: Colors.black.withOpacity(0.05),
+        height: 80,
         labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((states) {
           if (states.contains(WidgetState.selected)) {
             return TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: seedColor,
+              color: primaryColor,
             );
           }
           return const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF71717A),
+            color: Color(0xFF757575),
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith<IconThemeData>((states) {
           if (states.contains(WidgetState.selected)) {
-            return IconThemeData(color: seedColor, size: 24);
+            return IconThemeData(color: primaryColor, size: 24);
           }
-          return const IconThemeData(color: Color(0xFF71717A), size: 24);
+          return const IconThemeData(color: Color(0xFF757575), size: 24);
         }),
       ),
       textTheme: const TextTheme(
@@ -247,7 +256,7 @@ class MyApp extends StatelessWidget {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: Colors.grey[100],
-        selectedColor: seedColor.withOpacity(0.1),
+        selectedColor: primaryColor.withOpacity(0.1),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
         side: BorderSide.none,
@@ -258,49 +267,57 @@ class MyApp extends StatelessWidget {
         thickness: 1,
         space: 1,
       ),
-      scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+      scaffoldBackgroundColor: const Color(0xFFFAFAFA),
     );
   }
 
   ThemeData _buildDarkTheme() {
-    const seedColor = Color(0xFF2ECC71);
+    const primaryColor = Color(0xFF4A9EFF);
+    const secondaryColor = Color(0xFF66B3FF);
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: seedColor,
+        seedColor: primaryColor,
         brightness: Brightness.dark,
-        primary: seedColor,
-        secondary: const Color(0xFF3498DB),
-        tertiary: const Color(0xFF9B59B6),
+        primary: primaryColor,
+        secondary: secondaryColor,
+        tertiary: const Color(0xFF4CAF50),
         surface: const Color(0xFF1E1E1E),
+        surfaceContainerLowest: const Color(0xFF121212),
+        surfaceContainerLow: const Color(0xFF1A1A1A),
+        surfaceContainer: const Color(0xFF242424),
         background: const Color(0xFF121212),
         error: const Color(0xFFEF4444),
+        outline: const Color(0xFF333333),
+        onPrimary: const Color(0xFF1A1A1A),
+        onSurface: const Color(0xFFF5F5F5),
+        onSurfaceVariant: const Color(0xFFBBBBBB),
       ),
       appBarTheme: const AppBarTheme(
         centerTitle: false,
         elevation: 0,
-        scrolledUnderElevation: 1,
+        scrolledUnderElevation: 2,
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         titleTextStyle: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
-          color: Color(0xFFF1F5F9),
+          color: Color(0xFFF5F5F5),
         ),
-        iconTheme: IconThemeData(color: Color(0xFFF1F5F9)),
+        iconTheme: IconThemeData(color: Color(0xFFF5F5F5)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           textStyle: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
+            letterSpacing: 0.2,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),
@@ -308,97 +325,97 @@ class MyApp extends StatelessWidget {
         filled: true,
         fillColor: const Color(0xFF2A2A2A),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: seedColor, width: 2),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: primaryColor, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
+          horizontal: 16,
           vertical: 16,
         ),
-        hintStyle: const TextStyle(color: Color(0xFF6B7280)),
-        labelStyle: TextStyle(color: seedColor.withOpacity(0.8)),
+        hintStyle: const TextStyle(color: Color(0xFF888888)),
+        labelStyle: TextStyle(color: primaryColor.withOpacity(0.8)),
       ),
       cardTheme: CardTheme(
-        elevation: 0,
+        elevation: 2,
         color: const Color(0xFF1E1E1E),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: Colors.grey[800]!, width: 1),
-        ),
+        shadowColor: Colors.black.withOpacity(0.2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         clipBehavior: Clip.antiAlias,
         margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        elevation: 0,
+        elevation: 8,
         backgroundColor: const Color(0xFF1E1E1E),
-        surfaceTintColor: Colors.transparent,
-        indicatorColor: seedColor.withOpacity(0.15),
+        surfaceTintColor: const Color(0xFF1E1E1E),
+        indicatorColor: primaryColor.withOpacity(0.15),
+        shadowColor: Colors.black.withOpacity(0.2),
+        height: 80,
         labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((states) {
           if (states.contains(WidgetState.selected)) {
             return TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: seedColor,
+              color: primaryColor,
             );
           }
           return const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF9CA3AF),
+            color: Color(0xFF999999),
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith<IconThemeData>((states) {
           if (states.contains(WidgetState.selected)) {
-            return IconThemeData(color: seedColor, size: 24);
+            return IconThemeData(color: primaryColor, size: 24);
           }
-          return const IconThemeData(color: Color(0xFF9CA3AF), size: 24);
+          return const IconThemeData(color: Color(0xFF999999), size: 24);
         }),
       ),
       textTheme: const TextTheme(
         displayLarge: TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,
-          color: Color(0xFFF1F5F9),
+          color: Color(0xFFF5F5F5),
           letterSpacing: -0.5,
         ),
         displayMedium: TextStyle(
           fontSize: 28,
           fontWeight: FontWeight.bold,
-          color: Color(0xFFF1F5F9),
+          color: Color(0xFFF5F5F5),
           letterSpacing: -0.25,
         ),
         displaySmall: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
-          color: Color(0xFFF1F5F9),
+          color: Color(0xFFF5F5F5),
         ),
         headlineLarge: TextStyle(
           fontSize: 22,
           fontWeight: FontWeight.w700,
-          color: Color(0xFFF1F5F9),
+          color: Color(0xFFF5F5F5),
         ),
         headlineMedium: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w700,
-          color: Color(0xFFF1F5F9),
+          color: Color(0xFFF5F5F5),
         ),
         headlineSmall: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w600,
-          color: Color(0xFFF1F5F9),
+          color: Color(0xFFF5F5F5),
         ),
         titleLarge: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: Color(0xFFF1F5F9),
+          color: Color(0xFFF5F5F5),
         ),
         titleMedium: TextStyle(
           fontSize: 14,
@@ -432,7 +449,7 @@ class MyApp extends StatelessWidget {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: const Color(0xFF2A2A2A),
-        selectedColor: seedColor.withOpacity(0.2),
+        selectedColor: primaryColor.withOpacity(0.2),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
         side: BorderSide.none,
@@ -500,7 +517,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     shape: BoxShape.circle,
@@ -509,17 +526,25 @@ class _AuthWrapperState extends State<AuthWrapper> {
                         color: Theme.of(
                           context,
                         ).colorScheme.primary.withOpacity(0.1),
-                        blurRadius: 20,
-                        spreadRadius: 8,
+                        blurRadius: 30,
+                        spreadRadius: 10,
                       ),
                     ],
                   ),
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3,
-                    color: Theme.of(context).colorScheme.primary,
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 80,
+                    height: 80,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(
+                        Icons.travel_explore,
+                        size: 80,
+                        color: Theme.of(context).colorScheme.primary,
+                      );
+                    },
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
                 Text(
                   'TourApp',
                   style: Theme.of(context).textTheme.displayMedium?.copyWith(
@@ -527,14 +552,19 @@ class _AuthWrapperState extends State<AuthWrapper> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text(
-                  'Preparing your adventure...',
+                  'Your next adventure awaits...',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(
                       context,
                     ).colorScheme.onSurface.withOpacity(0.7),
                   ),
+                ),
+                const SizedBox(height: 40),
+                CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ],
             ),
@@ -558,8 +588,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final AuthService _authService = AuthService();
   int _currentIndex = 0;
   bool _isAdmin = false;
-  late AnimationController _animationController;
+  late AnimationController _transitionController;
   late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   final List<Widget> _userScreens = [
     const TourListScreen(),
@@ -579,20 +610,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
+    _transitionController = AnimationController(
+      duration: const Duration(milliseconds: 300),
       vsync: this,
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _transitionController, curve: Curves.easeInOut),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0.1, 0),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _transitionController, curve: Curves.easeOut),
     );
     _checkAdminStatus();
-    _animationController.forward();
+    _transitionController.forward();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _transitionController.dispose();
     super.dispose();
   }
 
@@ -610,57 +647,62 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final screens = _isAdmin ? _adminScreens : _userScreens;
 
     return Scaffold(
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: IndexedStack(index: _currentIndex, children: screens),
+      body: SlideTransition(
+        position: _slideAnimation,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: IndexedStack(index: _currentIndex, children: screens),
+        ),
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -1),
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
             ),
           ],
         ),
-        child: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-            _animationController.reset();
-            _animationController.forward();
-          },
-          destinations: [
-            const NavigationDestination(
-              icon: Icon(Icons.explore_outlined),
-              selectedIcon: Icon(Icons.explore),
-              label: 'Tours',
-            ),
-            const NavigationDestination(
-              icon: Icon(Icons.directions_car_outlined),
-              selectedIcon: Icon(Icons.directions_car),
-              label: 'Cars',
-            ),
-            const NavigationDestination(
-              icon: Icon(Icons.calendar_today_outlined),
-              selectedIcon: Icon(Icons.calendar_today),
-              label: 'Bookings',
-            ),
-            if (_isAdmin)
+        child: SafeArea(
+          child: NavigationBar(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+              _transitionController.reset();
+              _transitionController.forward();
+            },
+            destinations: [
               const NavigationDestination(
-                icon: Icon(Icons.admin_panel_settings_outlined),
-                selectedIcon: Icon(Icons.admin_panel_settings),
-                label: 'Admin',
+                icon: Icon(Icons.explore_outlined),
+                selectedIcon: Icon(Icons.explore),
+                label: 'Discover',
               ),
-            const NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
+              const NavigationDestination(
+                icon: Icon(Icons.directions_car_outlined),
+                selectedIcon: Icon(Icons.directions_car),
+                label: 'Car Rental',
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.bookmark_border_outlined),
+                selectedIcon: Icon(Icons.bookmark),
+                label: 'My Trips',
+              ),
+              if (_isAdmin)
+                const NavigationDestination(
+                  icon: Icon(Icons.admin_panel_settings_outlined),
+                  selectedIcon: Icon(Icons.admin_panel_settings),
+                  label: 'Admin',
+                ),
+              const NavigationDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: 'Profile',
+              ),
+            ],
+          ),
         ),
       ),
       drawer: _buildDrawer(context),
@@ -669,209 +711,246 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildDrawer(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final screenWidth = MediaQuery.of(context).size.width;
 
-    return Drawer(
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(20),
-          bottomRight: Radius.circular(20),
-        ),
-      ),
-      child: Column(
-        children: [
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colorScheme.primary,
-                  colorScheme.primary.withOpacity(0.8),
-                ],
-              ),
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: FutureBuilder<User?>(
-                  future: _authService.getCurrentUser(),
-                  builder: (context, snapshot) {
-                    final user = snapshot.data;
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 10,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                          child: CircleAvatar(
-                            radius: 35,
-                            backgroundColor: colorScheme.primaryContainer,
-                            child: Text(
-                              user?.userName.isNotEmpty == true
-                                  ? user!.userName[0].toUpperCase()
-                                  : 'G',
-                              style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          user?.userName ?? 'Guest User',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          user?.email ?? '',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.white.withOpacity(0.9),
-                          ),
-                        ),
-                        if (_isAdmin) ...[
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Text(
-                              'Admin',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
+    return SizedBox(
+      width: screenWidth * 0.85,
+      child: Drawer(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(20),
+            bottomRight: Radius.circular(20),
           ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildDrawerItem(context, Icons.explore, 'Tours', 0),
-                _buildDrawerItem(
-                  context,
-                  Icons.directions_car,
-                  'Car Rentals',
-                  1,
+        ),
+        child: Column(
+          children: [
+            // User Header
+            Container(
+              height: 240,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    colorScheme.primary,
+                    colorScheme.primary.withOpacity(0.8),
+                  ],
                 ),
-                _buildDrawerItem(
-                  context,
-                  Icons.calendar_today,
-                  'My Bookings',
-                  2,
-                ),
-                if (_isAdmin) ...[
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Divider(),
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: FutureBuilder<User?>(
+                    future: _authService.getCurrentUser(),
+                    builder: (context, snapshot) {
+                      final user = snapshot.data;
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 15,
+                                  spreadRadius: 3,
+                                ),
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              radius: 40,
+                              backgroundColor: colorScheme.primaryContainer,
+                              child: Text(
+                                user?.userName.isNotEmpty == true
+                                    ? user!.userName[0].toUpperCase()
+                                    : 'G',
+                                style: TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            user?.userName ?? 'Guest User',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            user?.email ?? '',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white.withOpacity(0.9),
+                            ),
+                          ),
+                          if (_isAdmin) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Text(
+                                'Administrator',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      );
+                    },
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16, bottom: 8),
-                    child: Text(
-                      'ADMIN TOOLS',
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
+                ),
+              ),
+            ),
+
+            // Menu Items
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                children: [
+                  _buildDrawerItem(
+                    context,
+                    Icons.explore,
+                    'Discover Tours',
+                    0,
+                    description: 'Find amazing experiences',
                   ),
                   _buildDrawerItem(
                     context,
-                    Icons.admin_panel_settings,
-                    'Admin Panel',
-                    3,
-                    isAdmin: true,
+                    Icons.directions_car,
+                    'Car Rentals',
+                    1,
+                    description: 'Rent a car for your trip',
+                  ),
+                  _buildDrawerItem(
+                    context,
+                    Icons.bookmark,
+                    'My Bookings',
+                    2,
+                    description: 'View your trips',
+                  ),
+
+                  if (_isAdmin) ...[
+                    const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      child: Divider(),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 24, bottom: 8),
+                      child: Text(
+                        'ADMIN TOOLS',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    _buildDrawerItem(
+                      context,
+                      Icons.admin_panel_settings,
+                      'Admin Panel',
+                      3,
+                      description: 'Manage tours and system',
+                      isAdmin: true,
+                    ),
+                  ],
+
+                  _buildDrawerItem(
+                    context,
+                    Icons.person,
+                    'Profile',
+                    _isAdmin ? 4 : 3,
+                    description: 'Account settings',
+                  ),
+
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    child: Divider(),
+                  ),
+
+                  _buildDrawerItem(
+                    context,
+                    Icons.settings,
+                    'Settings',
+                    -1,
+                    description: 'App preferences',
+                    onTap: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Settings feature coming soon!'),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDrawerItem(
+                    context,
+                    Icons.help_outline,
+                    'Help & Support',
+                    -1,
+                    description: 'Get assistance',
+                    onTap: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Help feature coming soon!'),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
-                _buildDrawerItem(
-                  context,
-                  Icons.person,
-                  'Profile',
-                  _isAdmin ? 4 : 3,
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Divider(),
-                ),
-                _buildDrawerItem(
-                  context,
-                  Icons.settings,
-                  'Settings',
-                  -1,
-                  onTap: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Settings feature coming soon!'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                ),
-                _buildDrawerItem(
-                  context,
-                  Icons.help_outline,
-                  'Help & Support',
-                  -1,
-                  onTap: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Help feature coming soon!'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                ),
-              ],
+              ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: _buildDrawerItem(
-              context,
-              Icons.logout,
-              'Logout',
-              -1,
-              isDestructive: true,
-              onTap: () async {
-                Navigator.pop(context);
-                await _authService.logout();
-                if (mounted) {
-                  Navigator.of(context).pushReplacementNamed('/login');
-                }
-              },
+
+            // Logout Button
+            Container(
+              padding: const EdgeInsets.all(24),
+              child: _buildDrawerItem(
+                context,
+                Icons.logout,
+                'Sign Out',
+                -1,
+                isDestructive: true,
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _authService.logout();
+                  if (mounted) {
+                    Navigator.of(context).pushReplacementNamed('/login');
+                  }
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -881,6 +960,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     IconData icon,
     String title,
     int index, {
+    String? description,
     bool isAdmin = false,
     bool isDestructive = false,
     VoidCallback? onTap,
@@ -889,18 +969,34 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final isSelected = index == _currentIndex && index != -1;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       child: ListTile(
-        leading: Icon(
-          icon,
-          color:
-              isDestructive
-                  ? colorScheme.error
-                  : isSelected
-                  ? colorScheme.primary
-                  : isAdmin
-                  ? colorScheme.secondary
-                  : colorScheme.onSurface.withOpacity(0.7),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color:
+                isDestructive
+                    ? colorScheme.error.withOpacity(0.1)
+                    : isSelected
+                    ? colorScheme.primary.withOpacity(0.1)
+                    : isAdmin
+                    ? colorScheme.secondary.withOpacity(0.1)
+                    : colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            icon,
+            color:
+                isDestructive
+                    ? colorScheme.error
+                    : isSelected
+                    ? colorScheme.primary
+                    : isAdmin
+                    ? colorScheme.secondary
+                    : colorScheme.onSurface.withOpacity(0.7),
+            size: 20,
+          ),
         ),
         title: Text(
           title,
@@ -911,12 +1007,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     : isSelected
                     ? colorScheme.primary
                     : colorScheme.onSurface,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+            fontSize: 16,
           ),
         ),
+        subtitle:
+            description != null
+                ? Text(
+                  description,
+                  style: TextStyle(
+                    color: colorScheme.onSurface.withOpacity(0.6),
+                    fontSize: 12,
+                  ),
+                )
+                : null,
         selected: isSelected,
         selectedTileColor: colorScheme.primary.withOpacity(0.1),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         onTap:
             onTap ??
             () {
@@ -925,8 +1032,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 setState(() {
                   _currentIndex = index;
                 });
-                _animationController.reset();
-                _animationController.forward();
+                _transitionController.reset();
+                _transitionController.forward();
               }
             },
       ),
