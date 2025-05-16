@@ -326,7 +326,7 @@ class _CarListScreenState extends State<CarListScreen>
                     Text(
                       _isLoading
                           ? 'Loading cars...'
-                          : '${_totalCount} cars available',
+                          : '$_totalCount cars available',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: colorScheme.onSurface.withOpacity(0.8),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:ui';
 import '../../models/tour_models.dart';
 import '../../services/tour_service.dart';
 import '../../widgets/custom_text_field.dart';
@@ -45,11 +46,14 @@ class _TourListScreenState extends State<TourListScreen>
 
   late AnimationController _searchBarController;
   late AnimationController _filterController;
+  late AnimationController _fabController;
   late Animation<double> _searchBarAnimation;
   late Animation<double> _filterAnimation;
+  late Animation<double> _fabAnimation;
 
   bool _showFilters = false;
   bool _isSearchFocused = false;
+  bool _showFAB = false;
 
   @override
   void initState() {
@@ -62,6 +66,10 @@ class _TourListScreenState extends State<TourListScreen>
       duration: const Duration(milliseconds: 400),
       vsync: this,
     );
+    _fabController = AnimationController(
+      duration: const Duration(milliseconds: 250),
+      vsync: this,
+    );
 
     _searchBarAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _searchBarController, curve: Curves.easeInOut),
@@ -69,17 +77,31 @@ class _TourListScreenState extends State<TourListScreen>
     _filterAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _filterController, curve: Curves.easeInOut),
     );
+    _fabAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fabController, curve: Curves.elasticOut),
+    );
 
     _searchBarController.forward();
     _loadTours();
     _loadFilterOptions();
     _scrollController.addListener(_onScroll);
+
+    // Show FAB after initial load
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        setState(() {
+          _showFAB = true;
+        });
+        _fabController.forward();
+      }
+    });
   }
 
   @override
   void dispose() {
     _searchBarController.dispose();
     _filterController.dispose();
+    _fabController.dispose();
     _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -238,8 +260,10 @@ class _TourListScreenState extends State<TourListScreen>
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth > 900;
-    final isTablet = screenWidth > 600 && screenWidth <= 900;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isDesktop = screenWidth > 1024;
+    final isTablet = screenWidth > 600 && screenWidth <= 1024;
+    final isMobile = screenWidth <= 600;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -255,28 +279,28 @@ class _TourListScreenState extends State<TourListScreen>
           controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            // Search section
+            // Search section - improved for mobile
             SliverToBoxAdapter(
               child: FadeTransition(
                 opacity: _searchBarAnimation,
                 child: Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(isMobile ? 12 : 16),
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  child: _buildSearchAndFilters(context),
+                  child: _buildMobileSearchAndFilters(context),
                 ),
               ),
             ),
 
-            // Filters panel
+            // Filters panel - mobile optimized
             if (_showFilters)
               SliverToBoxAdapter(
                 child: AnimatedBuilder(
@@ -286,43 +310,62 @@ class _TourListScreenState extends State<TourListScreen>
                       offset: Offset(0, -20 * (1 - _filterAnimation.value)),
                       child: Opacity(
                         opacity: _filterAnimation.value,
-                        child: _buildFiltersPanel(),
+                        child: _buildMobileFiltersPanel(),
                       ),
                     );
                   },
                 ),
               ),
 
-            // Results header
+            // Results header - more compact on mobile
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: EdgeInsets.fromLTRB(
+                  isMobile ? 12 : 16,
+                  isMobile ? 12 : 16,
+                  isMobile ? 12 : 16,
+                  isMobile ? 8 : 8,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      _isLoading
-                          ? 'Loading experiences...'
-                          : '${_totalCount} experiences found',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface.withOpacity(0.8),
+                    Expanded(
+                      child: Text(
+                        _isLoading
+                            ? 'Finding experiences...'
+                            : _totalCount == 1
+                            ? '1 experience found'
+                            : '$_totalCount experiences found',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurface.withOpacity(0.8),
+                          fontSize: isMobile ? 14 : 16,
+                        ),
                       ),
                     ),
                     if (_tours.isNotEmpty && !_isLoading)
-                      IconButton(
-                        onPressed: _toggleFilters,
-                        icon: AnimatedRotation(
-                          turns: _showFilters ? 0.5 : 0,
-                          duration: const Duration(milliseconds: 300),
-                          child: const Icon(Icons.tune_rounded),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(
+                            isMobile ? 8 : 10,
+                          ),
                         ),
-                        iconSize: 20,
-                        color: colorScheme.primary,
-                        tooltip: 'Filter & Sort',
-                        style: IconButton.styleFrom(
-                          backgroundColor: colorScheme.primary.withOpacity(0.1),
-                          padding: const EdgeInsets.all(8),
+                        child: IconButton(
+                          onPressed: _toggleFilters,
+                          icon: AnimatedRotation(
+                            turns: _showFilters ? 0.5 : 0,
+                            duration: const Duration(milliseconds: 300),
+                            child: Icon(
+                              Icons.tune_rounded,
+                              size: isMobile ? 20 : 22,
+                            ),
+                          ),
+                          color: colorScheme.primary,
+                          tooltip: 'Filter & Sort',
+                          padding: EdgeInsets.all(isMobile ? 8 : 10),
                         ),
                       ),
                   ],
@@ -330,7 +373,7 @@ class _TourListScreenState extends State<TourListScreen>
               ),
             ),
 
-            // Tours grid/list
+            // Tours grid/list - optimized for mobile
             if (_isLoading && _tours.isEmpty)
               SliverFillRemaining(child: _buildLoadingState())
             else if (_errorMessage != null)
@@ -339,35 +382,71 @@ class _TourListScreenState extends State<TourListScreen>
               SliverFillRemaining(child: _buildEmptyState())
             else
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                padding: EdgeInsets.fromLTRB(
+                  isMobile ? 12 : 16,
+                  0,
+                  isMobile ? 12 : 16,
+                  isMobile ? 12 : 16,
+                ),
                 sliver: SliverGrid(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: isDesktop ? 3 : (isTablet ? 2 : 1),
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: isDesktop ? 0.8 : (isTablet ? 0.85 : 1.1),
+                    crossAxisCount: isMobile ? 1 : (isTablet ? 2 : 3),
+                    crossAxisSpacing: isMobile ? 0 : 16,
+                    mainAxisSpacing: isMobile ? 16 : 16,
+                    childAspectRatio: _calculateAspectRatio(isMobile, isTablet),
                   ),
                   delegate: SliverChildBuilderDelegate((context, index) {
                     if (index < _tours.length) {
-                      return _buildTourCard(_tours[index]);
+                      return _buildMobileTourCard(_tours[index], isMobile);
                     } else if (_isLoadingMore) {
-                      return _buildLoadingMoreCard();
+                      return _buildLoadingMoreCard(isMobile);
                     }
                     return null;
                   }, childCount: _tours.length + (_isLoadingMore ? 1 : 0)),
                 ),
               ),
+
+            // Bottom spacing for mobile
+            SliverToBoxAdapter(child: SizedBox(height: isMobile ? 80 : 40)),
           ],
         ),
       ),
+      floatingActionButton:
+          _showFAB
+              ? ScaleTransition(
+                scale: _fabAnimation,
+                child: FloatingActionButton.extended(
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    _scrollController.animateTo(
+                      0,
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeOutCubic,
+                    );
+                  },
+                  icon: const Icon(Icons.keyboard_arrow_up_rounded),
+                  label: const Text('Top'),
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
+                ),
+              )
+              : null,
     );
+  }
+
+  double _calculateAspectRatio(bool isMobile, bool isTablet) {
+    if (isMobile) return 1.2;
+    if (isTablet) return 0.9;
+    return 0.85;
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isMobile = MediaQuery.of(context).size.width <= 600;
 
     return AppBar(
       elevation: 0,
+      scrolledUnderElevation: 2,
       backgroundColor: colorScheme.primary,
       foregroundColor: colorScheme.onPrimary,
       title: Column(
@@ -378,12 +457,14 @@ class _TourListScreenState extends State<TourListScreen>
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               color: colorScheme.onPrimary,
               fontWeight: FontWeight.bold,
+              fontSize: isMobile ? 24 : 28,
             ),
           ),
           Text(
             'Amazing experiences await',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: colorScheme.onPrimary.withOpacity(0.9),
+              fontSize: isMobile ? 13 : 14,
             ),
           ),
         ],
@@ -399,6 +480,7 @@ class _TourListScreenState extends State<TourListScreen>
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                margin: EdgeInsets.all(isMobile ? 12 : 16),
               ),
             );
           },
@@ -412,23 +494,25 @@ class _TourListScreenState extends State<TourListScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.9)],
+            colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildSearchAndFilters(BuildContext context) {
+  Widget _buildMobileSearchAndFilters(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isMobile = MediaQuery.of(context).size.width <= 600;
 
     return Column(
       children: [
-        // Search bar
+        // Search bar - mobile optimized
         Container(
+          height: isMobile ? 52 : 56,
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(isMobile ? 14 : 16),
             border: Border.all(
               color:
                   _isSearchFocused
@@ -436,6 +520,16 @@ class _TourListScreenState extends State<TourListScreen>
                       : colorScheme.outline.withOpacity(0.2),
               width: _isSearchFocused ? 2 : 1,
             ),
+            boxShadow:
+                _isSearchFocused
+                    ? [
+                      BoxShadow(
+                        color: colorScheme.primary.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                    : null,
           ),
           child: Focus(
             onFocusChange: (hasFocus) {
@@ -446,21 +540,31 @@ class _TourListScreenState extends State<TourListScreen>
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Where do you want to go?',
+                hintText:
+                    isMobile
+                        ? 'Search experiences...'
+                        : 'Where do you want to go?',
                 hintStyle: TextStyle(
                   color: colorScheme.onSurface.withOpacity(0.6),
+                  fontSize: isMobile ? 15 : 16,
                 ),
-                prefixIcon: Icon(
-                  Icons.search_rounded,
-                  color:
-                      _isSearchFocused
-                          ? colorScheme.primary
-                          : colorScheme.outline,
+                prefixIcon: Container(
+                  width: isMobile ? 45 : 50,
+                  height: isMobile ? 45 : 50,
+                  alignment: Alignment.center,
+                  child: Icon(
+                    Icons.search_rounded,
+                    color:
+                        _isSearchFocused
+                            ? colorScheme.primary
+                            : colorScheme.outline,
+                    size: isMobile ? 22 : 24,
+                  ),
                 ),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 16 : 20,
+                  vertical: isMobile ? 14 : 16,
                 ),
                 suffixIcon:
                     _searchController.text.isNotEmpty
@@ -468,12 +572,17 @@ class _TourListScreenState extends State<TourListScreen>
                           onPressed: () {
                             _searchController.clear();
                             _loadTours(isRefresh: true);
+                            setState(() {});
                           },
-                          icon: const Icon(Icons.clear_rounded),
+                          icon: Icon(
+                            Icons.clear_rounded,
+                            size: isMobile ? 20 : 22,
+                          ),
                           color: colorScheme.outline,
                         )
                         : null,
               ),
+              style: TextStyle(fontSize: isMobile ? 15 : 16),
               onSubmitted: (_) => _loadTours(isRefresh: true),
               onChanged: (value) {
                 setState(() {});
@@ -485,34 +594,36 @@ class _TourListScreenState extends State<TourListScreen>
           ),
         ),
 
-        // Quick filters
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 40,
+        // Quick filters - mobile optimized
+        const SizedBox(height: 12),
+        Container(
+          height: isMobile ? 36 : 40,
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
               _buildQuickFilter('All', _selectedCategory == null, () {
                 setState(() => _selectedCategory = null);
                 _loadTours(isRefresh: true);
-              }),
-              const SizedBox(width: 8),
-              ..._categories
-                  .take(4)
-                  .map(
-                    (category) => Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: _buildQuickFilter(
-                        category,
-                        _selectedCategory == category,
-                        () {
-                          setState(() => _selectedCategory = category);
-                          _loadTours(isRefresh: true);
-                        },
-                      ),
-                    ),
-                  ),
-              _buildMoreFiltersButton(),
+              }, isMobile),
+              ...(_categories.isNotEmpty
+                  ? _categories
+                      .take(isMobile ? 3 : 4)
+                      .map(
+                        (category) => Padding(
+                          padding: EdgeInsets.only(right: isMobile ? 6 : 8),
+                          child: _buildQuickFilter(
+                            category,
+                            _selectedCategory == category,
+                            () {
+                              setState(() => _selectedCategory = category);
+                              _loadTours(isRefresh: true);
+                            },
+                            isMobile,
+                          ),
+                        ),
+                      )
+                  : []),
+              _buildMoreFiltersButton(isMobile),
             ],
           ),
         ),
@@ -520,69 +631,102 @@ class _TourListScreenState extends State<TourListScreen>
     );
   }
 
-  Widget _buildQuickFilter(String label, bool isSelected, VoidCallback onTap) {
+  Widget _buildQuickFilter(
+    String label,
+    bool isSelected,
+    VoidCallback onTap,
+    bool isMobile,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? colorScheme.primary : colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color:
-                isSelected
-                    ? colorScheme.primary
-                    : colorScheme.outline.withOpacity(0.3),
+    return Padding(
+      padding: EdgeInsets.only(right: isMobile ? 6 : 8),
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 12 : 16,
+            vertical: isMobile ? 6 : 8,
           ),
-          boxShadow:
-              isSelected
-                  ? [
-                    BoxShadow(
-                      color: colorScheme.primary.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                  : null,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            fontSize: 14,
+          decoration: BoxDecoration(
+            color: isSelected ? colorScheme.primary : colorScheme.surface,
+            borderRadius: BorderRadius.circular(isMobile ? 18 : 20),
+            border: Border.all(
+              color:
+                  isSelected
+                      ? colorScheme.primary
+                      : colorScheme.outline.withOpacity(0.3),
+              width: 1,
+            ),
+            boxShadow:
+                isSelected
+                    ? [
+                      BoxShadow(
+                        color: colorScheme.primary.withOpacity(0.2),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                    : null,
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              fontSize: isMobile ? 13 : 14,
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildMoreFiltersButton() {
+  Widget _buildMoreFiltersButton(bool isMobile) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return GestureDetector(
-      onTap: _toggleFilters,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        _toggleFilters();
+      },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 12 : 16,
+          vertical: isMobile ? 6 : 8,
+        ),
         decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
+          color:
+              _showFilters
+                  ? colorScheme.primary.withOpacity(0.1)
+                  : colorScheme.surface,
+          borderRadius: BorderRadius.circular(isMobile ? 18 : 20),
+          border: Border.all(
+            color:
+                _showFilters
+                    ? colorScheme.primary.withOpacity(0.5)
+                    : colorScheme.outline.withOpacity(0.3),
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.tune_rounded, size: 16, color: colorScheme.primary),
-            const SizedBox(width: 4),
+            Icon(
+              Icons.tune_rounded,
+              size: isMobile ? 14 : 16,
+              color: colorScheme.primary,
+            ),
+            SizedBox(width: isMobile ? 3 : 4),
             Text(
               'More',
               style: TextStyle(
                 color: colorScheme.primary,
                 fontWeight: FontWeight.w500,
-                fontSize: 14,
+                fontSize: isMobile ? 13 : 14,
               ),
             ),
           ],
@@ -591,107 +735,203 @@ class _TourListScreenState extends State<TourListScreen>
     );
   }
 
-  Widget _buildFiltersPanel() {
+  Widget _buildMobileFiltersPanel() {
     final colorScheme = Theme.of(context).colorScheme;
+    final isMobile = MediaQuery.of(context).size.width <= 600;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      padding: const EdgeInsets.all(20),
+      margin: EdgeInsets.fromLTRB(
+        isMobile ? 12 : 16,
+        0,
+        isMobile ? 12 : 16,
+        isMobile ? 12 : 16,
+      ),
+      padding: EdgeInsets.all(isMobile ? 16 : 20),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(isMobile ? 16 : 20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Filters & Sort',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: isMobile ? 18 : 20,
+                ),
               ),
               Row(
                 children: [
                   TextButton.icon(
                     onPressed: _clearFilters,
-                    icon: const Icon(Icons.clear_all_rounded, size: 18),
-                    label: const Text('Clear'),
+                    icon: Icon(
+                      Icons.clear_all_rounded,
+                      size: isMobile ? 16 : 18,
+                    ),
+                    label: Text(
+                      'Clear',
+                      style: TextStyle(fontSize: isMobile ? 13 : 14),
+                    ),
                     style: TextButton.styleFrom(
                       foregroundColor: colorScheme.outline,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 8 : 12,
+                        vertical: isMobile ? 4 : 8,
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
+                  SizedBox(width: isMobile ? 4 : 8),
+                  FilledButton.icon(
                     onPressed: _applyFilters,
-                    icon: const Icon(Icons.check_rounded, size: 18),
-                    label: const Text('Apply'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: colorScheme.primary,
-                      backgroundColor: colorScheme.primary.withOpacity(0.1),
+                    icon: Icon(Icons.check_rounded, size: isMobile ? 16 : 18),
+                    label: Text(
+                      'Apply',
+                      style: TextStyle(fontSize: isMobile ? 13 : 14),
+                    ),
+                    style: FilledButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 12 : 16,
+                        vertical: isMobile ? 4 : 8,
+                      ),
                     ),
                   ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: isMobile ? 16 : 24),
 
-          // Location
-          _buildFilterSection(
-            'Location',
-            DropdownButton<String>(
-              value: _selectedLocation,
-              hint: const Text('Any location'),
-              isExpanded: true,
-              underline: const SizedBox(),
-              items: [
-                const DropdownMenuItem<String>(
-                  value: null,
-                  child: Text('Any location'),
+          // Location and Activity in a row on mobile
+          if (isMobile) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: _buildMobileFilterSection(
+                    'Location',
+                    DropdownButton<String>(
+                      value: _selectedLocation,
+                      hint: const Text('Any location'),
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colorScheme.onSurface,
+                      ),
+                      items: [
+                        const DropdownMenuItem<String>(
+                          value: null,
+                          child: Text('Any location'),
+                        ),
+                        ..._locations.map(
+                          (location) => DropdownMenuItem<String>(
+                            value: location,
+                            child: Text(location),
+                          ),
+                        ),
+                      ],
+                      onChanged:
+                          (value) => setState(() => _selectedLocation = value),
+                    ),
+                    isMobile,
+                  ),
                 ),
-                ..._locations.map(
-                  (location) => DropdownMenuItem<String>(
-                    value: location,
-                    child: Text(location),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildMobileFilterSection(
+                    'Activity',
+                    DropdownButton<String>(
+                      value: _selectedActivityType,
+                      hint: const Text('Any activity'),
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colorScheme.onSurface,
+                      ),
+                      items: [
+                        const DropdownMenuItem<String>(
+                          value: null,
+                          child: Text('Any activity'),
+                        ),
+                        ...['Indoor', 'Outdoor', 'Mixed'].map(
+                          (type) => DropdownMenuItem<String>(
+                            value: type,
+                            child: Text(type),
+                          ),
+                        ),
+                      ],
+                      onChanged:
+                          (value) =>
+                              setState(() => _selectedActivityType = value),
+                    ),
+                    isMobile,
                   ),
                 ),
               ],
-              onChanged: (value) => setState(() => _selectedLocation = value),
             ),
-          ),
+          ] else ...[
+            // Desktop/tablet layout
+            _buildFilterSection(
+              'Location',
+              DropdownButton<String>(
+                value: _selectedLocation,
+                hint: const Text('Any location'),
+                isExpanded: true,
+                underline: const SizedBox(),
+                items: [
+                  const DropdownMenuItem<String>(
+                    value: null,
+                    child: Text('Any location'),
+                  ),
+                  ..._locations.map(
+                    (location) => DropdownMenuItem<String>(
+                      value: location,
+                      child: Text(location),
+                    ),
+                  ),
+                ],
+                onChanged: (value) => setState(() => _selectedLocation = value),
+              ),
+              isMobile,
+            ),
 
-          // Activity Type
-          _buildFilterSection(
-            'Activity Type',
-            DropdownButton<String>(
-              value: _selectedActivityType,
-              hint: const Text('Any activity'),
-              isExpanded: true,
-              underline: const SizedBox(),
-              items: [
-                const DropdownMenuItem<String>(
-                  value: null,
-                  child: Text('Any activity'),
-                ),
-                ...TourService.activityTypes.map(
-                  (type) =>
-                      DropdownMenuItem<String>(value: type, child: Text(type)),
-                ),
-              ],
-              onChanged:
-                  (value) => setState(() => _selectedActivityType = value),
+            _buildFilterSection(
+              'Activity Type',
+              DropdownButton<String>(
+                value: _selectedActivityType,
+                hint: const Text('Any activity'),
+                isExpanded: true,
+                underline: const SizedBox(),
+                items: [
+                  const DropdownMenuItem<String>(
+                    value: null,
+                    child: Text('Any activity'),
+                  ),
+                  ...['Indoor', 'Outdoor', 'Mixed'].map(
+                    (type) => DropdownMenuItem<String>(
+                      value: type,
+                      child: Text(type),
+                    ),
+                  ),
+                ],
+                onChanged:
+                    (value) => setState(() => _selectedActivityType = value),
+              ),
+              isMobile,
             ),
-          ),
+          ],
 
           // Difficulty
           _buildFilterSection(
@@ -701,12 +941,16 @@ class _TourListScreenState extends State<TourListScreen>
               hint: const Text('Any difficulty'),
               isExpanded: true,
               underline: const SizedBox(),
+              style: TextStyle(
+                fontSize: isMobile ? 14 : 16,
+                color: colorScheme.onSurface,
+              ),
               items: [
                 const DropdownMenuItem<String>(
                   value: null,
                   child: Text('Any difficulty'),
                 ),
-                ...TourService.difficultyLevels.map(
+                ...['Easy', 'Moderate', 'Challenging'].map(
                   (level) => DropdownMenuItem<String>(
                     value: level,
                     child: Text(level),
@@ -715,56 +959,92 @@ class _TourListScreenState extends State<TourListScreen>
               ],
               onChanged: (value) => setState(() => _selectedDifficulty = value),
             ),
+            isMobile,
           ),
 
           // Price Range
           _buildFilterSection(
-            'Price Range',
-            Row(
+            'Price Range (\$)',
+            Column(
               children: [
-                Expanded(
-                  child: _buildNumberField(
-                    'Min',
-                    _minPrice?.toStringAsFixed(0) ?? '',
-                    (value) => _minPrice = double.tryParse(value),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildMobileNumberField(
+                        'Min',
+                        _minPrice?.toStringAsFixed(0) ?? '',
+                        (value) => _minPrice = double.tryParse(value),
+                        isMobile,
+                      ),
+                    ),
+                    SizedBox(width: isMobile ? 8 : 16),
+                    Expanded(
+                      child: _buildMobileNumberField(
+                        'Max',
+                        _maxPrice?.toStringAsFixed(0) ?? '',
+                        (value) => _maxPrice = double.tryParse(value),
+                        isMobile,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildNumberField(
-                    'Max',
-                    _maxPrice?.toStringAsFixed(0) ?? '',
-                    (value) => _maxPrice = double.tryParse(value),
+                if (isMobile && (_minPrice != null || _maxPrice != null)) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Range: ${_minPrice?.toStringAsFixed(0) ?? '0'} - ${_maxPrice?.toStringAsFixed(0) ?? '∞'}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
+            isMobile,
           ),
 
           // Duration
           _buildFilterSection(
             'Duration (Days)',
-            Row(
+            Column(
               children: [
-                Expanded(
-                  child: _buildNumberField(
-                    'Min',
-                    _minDuration?.toString() ?? '',
-                    (value) => _minDuration = int.tryParse(value),
-                    isInt: true,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildMobileNumberField(
+                        'Min',
+                        _minDuration?.toString() ?? '',
+                        (value) => _minDuration = int.tryParse(value),
+                        isMobile,
+                        isInt: true,
+                      ),
+                    ),
+                    SizedBox(width: isMobile ? 8 : 16),
+                    Expanded(
+                      child: _buildMobileNumberField(
+                        'Max',
+                        _maxDuration?.toString() ?? '',
+                        (value) => _maxDuration = int.tryParse(value),
+                        isMobile,
+                        isInt: true,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildNumberField(
-                    'Max',
-                    _maxDuration?.toString() ?? '',
-                    (value) => _maxDuration = int.tryParse(value),
-                    isInt: true,
+                if (isMobile &&
+                    (_minDuration != null || _maxDuration != null)) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Range: ${_minDuration ?? 'Any'} - ${_maxDuration ?? 'Any'} days',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
+            isMobile,
           ),
 
           // Sort
@@ -776,6 +1056,10 @@ class _TourListScreenState extends State<TourListScreen>
                   value: _sortBy,
                   isExpanded: true,
                   underline: const SizedBox(),
+                  style: TextStyle(
+                    fontSize: isMobile ? 14 : 16,
+                    color: colorScheme.onSurface,
+                  ),
                   items: const [
                     DropdownMenuItem(
                       value: 'created',
@@ -791,31 +1075,45 @@ class _TourListScreenState extends State<TourListScreen>
                   ],
                   onChanged: (value) => setState(() => _sortBy = value!),
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _sortAscending,
-                      onChanged:
-                          (value) => setState(() => _sortAscending = value!),
+                SizedBox(height: isMobile ? 6 : 8),
+                InkWell(
+                  onTap: () => setState(() => _sortAscending = !_sortAscending),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Checkbox(
+                          value: _sortAscending,
+                          onChanged:
+                              (value) =>
+                                  setState(() => _sortAscending = value!),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        Text(
+                          'Ascending order',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontSize: isMobile ? 14 : 16),
+                        ),
+                      ],
                     ),
-                    Text(
-                      'Ascending order',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
+            isMobile,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFilterSection(String title, Widget child) {
+  Widget _buildFilterSection(String title, Widget child, bool isMobile) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: EdgeInsets.only(bottom: isMobile ? 16 : 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -823,17 +1121,19 @@ class _TourListScreenState extends State<TourListScreen>
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+              color: colorScheme.onSurface.withOpacity(0.8),
+              fontSize: isMobile ? 14 : 16,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: isMobile ? 6 : 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 10 : 12,
+              vertical: isMobile ? 2 : 4,
+            ),
             decoration: BoxDecoration(
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-              ),
-              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
+              borderRadius: BorderRadius.circular(isMobile ? 10 : 12),
             ),
             child: child,
           ),
@@ -842,10 +1142,38 @@ class _TourListScreenState extends State<TourListScreen>
     );
   }
 
-  Widget _buildNumberField(
+  Widget _buildMobileFilterSection(String title, Widget child, bool isMobile) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface.withOpacity(0.8),
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+          decoration: BoxDecoration(
+            border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: child,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileNumberField(
     String hint,
     String value,
-    Function(String) onChanged, {
+    Function(String) onChanged,
+    bool isMobile, {
     bool isInt = false,
   }) {
     return TextField(
@@ -854,10 +1182,12 @@ class _TourListScreenState extends State<TourListScreen>
           isInt
               ? TextInputType.number
               : const TextInputType.numberWithOptions(decimal: true),
+      style: TextStyle(fontSize: isMobile ? 14 : 16),
       decoration: InputDecoration(
         hintText: hint,
+        hintStyle: TextStyle(fontSize: isMobile ? 14 : 16),
         border: InputBorder.none,
-        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+        contentPadding: EdgeInsets.symmetric(vertical: isMobile ? 6 : 8),
       ),
       onChanged: onChanged,
     );
@@ -865,17 +1195,40 @@ class _TourListScreenState extends State<TourListScreen>
 
   Widget _buildLoadingState() {
     final colorScheme = Theme.of(context).colorScheme;
+    final isMobile = MediaQuery.of(context).size.width <= 600;
 
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(color: colorScheme.primary, strokeWidth: 3),
-          const SizedBox(height: 24),
+          Container(
+            width: isMobile ? 60 : 80,
+            height: isMobile ? 60 : 80,
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: CircularProgressIndicator(
+                color: colorScheme.primary,
+                strokeWidth: 3,
+              ),
+            ),
+          ),
+          SizedBox(height: isMobile ? 20 : 24),
           Text(
             'Finding amazing experiences...',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: colorScheme.onSurface.withOpacity(0.7),
+              fontSize: isMobile ? 16 : 18,
+            ),
+          ),
+          SizedBox(height: isMobile ? 8 : 12),
+          Text(
+            'This won\'t take long',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurface.withOpacity(0.5),
+              fontSize: isMobile ? 13 : 14,
             ),
           ),
         ],
@@ -885,45 +1238,54 @@ class _TourListScreenState extends State<TourListScreen>
 
   Widget _buildErrorState() {
     final colorScheme = Theme.of(context).colorScheme;
+    final isMobile = MediaQuery.of(context).size.width <= 600;
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(isMobile ? 24 : 32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(isMobile ? 20 : 24),
               decoration: BoxDecoration(
                 color: colorScheme.errorContainer,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.error_outline_rounded,
-                size: 64,
+                size: isMobile ? 48 : 64,
                 color: colorScheme.error,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: isMobile ? 20 : 24),
             Text(
               'Oops! Something went wrong',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: isMobile ? 18 : 20,
+              ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: isMobile ? 10 : 12),
             Text(
-              _errorMessage ?? 'Failed to load tours',
+              _errorMessage ?? 'Failed to load experiences',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: colorScheme.onSurface.withOpacity(0.7),
+                fontSize: isMobile ? 14 : 16,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: isMobile ? 24 : 32),
             FilledButton.icon(
               onPressed: () => _loadTours(isRefresh: true),
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try Again'),
+              style: FilledButton.styleFrom(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 20 : 24,
+                  vertical: isMobile ? 12 : 16,
+                ),
+              ),
             ),
           ],
         ),
@@ -933,45 +1295,54 @@ class _TourListScreenState extends State<TourListScreen>
 
   Widget _buildEmptyState() {
     final colorScheme = Theme.of(context).colorScheme;
+    final isMobile = MediaQuery.of(context).size.width <= 600;
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(isMobile ? 24 : 32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(isMobile ? 20 : 24),
               decoration: BoxDecoration(
                 color: colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(isMobile ? 16 : 20),
               ),
               child: Icon(
                 Icons.explore_off_rounded,
-                size: 64,
+                size: isMobile ? 48 : 64,
                 color: colorScheme.outline,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: isMobile ? 20 : 24),
             Text(
               'No experiences found',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: isMobile ? 18 : 20,
+              ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: isMobile ? 10 : 12),
             Text(
               'Try adjusting your search criteria or explore different categories',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: colorScheme.onSurface.withOpacity(0.7),
+                fontSize: isMobile ? 14 : 16,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: isMobile ? 24 : 32),
             OutlinedButton.icon(
               onPressed: _clearFilters,
               icon: const Icon(Icons.clear_all_rounded),
               label: const Text('Clear Filters'),
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 20 : 24,
+                  vertical: isMobile ? 12 : 16,
+                ),
+              ),
             ),
           ],
         ),
@@ -979,12 +1350,13 @@ class _TourListScreenState extends State<TourListScreen>
     );
   }
 
-  Widget _buildLoadingMoreCard() {
+  Widget _buildLoadingMoreCard(bool isMobile) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
+      margin: EdgeInsets.zero,
       child: Container(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(isMobile ? 24 : 32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -992,11 +1364,12 @@ class _TourListScreenState extends State<TourListScreen>
               color: colorScheme.primary,
               strokeWidth: 2,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: isMobile ? 12 : 16),
             Text(
               'Loading more...',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface.withOpacity(0.7),
+                fontSize: isMobile ? 13 : 14,
               ),
             ),
           ],
@@ -1005,16 +1378,19 @@ class _TourListScreenState extends State<TourListScreen>
     );
   }
 
-  Widget _buildTourCard(Tour tour) {
+  Widget _buildMobileTourCard(Tour tour, bool isMobile) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Hero(
       tag: 'tour_${tour.id}',
       child: Card(
+        margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
-        elevation: 4,
+        elevation: isMobile ? 3 : 4,
         shadowColor: Colors.black.withOpacity(0.1),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(isMobile ? 14 : 16),
+        ),
         child: InkWell(
           onTap: () {
             HapticFeedback.lightImpact();
@@ -1029,7 +1405,18 @@ class _TourListScreenState extends State<TourListScreen>
                   secondaryAnimation,
                   child,
                 ) {
-                  return FadeTransition(opacity: animation, child: child);
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: animation.drive(
+                        Tween(
+                          begin: const Offset(0.03, 0.03),
+                          end: Offset.zero,
+                        ).chain(CurveTween(curve: Curves.easeOut)),
+                      ),
+                      child: child,
+                    ),
+                  );
                 },
                 transitionDuration: const Duration(milliseconds: 300),
               ),
@@ -1042,7 +1429,7 @@ class _TourListScreenState extends State<TourListScreen>
               Stack(
                 children: [
                   Container(
-                    height: 200,
+                    height: isMobile ? 180 : 200,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: colorScheme.surfaceContainer,
@@ -1055,7 +1442,7 @@ class _TourListScreenState extends State<TourListScreen>
                               fit: BoxFit.cover,
                               errorBuilder:
                                   (context, error, stackTrace) =>
-                                      _buildImagePlaceholder(),
+                                      _buildImagePlaceholder(isMobile),
                               loadingBuilder: (
                                 context,
                                 child,
@@ -1089,28 +1476,54 @@ class _TourListScreenState extends State<TourListScreen>
                                 );
                               },
                             )
-                            : _buildImagePlaceholder(),
+                            : _buildImagePlaceholder(isMobile),
+                  ),
+
+                  // Gradient overlay
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.3),
+                          ],
+                          stops: const [0.6, 1.0],
+                        ),
+                      ),
+                    ),
                   ),
 
                   // Discount badge
                   if (tour.hasDiscount)
                     Positioned(
-                      top: 12,
-                      right: 12,
+                      top: isMobile ? 10 : 12,
+                      right: isMobile ? 10 : 12,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isMobile ? 6 : 8,
+                          vertical: isMobile ? 3 : 4,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.red,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(
+                            isMobile ? 10 : 12,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Text(
                           '${tour.discountPercentage}% OFF',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
+                            fontSize: isMobile ? 10 : 12,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -1120,32 +1533,41 @@ class _TourListScreenState extends State<TourListScreen>
                   // Rating badge
                   if (tour.averageRating != null)
                     Positioned(
-                      bottom: 12,
-                      left: 12,
+                      bottom: isMobile ? 10 : 12,
+                      left: isMobile ? 10 : 12,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isMobile ? 6 : 8,
+                          vertical: isMobile ? 3 : 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.black.withOpacity(0.75),
+                          borderRadius: BorderRadius.circular(
+                            isMobile ? 10 : 12,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.star_rounded,
                               color: Colors.amber,
-                              size: 14,
+                              size: isMobile ? 12 : 14,
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: isMobile ? 2 : 4),
                             Text(
                               tour.averageRating!.toStringAsFixed(1),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: isMobile ? 10 : 12,
                                 fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              ' (${tour.reviewCount})',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
+                                fontSize: isMobile ? 9 : 11,
                               ),
                             ),
                           ],
@@ -1158,7 +1580,7 @@ class _TourListScreenState extends State<TourListScreen>
               // Content section
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(isMobile ? 12 : 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1170,21 +1592,22 @@ class _TourListScreenState extends State<TourListScreen>
                         ).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           height: 1.2,
+                          fontSize: isMobile ? 15 : 16,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: isMobile ? 6 : 8),
 
                       // Location
                       Row(
                         children: [
                           Icon(
                             Icons.location_on_rounded,
-                            size: 16,
+                            size: isMobile ? 14 : 16,
                             color: colorScheme.primary,
                           ),
-                          const SizedBox(width: 4),
+                          SizedBox(width: isMobile ? 3 : 4),
                           Expanded(
                             child: Text(
                               tour.location,
@@ -1192,6 +1615,7 @@ class _TourListScreenState extends State<TourListScreen>
                                 context,
                               ).textTheme.bodySmall?.copyWith(
                                 color: colorScheme.onSurface.withOpacity(0.7),
+                                fontSize: isMobile ? 12 : 13,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -1199,24 +1623,26 @@ class _TourListScreenState extends State<TourListScreen>
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: isMobile ? 8 : 12),
 
                       // Details chips
                       Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
+                        spacing: isMobile ? 4 : 6,
+                        runSpacing: isMobile ? 4 : 6,
                         children: [
                           _buildDetailChip(
                             icon: Icons.schedule_rounded,
                             label: tour.durationText,
                             backgroundColor: colorScheme.primaryContainer,
                             textColor: colorScheme.onPrimaryContainer,
+                            isMobile: isMobile,
                           ),
                           _buildDetailChip(
                             icon: tour.activityIcon,
                             label: tour.activityType,
                             backgroundColor: colorScheme.secondaryContainer,
                             textColor: colorScheme.onSecondaryContainer,
+                            isMobile: isMobile,
                           ),
                           _buildDetailChip(
                             icon: Icons.speed_rounded,
@@ -1225,6 +1651,7 @@ class _TourListScreenState extends State<TourListScreen>
                               0.1,
                             ),
                             textColor: tour.difficultyColor,
+                            isMobile: isMobile,
                           ),
                         ],
                       ),
@@ -1236,32 +1663,37 @@ class _TourListScreenState extends State<TourListScreen>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (tour.hasDiscount)
-                                Text(
-                                  tour.originalPrice,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall?.copyWith(
-                                    decoration: TextDecoration.lineThrough,
-                                    color: colorScheme.onSurface.withOpacity(
-                                      0.6,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (tour.hasDiscount)
+                                  Text(
+                                    tour.originalPrice,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall?.copyWith(
+                                      decoration: TextDecoration.lineThrough,
+                                      color: colorScheme.onSurface.withOpacity(
+                                        0.6,
+                                      ),
+                                      fontSize: isMobile ? 11 : 12,
                                     ),
                                   ),
+                                Text(
+                                  tour.displayPrice,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleLarge?.copyWith(
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: isMobile ? 18 : 20,
+                                  ),
                                 ),
-                              Text(
-                                tour.displayPrice,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.titleLarge?.copyWith(
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          SizedBox(width: isMobile ? 8 : 12),
                           FilledButton(
                             onPressed: () {
                               HapticFeedback.lightImpact();
@@ -1291,14 +1723,22 @@ class _TourListScreenState extends State<TourListScreen>
                               );
                             },
                             style: FilledButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isMobile ? 14 : 16,
+                                vertical: isMobile ? 6 : 8,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  isMobile ? 10 : 12,
+                                ),
                               ),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Book Now',
-                              style: TextStyle(fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: isMobile ? 13 : 14,
+                              ),
                             ),
                           ),
                         ],
@@ -1314,7 +1754,7 @@ class _TourListScreenState extends State<TourListScreen>
     );
   }
 
-  Widget _buildImagePlaceholder() {
+  Widget _buildImagePlaceholder(bool isMobile) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -1332,11 +1772,18 @@ class _TourListScreenState extends State<TourListScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.landscape_rounded, size: 48, color: colorScheme.outline),
-            const SizedBox(height: 8),
+            Icon(
+              Icons.landscape_rounded,
+              size: isMobile ? 40 : 48,
+              color: colorScheme.outline,
+            ),
+            SizedBox(height: isMobile ? 6 : 8),
             Text(
               'Image not available',
-              style: TextStyle(color: colorScheme.outline, fontSize: 12),
+              style: TextStyle(
+                color: colorScheme.outline,
+                fontSize: isMobile ? 11 : 12,
+              ),
             ),
           ],
         ),
@@ -1349,22 +1796,26 @@ class _TourListScreenState extends State<TourListScreen>
     required String label,
     required Color backgroundColor,
     required Color textColor,
+    required bool isMobile,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 6 : 8,
+        vertical: isMobile ? 2 : 4,
+      ),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(isMobile ? 6 : 8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: textColor),
-          const SizedBox(width: 4),
+          Icon(icon, size: isMobile ? 10 : 12, color: textColor),
+          SizedBox(width: isMobile ? 2 : 4),
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: isMobile ? 10 : 11,
               fontWeight: FontWeight.w500,
               color: textColor,
             ),

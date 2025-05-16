@@ -10,7 +10,7 @@ class AdminPanelScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Admin Panel'),
-        backgroundColor: colorScheme.surface, // Or use primary color
+        backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
       ),
       body: ListView(
@@ -58,6 +58,48 @@ class AdminPanelScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
+          // Card for Car Management
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ExpansionTile(
+              leading: Icon(Icons.directions_car, color: colorScheme.secondary),
+              title: Text(
+                'Car Management',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.secondary,
+                ),
+              ),
+              children: <Widget>[
+                ListTile(
+                  leading: const Icon(Icons.add_circle_outline),
+                  title: const Text('Create New Car Listing'),
+                  subtitle: const Text('Add a new car to the rental fleet.'),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/admin/create-car');
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.edit_note),
+                  title: const Text('Manage Existing Cars'),
+                  subtitle: const Text('Edit or remove current car listings.'),
+                  onTap: () {
+                    // TODO: Navigate to a screen for managing existing cars
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Manage Cars - Coming Soon!'),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
           // Card for User Management
           Card(
             elevation: 2,
@@ -65,12 +107,12 @@ class AdminPanelScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: ExpansionTile(
-              leading: Icon(Icons.group, color: colorScheme.secondary),
+              leading: Icon(Icons.group, color: colorScheme.tertiary),
               title: Text(
                 'User Management',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: colorScheme.secondary,
+                  color: colorScheme.tertiary,
                 ),
               ),
               children: <Widget>[
@@ -112,12 +154,12 @@ class AdminPanelScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: ExpansionTile(
-              leading: Icon(Icons.book_online, color: colorScheme.tertiary),
+              leading: Icon(Icons.book_online, color: colorScheme.error),
               title: Text(
                 'Booking Management',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: colorScheme.tertiary,
+                  color: colorScheme.error,
                 ),
               ),
               children: <Widget>[
@@ -152,7 +194,7 @@ class AdminPanelScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Card for Settings or Other Admin Actions
+          // Card for System Settings
           Card(
             elevation: 2,
             shape: RoundedRectangleBorder(
@@ -191,6 +233,18 @@ class AdminPanelScreen extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('App Config - Coming Soon!'),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.backup_outlined),
+                  title: const Text('Data Management'),
+                  subtitle: const Text('Backup and restore application data.'),
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Data Management - Coming Soon!'),
                       ),
                     );
                   },

@@ -303,7 +303,6 @@ extension CustomButtonExtensions on CustomButton {
     return CustomButton(
       key: key,
       onPressed: onPressed,
-      child: child,
       text: text,
       icon: icon,
       isLoading: isLoading,
@@ -314,6 +313,7 @@ extension CustomButtonExtensions on CustomButton {
       minimumSize: minimumSize,
       showLoadingText: showLoadingText,
       loadingText: loadingText,
+      child: child,
     );
   }
 
@@ -335,7 +335,6 @@ extension CustomButtonExtensions on CustomButton {
     return CustomButton(
       key: key,
       onPressed: onPressed,
-      child: child,
       text: text,
       icon: icon,
       isLoading: isLoading,
@@ -347,6 +346,7 @@ extension CustomButtonExtensions on CustomButton {
       isSecondary: true,
       showLoadingText: showLoadingText,
       loadingText: loadingText,
+      child: child,
     );
   }
 
@@ -368,7 +368,6 @@ extension CustomButtonExtensions on CustomButton {
     return CustomButton(
       key: key,
       onPressed: onPressed,
-      child: child,
       text: text,
       icon: icon,
       isLoading: isLoading,
@@ -380,6 +379,7 @@ extension CustomButtonExtensions on CustomButton {
       side: side,
       showLoadingText: showLoadingText,
       loadingText: loadingText,
+      child: child,
     );
   }
 }

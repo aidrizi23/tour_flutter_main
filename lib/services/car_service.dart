@@ -40,6 +40,50 @@ class CarService {
     'rating',
   ];
 
+  // Create new car (Admin only)
+  Future<Car> createCar(CreateCarRequest request) async {
+    try {
+      log('Creating new car: ${request.make} ${request.model}');
+
+      final response = await _apiClient.post(
+        '/cars',
+        data: request.toJson(),
+        requiresAuth: true,
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final car = Car.fromJson(data);
+        log('Successfully created car: ${car.displayName}');
+        return car;
+      } else {
+        log('Failed to create car. Status: ${response.statusCode}');
+
+        // Parse error message if available
+        try {
+          final errorData = json.decode(response.body);
+          final message = errorData['message'] ?? 'Failed to create car';
+          throw Exception(message);
+        } catch (e) {
+          throw Exception('Failed to create car');
+        }
+      }
+    } catch (e) {
+      log('Error creating car: $e');
+
+      // Handle specific error cases
+      if (e.toString().contains('401')) {
+        throw Exception('Unauthorized. Please log in as admin.');
+      } else if (e.toString().contains('403')) {
+        throw Exception('Access denied. Admin privileges required.');
+      } else if (e.toString().contains('400')) {
+        throw Exception('Invalid car data. Please check your input.');
+      }
+
+      rethrow;
+    }
+  }
+
   // Get cars with filtering and pagination
   Future<PaginatedCars> getCars({CarFilterRequest? filter}) async {
     try {
@@ -295,5 +339,87 @@ class CarService {
   // Helper method to calculate rental duration
   int calculateRentalDays(DateTime startDate, DateTime endDate) {
     return endDate.difference(startDate).inDays;
+  }
+}
+
+// Create Car Request Model
+class CreateCarRequest {
+  final String make;
+  final String model;
+  final int year;
+  final String description;
+  final double dailyRate;
+  final String category;
+  final String transmission;
+  final String fuelType;
+  final int seats;
+  final String location;
+  final String? mainImageUrl;
+  final List<CreateCarFeature> features;
+  final List<CreateCarImage> images;
+
+  CreateCarRequest({
+    required this.make,
+    required this.model,
+    required this.year,
+    required this.description,
+    required this.dailyRate,
+    required this.category,
+    required this.transmission,
+    required this.fuelType,
+    required this.seats,
+    required this.location,
+    this.mainImageUrl,
+    this.features = const [],
+    this.images = const [],
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'make': make,
+      'model': model,
+      'year': year,
+      'description': description,
+      'dailyRate': dailyRate,
+      'category': category,
+      'transmission': transmission,
+      'fuelType': fuelType,
+      'seats': seats,
+      'location': location,
+      'mainImageUrl': mainImageUrl,
+      'features': features.map((e) => e.toJson()).toList(),
+      'images': images.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
+class CreateCarFeature {
+  final String name;
+  final String? description;
+
+  CreateCarFeature({required this.name, this.description});
+
+  Map<String, dynamic> toJson() {
+    return {'name': name, 'description': description};
+  }
+}
+
+class CreateCarImage {
+  final String imageUrl;
+  final String? caption;
+  final int displayOrder;
+
+  CreateCarImage({
+    required this.imageUrl,
+    this.caption,
+    required this.displayOrder,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'imageUrl': imageUrl,
+      'caption': caption,
+      'displayOrder': displayOrder,
+    };
   }
 }
