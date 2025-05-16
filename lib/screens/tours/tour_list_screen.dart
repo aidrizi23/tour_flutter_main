@@ -338,9 +338,9 @@ class _TourListScreenState extends State<TourListScreen>
               child: Text(
                 _isLoading ? 'Loading...' : '$_totalCount tours found',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.7),
-                  fontWeight: FontWeight.w500,
-                ),
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                      fontWeight: FontWeight.w500,
+                    ),
               ),
             ),
           ),
@@ -381,9 +381,9 @@ class _TourListScreenState extends State<TourListScreen>
                         style: Theme.of(
                           context,
                         ).textTheme.headlineSmall?.copyWith(
-                          color: colorScheme.error,
-                          fontWeight: FontWeight.bold,
-                        ),
+                              color: colorScheme.error,
+                              fontWeight: FontWeight.bold,
+                            ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
@@ -421,22 +421,23 @@ class _TourListScreenState extends State<TourListScreen>
                     const SizedBox(height: 20),
                     Text(
                       'No Tours Found',
-                      style: Theme.of(context).textTheme.headlineSmall
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Try adjusting your search or filters.',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(0.7),
-                      ),
+                            color: colorScheme.onSurface.withOpacity(0.7),
+                          ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
                     if (_selectedCategory != null ||
                         _selectedLocation != null ||
-                        _searchController
-                            .text
+                        _searchController.text
                             .isNotEmpty) // Show clear filters if any filter is active
                       ElevatedButton.icon(
                         onPressed: _clearFilters,
@@ -460,10 +461,9 @@ class _TourListScreenState extends State<TourListScreen>
                   crossAxisCount: isDesktop ? 3 : (isTablet ? 2 : 1),
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio:
-                      isDesktop
-                          ? 0.9
-                          : (isTablet ? 0.85 : 0.95), // Adjusted aspect ratio
+                  childAspectRatio: isDesktop
+                      ? 0.9
+                      : (isTablet ? 0.85 : 0.95), // Adjusted aspect ratio
                 ),
                 delegate: SliverChildBuilderDelegate((context, index) {
                   if (index < _tours.length) {
@@ -503,9 +503,8 @@ class _TourListScreenState extends State<TourListScreen>
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16), // Consistent margin
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color:
-            colorScheme
-                .surfaceContainer, // Slightly different background for filters
+        color: colorScheme
+            .surfaceContainer, // Slightly different background for filters
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -524,9 +523,9 @@ class _TourListScreenState extends State<TourListScreen>
               Text(
                 'Filters',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurfaceVariant,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
               ),
               TextButton.icon(
                 onPressed: _clearFilters,
@@ -584,9 +583,9 @@ class _TourListScreenState extends State<TourListScreen>
           Text(
             'Price Range',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurfaceVariant,
-            ),
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurfaceVariant,
+                ),
           ),
           const SizedBox(height: 8),
           Row(
@@ -688,17 +687,16 @@ class _TourListScreenState extends State<TourListScreen>
         Text(
           label,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: colorScheme.onSurfaceVariant,
-          ),
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurfaceVariant,
+              ),
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color:
-                colorScheme
-                    .surfaceContainerHighest, // Slightly different background
+            color: colorScheme
+                .surfaceContainerHighest, // Slightly different background
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: colorScheme.outline.withOpacity(0.5)),
           ),
@@ -711,16 +709,15 @@ class _TourListScreenState extends State<TourListScreen>
                 color: colorScheme.primary,
               ),
               dropdownColor: colorScheme.surfaceContainerHighest,
-              items:
-                  allOptions.map((option) {
-                    return DropdownMenuItem<String>(
-                      value: option,
-                      child: Text(
-                        option ?? 'All', // Display 'All' if option is null
-                        style: TextStyle(color: colorScheme.onSurface),
-                      ),
-                    );
-                  }).toList(),
+              items: allOptions.map((option) {
+                return DropdownMenuItem<String>(
+                  value: option,
+                  child: Text(
+                    option ?? 'All', // Display 'All' if option is null
+                    style: TextStyle(color: colorScheme.onSurface),
+                  ),
+                );
+              }).toList(),
               onChanged: onChanged, // Directly use the passed onChanged
             ),
           ),
@@ -762,25 +759,24 @@ class _TourListScreenState extends State<TourListScreen>
                 children: [
                   tour.mainImageUrl != null && tour.mainImageUrl!.isNotEmpty
                       ? Image.network(
-                        tour.mainImageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder:
-                            (context, error, stackTrace) =>
-                                _buildImagePlaceholder(colorScheme),
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value:
-                                  loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                              strokeWidth: 2,
-                            ),
-                          );
-                        },
-                      )
+                          tour.mainImageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              _buildImagePlaceholder(colorScheme),
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                                strokeWidth: 2,
+                              ),
+                            );
+                          },
+                        )
                       : _buildImagePlaceholder(colorScheme),
                   // Gradient overlay for text on image
                   Container(
@@ -837,7 +833,7 @@ class _TourListScreenState extends State<TourListScreen>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.star_rounded,
                               color: Colors.amber,
                               size: 14,
@@ -912,9 +908,8 @@ class _TourListScreenState extends State<TourListScreen>
                         colorScheme: colorScheme,
                       ),
                       _buildCompactDetailChip(
-                        icon:
-                            Icons
-                                .speed_rounded, // Using a consistent icon for difficulty
+                        icon: Icons
+                            .speed_rounded, // Using a consistent icon for difficulty
                         label: tour.difficultyLevel,
                         chipColor: tour.difficultyColor.withOpacity(
                           0.15,
@@ -958,9 +953,8 @@ class _TourListScreenState extends State<TourListScreen>
                           HapticFeedback.lightImpact();
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder:
-                                  (context) =>
-                                      TourDetailsScreen(tourId: tour.id),
+                              builder: (context) =>
+                                  TourDetailsScreen(tourId: tour.id),
                             ),
                           );
                         },
@@ -973,10 +967,10 @@ class _TourListScreenState extends State<TourListScreen>
                             fontWeight: FontWeight.bold,
                           ),
                         ).copyWith(
-                          backgroundColor: MaterialStateProperty.all(
+                          backgroundColor: WidgetStateProperty.all(
                             colorScheme.primary,
                           ),
-                          foregroundColor: MaterialStateProperty.all(
+                          foregroundColor: WidgetStateProperty.all(
                             colorScheme.onPrimary,
                           ),
                         ),

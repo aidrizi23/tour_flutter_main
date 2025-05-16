@@ -67,12 +67,12 @@ class MyApp extends StatelessWidget {
         error: Colors.redAccent,
       ),
       // Define AppBar theme.
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0, // Flat app bar.
         backgroundColor: customTeal, // Teal app bar background.
         foregroundColor: Colors.white, // White text/icons on app bar.
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -104,7 +104,7 @@ class MyApp extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: customTeal, width: 2),
+          borderSide: const BorderSide(color: customTeal, width: 2),
         ),
         filled: true,
         fillColor: customTeal[50]!.withOpacity(0.5),
@@ -124,11 +124,11 @@ class MyApp extends StatelessWidget {
         backgroundColor: Colors.white,
         indicatorColor:
             customTeal[100], // Light teal for selected item indicator.
-        labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>((
-          Set<MaterialState> states,
+        labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((
+          Set<WidgetState> states,
         ) {
-          if (states.contains(MaterialState.selected)) {
-            return TextStyle(
+          if (states.contains(WidgetState.selected)) {
+            return const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: customTeal,
@@ -136,11 +136,11 @@ class MyApp extends StatelessWidget {
           }
           return TextStyle(fontSize: 12, color: customTeal[700]);
         }),
-        iconTheme: MaterialStateProperty.resolveWith<IconThemeData>((
-          Set<MaterialState> states,
+        iconTheme: WidgetStateProperty.resolveWith<IconThemeData>((
+          Set<WidgetState> states,
         ) {
-          if (states.contains(MaterialState.selected)) {
-            return IconThemeData(color: customTeal);
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: customTeal);
           }
           return IconThemeData(color: customTeal[700]);
         }),
@@ -184,12 +184,12 @@ class MyApp extends StatelessWidget {
         error: Colors.red[400]!,
       ),
       // Define AppBar theme for dark mode.
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,
-        backgroundColor: const Color(0xFF1F1F1F), // Darker app bar background.
+        backgroundColor: Color(0xFF1F1F1F), // Darker app bar background.
         foregroundColor: Colors.white,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -244,10 +244,10 @@ class MyApp extends StatelessWidget {
         ), // Dark background for navigation bar.
         indicatorColor:
             customTeal[700], // Darker teal for selected item indicator.
-        labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>((
-          Set<MaterialState> states,
+        labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((
+          Set<WidgetState> states,
         ) {
-          if (states.contains(MaterialState.selected)) {
+          if (states.contains(WidgetState.selected)) {
             return TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -256,10 +256,10 @@ class MyApp extends StatelessWidget {
           }
           return TextStyle(fontSize: 12, color: Colors.grey[400]);
         }),
-        iconTheme: MaterialStateProperty.resolveWith<IconThemeData>((
-          Set<MaterialState> states,
+        iconTheme: WidgetStateProperty.resolveWith<IconThemeData>((
+          Set<WidgetState> states,
         ) {
-          if (states.contains(MaterialState.selected)) {
+          if (states.contains(WidgetState.selected)) {
             return IconThemeData(color: customTeal[200]);
           }
           return IconThemeData(color: Colors.grey[400]);
@@ -302,8 +302,8 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterScreen(),
         '/tours': (context) => const TourListScreen(),
         '/cars': (context) => const CarListScreen(),
-        '/admin-panel':
-            (context) => const AdminPanelScreen(), // New route for Admin Panel
+        '/admin-panel': (context) =>
+            const AdminPanelScreen(), // New route for Admin Panel
         '/admin/create-tour': (context) => const AdminTourCreateScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/bookings': (context) => const BookingScreen(),
@@ -357,7 +357,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: colorScheme.background, // Use theme background.
+        backgroundColor: colorScheme.surface, // Use theme background.
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -367,8 +367,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
               Text(
                 'Checking authentication...',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.7),
-                ),
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
               ),
             ],
           ),

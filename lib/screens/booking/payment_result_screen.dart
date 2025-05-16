@@ -101,10 +101,9 @@ class _PaymentResultScreenState extends State<PaymentResultScreen>
                               width: 120,
                               height: 120,
                               decoration: BoxDecoration(
-                                color:
-                                    widget.success
-                                        ? Colors.green
-                                        : colorScheme.error,
+                                color: widget.success
+                                    ? Colors.green
+                                    : colorScheme.error,
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
@@ -141,10 +140,11 @@ class _PaymentResultScreenState extends State<PaymentResultScreen>
                         style: Theme.of(
                           context,
                         ).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color:
-                              widget.success ? Colors.green : colorScheme.error,
-                        ),
+                              fontWeight: FontWeight.bold,
+                              color: widget.success
+                                  ? Colors.green
+                                  : colorScheme.error,
+                            ),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -156,8 +156,8 @@ class _PaymentResultScreenState extends State<PaymentResultScreen>
                       child: Text(
                         widget.message,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: colorScheme.onSurface.withOpacity(0.8),
-                        ),
+                              color: colorScheme.onSurface.withOpacity(0.8),
+                            ),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -189,18 +189,17 @@ class _PaymentResultScreenState extends State<PaymentResultScreen>
                       SizedBox(
                         width: double.infinity,
                         child: CustomButton(
-                          onPressed:
-                              () => Navigator.of(
-                                context,
-                              ).popUntil((route) => route.isFirst),
+                          onPressed: () => Navigator.of(
+                            context,
+                          ).popUntil((route) => route.isFirst),
                           backgroundColor: colorScheme.primary,
                           foregroundColor: colorScheme.onPrimary,
-                          child: Row(
+                          child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.home_rounded, size: 20),
-                              const SizedBox(width: 8),
-                              const Text(
+                              Icon(Icons.home_rounded, size: 20),
+                              SizedBox(width: 8),
+                              Text(
                                 'Go to Home',
                                 style: TextStyle(
                                   fontSize: 16,
@@ -217,12 +216,12 @@ class _PaymentResultScreenState extends State<PaymentResultScreen>
                         child: CustomButton(
                           onPressed: () => _shareBooking(),
                           isSecondary: true,
-                          child: Row(
+                          child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.share_rounded, size: 20),
-                              const SizedBox(width: 8),
-                              const Text(
+                              Icon(Icons.share_rounded, size: 20),
+                              SizedBox(width: 8),
+                              Text(
                                 'Share Booking',
                                 style: TextStyle(
                                   fontSize: 16,
@@ -240,12 +239,12 @@ class _PaymentResultScreenState extends State<PaymentResultScreen>
                           onPressed: () => Navigator.of(context).pop(),
                           backgroundColor: colorScheme.primary,
                           foregroundColor: colorScheme.onPrimary,
-                          child: Row(
+                          child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.refresh_rounded, size: 20),
-                              const SizedBox(width: 8),
-                              const Text(
+                              Icon(Icons.refresh_rounded, size: 20),
+                              SizedBox(width: 8),
+                              Text(
                                 'Try Again',
                                 style: TextStyle(
                                   fontSize: 16,
@@ -260,10 +259,9 @@ class _PaymentResultScreenState extends State<PaymentResultScreen>
                       SizedBox(
                         width: double.infinity,
                         child: CustomButton(
-                          onPressed:
-                              () => Navigator.of(
-                                context,
-                              ).popUntil((route) => route.isFirst),
+                          onPressed: () => Navigator.of(
+                            context,
+                          ).popUntil((route) => route.isFirst),
                           isSecondary: true,
                           child: const Text(
                             'Cancel',
@@ -299,8 +297,8 @@ class _PaymentResultScreenState extends State<PaymentResultScreen>
                             style: Theme.of(
                               context,
                             ).textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.6),
-                            ),
+                                  color: colorScheme.onSurface.withOpacity(0.6),
+                                ),
                           ),
                         ],
                       ),
@@ -364,8 +362,8 @@ class _PaymentResultScreenState extends State<PaymentResultScreen>
               Text(
                 'Booking ID',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.7),
-                ),
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
               ),
               Text(
                 '#${booking.id}',
@@ -382,8 +380,8 @@ class _PaymentResultScreenState extends State<PaymentResultScreen>
               Text(
                 'Tour',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.7),
-                ),
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
               ),
               Expanded(
                 child: Text(
@@ -403,15 +401,15 @@ class _PaymentResultScreenState extends State<PaymentResultScreen>
               Text(
                 'Amount Paid',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.7),
-                ),
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
               ),
               Text(
                 booking.formattedTotal,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green.shade700,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green.shade700,
+                    ),
               ),
             ],
           ),
@@ -450,9 +448,9 @@ class _PaymentResultScreenState extends State<PaymentResultScreen>
               Text(
                 'Error Details',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.error,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.error,
+                    ),
               ),
             ],
           ),
@@ -460,15 +458,15 @@ class _PaymentResultScreenState extends State<PaymentResultScreen>
           Text(
             'Error Code: ${widget.errorCode}',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onErrorContainer,
-            ),
+                  color: colorScheme.onErrorContainer,
+                ),
           ),
           const SizedBox(height: 8),
           Text(
             'If this problem persists, please contact our support team.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurface.withOpacity(0.7),
-            ),
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                ),
             textAlign: TextAlign.center,
           ),
         ],

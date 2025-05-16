@@ -153,19 +153,18 @@ class _LoginScreenState extends State<LoginScreen>
         child: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration:
-              !isMobile
-                  ? BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        colorScheme.surface,
-                        colorScheme.surfaceContainerLow,
-                      ],
-                    ),
-                  )
-                  : null,
+          decoration: !isMobile
+              ? BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      colorScheme.surface,
+                      colorScheme.surfaceContainerLow,
+                    ],
+                  ),
+                )
+              : null,
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: ConstrainedBox(
@@ -174,27 +173,25 @@ class _LoginScreenState extends State<LoginScreen>
               ),
               child: Container(
                 width: isMobile ? double.infinity : 450,
-                margin:
-                    isMobile
-                        ? EdgeInsets.zero
-                        : EdgeInsets.symmetric(
-                          horizontal: (screenWidth - 450) / 2,
-                          vertical: 40,
-                        ),
-                decoration:
-                    isMobile
-                        ? null
-                        : BoxDecoration(
-                          color: colorScheme.surface,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: colorScheme.shadow.withOpacity(0.1),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
+                margin: isMobile
+                    ? EdgeInsets.zero
+                    : EdgeInsets.symmetric(
+                        horizontal: (screenWidth - 450) / 2,
+                        vertical: 40,
+                      ),
+                decoration: isMobile
+                    ? null
+                    : BoxDecoration(
+                        color: colorScheme.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorScheme.shadow.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
                 child: Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: isMobile ? 24 : 32,
@@ -247,9 +244,9 @@ class _LoginScreenState extends State<LoginScreen>
                                   style: Theme.of(
                                     context,
                                   ).textTheme.headlineMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.onSurface,
-                                  ),
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onSurface,
+                                      ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
@@ -257,10 +254,11 @@ class _LoginScreenState extends State<LoginScreen>
                                   style: Theme.of(
                                     context,
                                   ).textTheme.bodyLarge?.copyWith(
-                                    color: colorScheme.onSurface.withOpacity(
-                                      0.7,
-                                    ),
-                                  ),
+                                        color:
+                                            colorScheme.onSurface.withOpacity(
+                                          0.7,
+                                        ),
+                                      ),
                                 ),
                                 const SizedBox(height: 40),
                               ],
@@ -317,7 +315,7 @@ class _LoginScreenState extends State<LoginScreen>
                                           ),
                                           child: Row(
                                             children: [
-                                              Icon(
+                                              const Icon(
                                                 Icons.check_circle_outline,
                                                 color: Colors.green,
                                                 size: 20,
@@ -449,65 +447,62 @@ class _LoginScreenState extends State<LoginScreen>
                                       SizedBox(
                                         width: double.infinity,
                                         height: 56,
-                                        child:
-                                            _isLoading
-                                                ? Container(
-                                                  decoration: BoxDecoration(
-                                                    gradient: LinearGradient(
-                                                      colors: [
-                                                        colorScheme.primary
-                                                            .withOpacity(0.7),
-                                                        colorScheme.primary
-                                                            .withOpacity(0.5),
-                                                      ],
-                                                    ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          16,
-                                                        ),
+                                        child: _isLoading
+                                            ? Container(
+                                                decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                    colors: [
+                                                      colorScheme.primary
+                                                          .withOpacity(0.7),
+                                                      colorScheme.primary
+                                                          .withOpacity(0.5),
+                                                    ],
                                                   ),
-                                                  child: Center(
-                                                    child: SizedBox(
-                                                      width: 24,
-                                                      height: 24,
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                            color:
-                                                                colorScheme
-                                                                    .onPrimary,
-                                                            strokeWidth: 2,
-                                                          ),
-                                                    ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                    16,
                                                   ),
-                                                )
-                                                : ElevatedButton(
-                                                  onPressed: _login,
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor:
-                                                        colorScheme.primary,
-                                                    foregroundColor:
-                                                        colorScheme.onPrimary,
-                                                    elevation: 0,
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            16,
-                                                          ),
-                                                    ),
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          vertical: 16,
-                                                        ),
-                                                  ),
-                                                  child: Text(
-                                                    'Sign In',
-                                                    style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight:
-                                                          FontWeight.w600,
+                                                ),
+                                                child: Center(
+                                                  child: SizedBox(
+                                                    width: 24,
+                                                    height: 24,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                      color:
+                                                          colorScheme.onPrimary,
+                                                      strokeWidth: 2,
                                                     ),
                                                   ),
                                                 ),
+                                              )
+                                            : ElevatedButton(
+                                                onPressed: _login,
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      colorScheme.primary,
+                                                  foregroundColor:
+                                                      colorScheme.onPrimary,
+                                                  elevation: 0,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                      16,
+                                                    ),
+                                                  ),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    vertical: 16,
+                                                  ),
+                                                ),
+                                                child: const Text(
+                                                  'Sign In',
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
                                       ),
                                       const SizedBox(height: 24),
 
@@ -565,8 +560,9 @@ class _LoginScreenState extends State<LoginScreen>
                                 style: Theme.of(
                                   context,
                                 ).textTheme.bodyMedium?.copyWith(
-                                  color: colorScheme.onSurface.withOpacity(0.7),
-                                ),
+                                      color: colorScheme.onSurface
+                                          .withOpacity(0.7),
+                                    ),
                               ),
                               GestureDetector(
                                 onTap: () {

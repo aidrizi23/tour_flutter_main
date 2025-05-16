@@ -132,24 +132,23 @@ class _CarBookingScreenState extends State<CarBookingScreen>
   Future<bool> _showCancelDialog(CarBooking booking) async {
     final result = await showDialog<bool>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Cancel Booking'),
-            content: Text(
-              'Are you sure you want to cancel your booking for ${booking.carName}?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Keep Booking'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Cancel Booking'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Booking'),
+        content: Text(
+          'Are you sure you want to cancel your booking for ${booking.carName}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Keep Booking'),
           ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Cancel Booking'),
+          ),
+        ],
+      ),
     );
 
     return result ?? false;
@@ -230,8 +229,8 @@ class _CarBookingScreenState extends State<CarBookingScreen>
                     Text(
                       'Loading your bookings...',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(0.7),
-                      ),
+                            color: colorScheme.onSurface.withOpacity(0.7),
+                          ),
                     ),
                   ],
                 ),
@@ -259,15 +258,17 @@ class _CarBookingScreenState extends State<CarBookingScreen>
                     const SizedBox(height: 24),
                     Text(
                       'Failed to load bookings',
-                      style: Theme.of(context).textTheme.headlineSmall
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       _errorMessage!,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(0.7),
-                      ),
+                            color: colorScheme.onSurface.withOpacity(0.7),
+                          ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
@@ -311,7 +312,9 @@ class _CarBookingScreenState extends State<CarBookingScreen>
                         const SizedBox(height: 32),
                         Text(
                           'No Car Bookings Yet',
-                          style: Theme.of(context).textTheme.headlineSmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
@@ -320,8 +323,8 @@ class _CarBookingScreenState extends State<CarBookingScreen>
                           style: Theme.of(
                             context,
                           ).textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.7),
-                          ),
+                                color: colorScheme.onSurface.withOpacity(0.7),
+                              ),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 32),
@@ -451,7 +454,9 @@ class _CarBookingScreenState extends State<CarBookingScreen>
                       children: [
                         Text(
                           booking.carName,
-                          style: Theme.of(context).textTheme.titleMedium
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
@@ -460,8 +465,8 @@ class _CarBookingScreenState extends State<CarBookingScreen>
                           style: Theme.of(
                             context,
                           ).textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.6),
-                          ),
+                                color: colorScheme.onSurface.withOpacity(0.6),
+                              ),
                         ),
                       ],
                     ),
@@ -517,13 +522,15 @@ class _CarBookingScreenState extends State<CarBookingScreen>
                             style: Theme.of(
                               context,
                             ).textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.6),
-                            ),
+                                  color: colorScheme.onSurface.withOpacity(0.6),
+                                ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '${booking.rentalStartDate.day}/${booking.rentalStartDate.month}/${booking.rentalStartDate.year}',
-                            style: Theme.of(context).textTheme.bodyMedium
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                         ],
@@ -544,13 +551,15 @@ class _CarBookingScreenState extends State<CarBookingScreen>
                             style: Theme.of(
                               context,
                             ).textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.6),
-                            ),
+                                  color: colorScheme.onSurface.withOpacity(0.6),
+                                ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '${booking.rentalEndDate.day}/${booking.rentalEndDate.month}/${booking.rentalEndDate.year}',
-                            style: Theme.of(context).textTheme.bodyMedium
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                         ],
@@ -571,13 +580,15 @@ class _CarBookingScreenState extends State<CarBookingScreen>
                             style: Theme.of(
                               context,
                             ).textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.6),
-                            ),
+                                  color: colorScheme.onSurface.withOpacity(0.6),
+                                ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '${booking.rentalDays} ${booking.rentalDays == 1 ? 'day' : 'days'}',
-                            style: Theme.of(context).textTheme.bodyMedium
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                         ],
@@ -608,8 +619,9 @@ class _CarBookingScreenState extends State<CarBookingScreen>
                               style: Theme.of(
                                 context,
                               ).textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurface.withOpacity(0.6),
-                              ),
+                                    color:
+                                        colorScheme.onSurface.withOpacity(0.6),
+                                  ),
                             ),
                           ],
                         ),
@@ -625,16 +637,16 @@ class _CarBookingScreenState extends State<CarBookingScreen>
                       Text(
                         'Total Amount',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface.withOpacity(0.6),
-                        ),
+                              color: colorScheme.onSurface.withOpacity(0.6),
+                            ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         booking.formattedAmount,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ],
                   ),
@@ -684,12 +696,12 @@ class _CarBookingScreenState extends State<CarBookingScreen>
                         foregroundColor: colorScheme.onPrimary,
                         minimumSize: const Size(0, 44),
                         borderRadius: 12,
-                        child: Row(
+                        child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.payment_rounded, size: 18),
-                            const SizedBox(width: 8),
-                            const Text(
+                            Icon(Icons.payment_rounded, size: 18),
+                            SizedBox(width: 8),
+                            Text(
                               'Pay Now',
                               style: TextStyle(fontWeight: FontWeight.w600),
                             ),
@@ -714,12 +726,12 @@ class _CarBookingScreenState extends State<CarBookingScreen>
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.cancel_outlined, size: 18),
-                              const SizedBox(width: 8),
-                              const Text(
+                              Icon(Icons.cancel_outlined, size: 18),
+                              SizedBox(width: 8),
+                              Text(
                                 'Cancel',
                                 style: TextStyle(fontWeight: FontWeight.w600),
                               ),
@@ -739,12 +751,12 @@ class _CarBookingScreenState extends State<CarBookingScreen>
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.cancel_outlined, size: 18),
-                              const SizedBox(width: 8),
-                              const Text(
+                              Icon(Icons.cancel_outlined, size: 18),
+                              SizedBox(width: 8),
+                              Text(
                                 'Cancel',
                                 style: TextStyle(fontWeight: FontWeight.w600),
                               ),
@@ -766,12 +778,12 @@ class _CarBookingScreenState extends State<CarBookingScreen>
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.info_outline, size: 18),
-                            const SizedBox(width: 8),
-                            const Text(
+                            Icon(Icons.info_outline, size: 18),
+                            SizedBox(width: 8),
+                            Text(
                               'Details',
                               style: TextStyle(fontWeight: FontWeight.w600),
                             ),
@@ -797,47 +809,47 @@ class _CarBookingScreenState extends State<CarBookingScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder:
-          (context) => DraggableScrollableSheet(
-            initialChildSize: 0.7,
-            maxChildSize: 0.9,
-            minChildSize: 0.5,
-            expand: false,
-            builder:
-                (context, scrollController) => Container(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      // Handle
-                      Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: colorScheme.outline.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Title
-                      Text(
-                        'Booking Details',
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Details content
-                      Expanded(
-                        child: SingleChildScrollView(
-                          controller: scrollController,
-                          child: _buildBookingDetailsContent(booking),
-                        ),
-                      ),
-                    ],
-                  ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        maxChildSize: 0.9,
+        minChildSize: 0.5,
+        expand: false,
+        builder: (context, scrollController) => Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              // Handle
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colorScheme.outline.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
                 ),
+              ),
+              const SizedBox(height: 20),
+
+              // Title
+              Text(
+                'Booking Details',
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+
+              // Details content
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: _buildBookingDetailsContent(booking),
+                ),
+              ),
+            ],
           ),
+        ),
+      ),
     );
   }
 
@@ -923,9 +935,9 @@ class _CarBookingScreenState extends State<CarBookingScreen>
           Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.primary,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
           ),
           const SizedBox(height: 12),
           Container(
@@ -956,8 +968,8 @@ class _CarBookingScreenState extends State<CarBookingScreen>
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.7),
-              ),
+                    color: colorScheme.onSurface.withOpacity(0.7),
+                  ),
             ),
           ),
           const SizedBox(width: 16),

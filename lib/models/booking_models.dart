@@ -98,43 +98,46 @@ class AvailabilityResponse {
 
 class PaymentInfo {
   final String? clientSecret;
-  final dynamic bookingId; // String or int
-  final String transactionId; // Or paymentIntentId
-  final int numberOfPeople;
-  final String formattedPricePerPerson;
-  final bool hasDiscount;
-  final String formattedOriginalAmount;
-  final String? discountCode;
-  final String formattedDiscount;
-  final String formattedTotal;
-  final double? totalAmount; // IMPORTANT: Add this field for reliable calculation
-  final String? tourImageUrl;
+  final int bookingId;
+  final int tourId;
   final String tourName;
+  final String? tourImageUrl;
   final String? tourLocation;
+  final int numberOfPeople;
   final DateTime tourStartDate;
   final int durationInDays;
+  final double pricePerPerson;
+  final double totalAmount;
+  final String paymentStatus;
+  final String? paymentMethod;
+  final String? transactionId;
+  final String? discountCode;
+  final double? discountAmount;
+  final double? originalAmount;
 
   PaymentInfo({
     this.clientSecret,
     required this.bookingId,
-    required this.transactionId,
-    required this.numberOfPeople,
-    required this.formattedPricePerPerson,
-    this.hasDiscount = false,
-    required this.formattedOriginalAmount,
-    this.discountCode,
-    required this.formattedDiscount,
-    required this.formattedTotal,
-    this.totalAmount, // Make sure to populate this
-    this.tourImageUrl,
+    required this.tourId,
     required this.tourName,
+    this.tourImageUrl,
     this.tourLocation,
+    required this.numberOfPeople,
     required this.tourStartDate,
     required this.durationInDays,
+    required this.pricePerPerson,
+    required this.totalAmount,
+    required this.paymentStatus,
+    this.paymentMethod,
+    this.transactionId,
+    this.discountCode,
+    this.discountAmount,
+    this.originalAmount,
   });
-}
+
   factory PaymentInfo.fromJson(Map<String, dynamic> json) {
     return PaymentInfo(
+      clientSecret: json['clientSecret'] as String?,
       bookingId: json['bookingId'] as int,
       tourId: json['tourId'] as int,
       tourName: json['tourName'] as String,
@@ -148,11 +151,32 @@ class PaymentInfo {
       paymentStatus: json['paymentStatus'] as String,
       paymentMethod: json['paymentMethod'] as String?,
       transactionId: json['transactionId'] as String?,
-      clientSecret: json['clientSecret'] as String?,
       discountCode: json['discountCode'] as String?,
       discountAmount: (json['discountAmount'] as num?)?.toDouble(),
       originalAmount: (json['originalAmount'] as num?)?.toDouble(),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'clientSecret': clientSecret,
+      'bookingId': bookingId,
+      'tourId': tourId,
+      'tourName': tourName,
+      'tourImageUrl': tourImageUrl,
+      'tourLocation': tourLocation,
+      'numberOfPeople': numberOfPeople,
+      'tourStartDate': tourStartDate.toIso8601String(),
+      'durationInDays': durationInDays,
+      'pricePerPerson': pricePerPerson,
+      'totalAmount': totalAmount,
+      'paymentStatus': paymentStatus,
+      'paymentMethod': paymentMethod,
+      'transactionId': transactionId,
+      'discountCode': discountCode,
+      'discountAmount': discountAmount,
+      'originalAmount': originalAmount,
+    };
   }
 
   bool get hasDiscount => discountAmount != null && discountAmount! > 0;

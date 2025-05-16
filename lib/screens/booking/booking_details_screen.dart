@@ -96,68 +96,67 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen>
     // Show confirmation dialog
     final confirmed = await showDialog<bool>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: Row(
-              children: [
-                Icon(Icons.cancel_rounded, color: colorScheme.error),
-                const SizedBox(width: 12),
-                const Text('Cancel Booking'),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Are you sure you want to cancel this booking?'),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _booking!.tourName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text('Tour Date: ${_booking!.formattedTourDate}'),
-                      Text('Amount: ${_booking!.formattedTotal}'),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'This action cannot be undone.',
-                  style: TextStyle(
-                    color: colorScheme.error,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Keep Booking'),
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Icon(Icons.cancel_rounded, color: colorScheme.error),
+            const SizedBox(width: 12),
+            const Text('Cancel Booking'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Are you sure you want to cancel this booking?'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(8),
               ),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.error,
-                  foregroundColor: colorScheme.onError,
-                ),
-                child: const Text('Cancel Booking'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _booking!.tourName,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text('Tour Date: ${_booking!.formattedTourDate}'),
+                  Text('Amount: ${_booking!.formattedTotal}'),
+                ],
               ),
-            ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'This action cannot be undone.',
+              style: TextStyle(
+                color: colorScheme.error,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Keep Booking'),
           ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.error,
+              foregroundColor: colorScheme.onError,
+            ),
+            child: const Text('Cancel Booking'),
+          ),
+        ],
+      ),
     );
 
     if (confirmed == true) {
@@ -227,27 +226,26 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen>
             ),
         ],
       ),
-      body:
-          _isLoading
-              ? const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('Loading booking details...'),
-                  ],
-                ),
-              )
-              : _errorMessage != null
+      body: _isLoading
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading booking details...'),
+                ],
+              ),
+            )
+          : _errorMessage != null
               ? _buildErrorState()
               : FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: _buildBookingDetails(),
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: _buildBookingDetails(),
+                  ),
                 ),
-              ),
     );
   }
 
@@ -283,8 +281,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen>
             Text(
               _errorMessage!,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.7),
-              ),
+                    color: colorScheme.onSurface.withOpacity(0.7),
+                  ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -416,16 +414,16 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen>
           Text(
             booking.status,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: booking.statusColor,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: booking.statusColor,
+                ),
           ),
           const SizedBox(height: 8),
           Text(
             'Booking #${booking.id}',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSurface.withOpacity(0.7),
-            ),
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                ),
           ),
         ],
       ),
@@ -623,8 +621,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen>
                   booking.paymentStatus.toLowerCase() == 'paid'
                       ? Icons.check_circle
                       : booking.paymentStatus.toLowerCase() == 'pending'
-                      ? Icons.schedule
-                      : Icons.error,
+                          ? Icons.schedule
+                          : Icons.error,
                   color: booking.paymentStatusColor,
                   size: 20,
                 ),
@@ -667,7 +665,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen>
                 children: [
                   Icon(Icons.tag_rounded, color: colorScheme.primary, size: 16),
                   const SizedBox(width: 8),
-                  Text('Transaction ID: '),
+                  const Text('Transaction ID: '),
                   Expanded(
                     child: SelectableText(
                       booking.transactionId!,
@@ -781,7 +779,6 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen>
             ),
           ),
         const SizedBox(height: 12),
-
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
@@ -845,9 +842,9 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen>
                 child: Text(
                   item.label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.6),
-                    fontWeight: FontWeight.w500,
-                  ),
+                        color: colorScheme.onSurface.withOpacity(0.6),
+                        fontWeight: FontWeight.w500,
+                      ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

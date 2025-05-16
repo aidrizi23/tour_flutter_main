@@ -72,10 +72,10 @@ class _PaymentMethodWidgetState extends State<PaymentMethodWidget> {
                 widget.onPaymentMethodChanged(
                   card?.complete == true
                       ? {
-                        'number': '**** **** **** ${card?.last4}',
-                        'brand': card?.brand.toString().split('.').last,
-                        'complete': card?.complete,
-                      }
+                          'number': '**** **** **** ${card?.last4}',
+                          'brand': card?.brand.toString().split('.').last,
+                          'complete': card?.complete,
+                        }
                       : null,
                 );
               },
@@ -108,7 +108,7 @@ class _PaymentMethodWidgetState extends State<PaymentMethodWidget> {
               padding: const EdgeInsets.only(top: 8),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle, color: Colors.green, size: 16),
+                  const Icon(Icons.check_circle, color: Colors.green, size: 16),
                   const SizedBox(width: 4),
                   Text(
                     'Card information is complete',
@@ -134,8 +134,8 @@ class _PaymentMethodWidgetState extends State<PaymentMethodWidget> {
                   child: Text(
                     'Your payment information is encrypted and secure',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(0.7),
-                    ),
+                          color: colorScheme.onSurface.withOpacity(0.7),
+                        ),
                   ),
                 ),
               ],
@@ -194,14 +194,14 @@ class SavedPaymentMethodWidget extends StatelessWidget {
                 Text(
                   '••••  ••••  ••••  ${last4 ?? '****'}',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 Text(
                   brand?.toUpperCase() ?? 'CARD',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.6),
-                  ),
+                        color: colorScheme.onSurface.withOpacity(0.6),
+                      ),
                 ),
               ],
             ),

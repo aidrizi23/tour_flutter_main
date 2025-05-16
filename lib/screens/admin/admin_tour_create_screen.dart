@@ -103,10 +103,9 @@ class _AdminTourCreateScreenState extends State<AdminTourCreateScreen>
         activityType: _selectedActivityType,
         category: _categoryController.text.trim(),
         maxGroupSize: int.parse(_maxGroupSizeController.text.trim()),
-        mainImageUrl:
-            _mainImageUrlController.text.trim().isNotEmpty
-                ? _mainImageUrlController.text.trim()
-                : null,
+        mainImageUrl: _mainImageUrlController.text.trim().isNotEmpty
+            ? _mainImageUrlController.text.trim()
+            : null,
         features: _features,
         itineraryItems: _itineraryItems,
         images: _images,
@@ -160,44 +159,41 @@ class _AdminTourCreateScreenState extends State<AdminTourCreateScreen>
   void _addFeature() {
     showDialog(
       context: context,
-      builder:
-          (context) => _FeatureDialog(
-            onFeatureAdded: (feature) {
-              setState(() {
-                _features.add(feature);
-              });
-            },
-          ),
+      builder: (context) => _FeatureDialog(
+        onFeatureAdded: (feature) {
+          setState(() {
+            _features.add(feature);
+          });
+        },
+      ),
     );
   }
 
   void _addItineraryItem() {
     showDialog(
       context: context,
-      builder:
-          (context) => _ItineraryDialog(
-            dayNumber: _itineraryItems.length + 1,
-            onItemAdded: (item) {
-              setState(() {
-                _itineraryItems.add(item);
-              });
-            },
-          ),
+      builder: (context) => _ItineraryDialog(
+        dayNumber: _itineraryItems.length + 1,
+        onItemAdded: (item) {
+          setState(() {
+            _itineraryItems.add(item);
+          });
+        },
+      ),
     );
   }
 
   void _addImage() {
     showDialog(
       context: context,
-      builder:
-          (context) => _ImageDialog(
-            displayOrder: _images.length + 1,
-            onImageAdded: (image) {
-              setState(() {
-                _images.add(image);
-              });
-            },
-          ),
+      builder: (context) => _ImageDialog(
+        displayOrder: _images.length + 1,
+        onImageAdded: (image) {
+          setState(() {
+            _images.add(image);
+          });
+        },
+      ),
     );
   }
 
@@ -253,7 +249,7 @@ class _AdminTourCreateScreenState extends State<AdminTourCreateScreen>
                       ),
                       child: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.check_circle_outline,
                             color: Colors.green,
                             size: 24,
@@ -497,9 +493,8 @@ class _AdminTourCreateScreenState extends State<AdminTourCreateScreen>
                       _buildListSection(
                         title: 'Additional Images',
                         items: _images,
-                        displayItem:
-                            (image) =>
-                                '${image.caption ?? 'No caption'} (Order: ${image.displayOrder})',
+                        displayItem: (image) =>
+                            '${image.caption ?? 'No caption'} (Order: ${image.displayOrder})',
                         onAdd: _addImage,
                         onRemove: (index) {
                           setState(() {
@@ -541,8 +536,8 @@ class _AdminTourCreateScreenState extends State<AdminTourCreateScreen>
                       _buildListSection(
                         title: 'Itinerary Items',
                         items: _itineraryItems,
-                        displayItem:
-                            (item) => 'Day ${item.dayNumber}: ${item.title}',
+                        displayItem: (item) =>
+                            'Day ${item.dayNumber}: ${item.title}',
                         onAdd: _addItineraryItem,
                         onRemove: (index) {
                           setState(() {
@@ -656,10 +651,9 @@ class _AdminTourCreateScreenState extends State<AdminTourCreateScreen>
       ),
       child: DropdownButtonFormField<String>(
         value: value,
-        items:
-            items.map((item) {
-              return DropdownMenuItem<String>(value: item, child: Text(item));
-            }).toList(),
+        items: items.map((item) {
+          return DropdownMenuItem<String>(value: item, child: Text(item));
+        }).toList(),
         onChanged: onChanged,
         decoration: InputDecoration(
           labelText: label,
@@ -720,8 +714,8 @@ class _AdminTourCreateScreenState extends State<AdminTourCreateScreen>
             child: Text(
               'No items added yet. Click "Add" to get started.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.6),
-              ),
+                    color: colorScheme.onSurface.withOpacity(0.6),
+                  ),
             ),
           )
         else
@@ -815,10 +809,9 @@ class _FeatureDialogState extends State<_FeatureDialog> {
               widget.onFeatureAdded(
                 CreateTourFeature(
                   name: _nameController.text.trim(),
-                  description:
-                      _descriptionController.text.trim().isNotEmpty
-                          ? _descriptionController.text.trim()
-                          : null,
+                  description: _descriptionController.text.trim().isNotEmpty
+                      ? _descriptionController.text.trim()
+                      : null,
                 ),
               );
               Navigator.of(context).pop();
@@ -942,22 +935,18 @@ class _ItineraryDialogState extends State<_ItineraryDialog> {
                   dayNumber: widget.dayNumber,
                   title: _titleController.text.trim(),
                   description: _descriptionController.text.trim(),
-                  location:
-                      _locationController.text.trim().isNotEmpty
-                          ? _locationController.text.trim()
-                          : null,
-                  startTime:
-                      _startTimeController.text.trim().isNotEmpty
-                          ? _startTimeController.text.trim()
-                          : null,
-                  endTime:
-                      _endTimeController.text.trim().isNotEmpty
-                          ? _endTimeController.text.trim()
-                          : null,
-                  activityType:
-                      _activityTypeController.text.trim().isNotEmpty
-                          ? _activityTypeController.text.trim()
-                          : null,
+                  location: _locationController.text.trim().isNotEmpty
+                      ? _locationController.text.trim()
+                      : null,
+                  startTime: _startTimeController.text.trim().isNotEmpty
+                      ? _startTimeController.text.trim()
+                      : null,
+                  endTime: _endTimeController.text.trim().isNotEmpty
+                      ? _endTimeController.text.trim()
+                      : null,
+                  activityType: _activityTypeController.text.trim().isNotEmpty
+                      ? _activityTypeController.text.trim()
+                      : null,
                 ),
               );
               Navigator.of(context).pop();
@@ -1027,10 +1016,9 @@ class _ImageDialogState extends State<_ImageDialog> {
               widget.onImageAdded(
                 CreateTourImage(
                   imageUrl: _urlController.text.trim(),
-                  caption:
-                      _captionController.text.trim().isNotEmpty
-                          ? _captionController.text.trim()
-                          : null,
+                  caption: _captionController.text.trim().isNotEmpty
+                      ? _captionController.text.trim()
+                      : null,
                   displayOrder: widget.displayOrder,
                 ),
               );
