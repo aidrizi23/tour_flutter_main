@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Added for HapticFeedback
+import 'package:flutter/services.dart';
 import '../../models/tour_models.dart';
 import '../../services/tour_service.dart';
-import '../../widgets/custom_text_field.dart';
 import 'tour_details_screen.dart';
 
 class TourListScreen extends StatefulWidget {
@@ -35,6 +34,8 @@ class _TourListScreenState extends State<TourListScreen>
   bool _sortAscending = false;
   double? _minPrice;
   double? _maxPrice;
+  int? _minDuration;
+  int? _maxDuration;
 
   List<String> _categories = [];
   List<String> _locations = [];
@@ -116,10 +117,12 @@ class _TourListScreenState extends State<TourListScreen>
         activityType: _selectedActivityType,
         minPrice: _minPrice,
         maxPrice: _maxPrice,
+        minDuration: _minDuration,
+        maxDuration: _maxDuration,
         sortBy: _sortBy,
         ascending: _sortAscending,
         pageIndex: _currentPage,
-        pageSize: 10, // Number of items per page
+        pageSize: 10,
       );
 
       final result = await _tourService.getTours(filter: filter);
@@ -160,6 +163,8 @@ class _TourListScreenState extends State<TourListScreen>
         activityType: _selectedActivityType,
         minPrice: _minPrice,
         maxPrice: _maxPrice,
+        minDuration: _minDuration,
+        maxDuration: _maxDuration,
         sortBy: _sortBy,
         ascending: _sortAscending,
         pageIndex: _currentPage,
@@ -176,8 +181,7 @@ class _TourListScreenState extends State<TourListScreen>
     } catch (e) {
       setState(() {
         _isLoadingMore = false;
-        _currentPage--; // Revert page increment on error
-        // Optionally show a message if loading more fails
+        _currentPage--;
       });
     }
   }
@@ -192,7 +196,6 @@ class _TourListScreenState extends State<TourListScreen>
         _locations = locations;
       });
     } catch (e) {
-      // Handle error silently for filter options, or show a subtle message
       debugPrint("Error loading filter options: $e");
     }
   }
@@ -217,15 +220,17 @@ class _TourListScreenState extends State<TourListScreen>
       _selectedActivityType = null;
       _minPrice = null;
       _maxPrice = null;
+      _minDuration = null;
+      _maxDuration = null;
       _sortBy = 'created';
       _sortAscending = false;
-      _searchController.clear(); // Also clear search term
+      _searchController.clear();
     });
     _loadTours(isRefresh: true);
   }
 
   void _applyFilters() {
-    _toggleFilters(); // Close the filter panel
+    _toggleFilters();
     _loadTours(isRefresh: true);
   }
 
@@ -245,8 +250,8 @@ class _TourListScreenState extends State<TourListScreen>
           SliverAppBar(
             expandedHeight: 120,
             pinned: true,
-            floating: true, // Makes app bar appear on scroll up
-            snap: true, // Snaps app bar into view
+            floating: true,
+            snap: true,
             backgroundColor: colorScheme.primary,
             foregroundColor: colorScheme.onPrimary,
             flexibleSpace: FlexibleSpaceBar(
@@ -274,10 +279,7 @@ class _TourListScreenState extends State<TourListScreen>
             actions: [
               IconButton(
                 onPressed: _toggleFilters,
-                icon: Icon(
-                  Icons.filter_list_rounded,
-                  color: colorScheme.onPrimary,
-                ),
+                icon: Icon(Icons.tune_rounded, color: colorScheme.onPrimary),
                 tooltip: 'Filters',
               ),
             ],
@@ -297,17 +299,7 @@ class _TourListScreenState extends State<TourListScreen>
                   ),
                 ],
               ),
-              child: CustomSearchField(
-                controller: _searchController,
-                hint: 'Search tours, locations, activities...',
-                onSubmitted: (_) => _loadTours(isRefresh: true),
-                onChanged: (value) {
-                  // Debounce search or search on submit
-                  if (value.isEmpty && _searchController.text.isNotEmpty) {
-                    _loadTours(isRefresh: true);
-                  }
-                },
-              ),
+              child: _buildSearchField(),
             ),
           ),
 
@@ -338,9 +330,9 @@ class _TourListScreenState extends State<TourListScreen>
               child: Text(
                 _isLoading ? 'Loading...' : '$_totalCount tours found',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(0.7),
-                      fontWeight: FontWeight.w500,
-                    ),
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),
@@ -381,9 +373,9 @@ class _TourListScreenState extends State<TourListScreen>
                         style: Theme.of(
                           context,
                         ).textTheme.headlineSmall?.copyWith(
-                              color: colorScheme.error,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          color: colorScheme.error,
+                          fontWeight: FontWeight.bold,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
@@ -421,24 +413,21 @@ class _TourListScreenState extends State<TourListScreen>
                     const SizedBox(height: 20),
                     Text(
                       'No Tours Found',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
+                      style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Try adjusting your search or filters.',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.7),
-                          ),
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
                     if (_selectedCategory != null ||
                         _selectedLocation != null ||
-                        _searchController.text
-                            .isNotEmpty) // Show clear filters if any filter is active
+                        _searchController.text.isNotEmpty)
                       ElevatedButton.icon(
                         onPressed: _clearFilters,
                         icon: const Icon(Icons.clear_all_rounded),
@@ -450,20 +439,13 @@ class _TourListScreenState extends State<TourListScreen>
             )
           else
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(
-                16,
-                0,
-                16,
-                16,
-              ), // Adjusted padding
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               sliver: SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: isDesktop ? 3 : (isTablet ? 2 : 1),
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: isDesktop
-                      ? 0.9
-                      : (isTablet ? 0.85 : 0.95), // Adjusted aspect ratio
+                  childAspectRatio: isDesktop ? 0.9 : (isTablet ? 0.85 : 0.95),
                 ),
                 delegate: SliverChildBuilderDelegate((context, index) {
                   if (index < _tours.length) {
@@ -476,7 +458,7 @@ class _TourListScreenState extends State<TourListScreen>
                       ),
                     );
                   }
-                  return null; // Should not happen
+                  return null;
                 }, childCount: _tours.length + (_isLoadingMore ? 1 : 0)),
               ),
             ),
@@ -488,10 +470,39 @@ class _TourListScreenState extends State<TourListScreen>
           onPressed: () => _loadTours(isRefresh: true),
           icon: const Icon(Icons.refresh_rounded),
           label: const Text('Refresh'),
-          backgroundColor:
-              colorScheme.secondary, // Changed to secondary for contrast
+          backgroundColor: colorScheme.secondary,
           foregroundColor: colorScheme.onSecondary,
         ),
+      ),
+    );
+  }
+
+  Widget _buildSearchField() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
+      ),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'Search tours, locations, activities...',
+          prefixIcon: Icon(Icons.search, color: colorScheme.outline),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
+        ),
+        onSubmitted: (_) => _loadTours(isRefresh: true),
+        onChanged: (value) {
+          if (value.isEmpty && _searchController.text.isNotEmpty) {
+            _loadTours(isRefresh: true);
+          }
+        },
       ),
     );
   }
@@ -500,11 +511,10 @@ class _TourListScreenState extends State<TourListScreen>
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16), // Consistent margin
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: colorScheme
-            .surfaceContainer, // Slightly different background for filters
+        color: colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -523,9 +533,9 @@ class _TourListScreenState extends State<TourListScreen>
               Text(
                 'Filters',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
               TextButton.icon(
                 onPressed: _clearFilters,
@@ -583,38 +593,70 @@ class _TourListScreenState extends State<TourListScreen>
           Text(
             'Price Range',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurfaceVariant,
-                ),
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
-                child: CustomTextField(
-                  controller: TextEditingController(
-                    text: _minPrice?.toStringAsFixed(0) ?? '',
-                  ),
-                  label: 'Min Price',
-                  prefixIcon: Icons.attach_money_rounded,
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) {
+                child: _buildNumberField(
+                  'Min Price',
+                  Icons.attach_money_rounded,
+                  _minPrice?.toStringAsFixed(0) ?? '',
+                  (value) {
                     _minPrice = double.tryParse(value);
                   },
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: CustomTextField(
-                  controller: TextEditingController(
-                    text: _maxPrice?.toStringAsFixed(0) ?? '',
-                  ),
-                  label: 'Max Price',
-                  prefixIcon: Icons.attach_money_rounded,
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) {
+                child: _buildNumberField(
+                  'Max Price',
+                  Icons.attach_money_rounded,
+                  _maxPrice?.toStringAsFixed(0) ?? '',
+                  (value) {
                     _maxPrice = double.tryParse(value);
                   },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Duration Range
+          Text(
+            'Duration (Days)',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _buildNumberField(
+                  'Min Days',
+                  Icons.schedule_rounded,
+                  _minDuration?.toString() ?? '',
+                  (value) {
+                    _minDuration = int.tryParse(value);
+                  },
+                  isInt: true,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildNumberField(
+                  'Max Days',
+                  Icons.schedule_rounded,
+                  _maxDuration?.toString() ?? '',
+                  (value) {
+                    _maxDuration = int.tryParse(value);
+                  },
+                  isInt: true,
                 ),
               ),
             ],
@@ -625,12 +667,8 @@ class _TourListScreenState extends State<TourListScreen>
           _buildDropdownFilter(
             'Sort By',
             _sortBy,
-            TourService.sortOptions
-                .map((s) => s[0].toUpperCase() + s.substring(1))
-                .toList(), // Capitalize
-            (value) => setState(
-              () => _sortBy = value!.toLowerCase(),
-            ), // Store lowercase
+            ['created', 'name', 'price', 'location', 'duration', 'rating'],
+            (value) => setState(() => _sortBy = value ?? 'created'),
             Icons.sort_by_alpha_rounded,
             showClearOption: false,
           ),
@@ -678,8 +716,6 @@ class _TourListScreenState extends State<TourListScreen>
     bool showClearOption = true,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    final allOptions =
-        showClearOption ? [null, ...options] : options; // Use null for 'All'
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -687,16 +723,15 @@ class _TourListScreenState extends State<TourListScreen>
         Text(
           label,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onSurfaceVariant,
-              ),
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: colorScheme
-                .surfaceContainerHighest, // Slightly different background
+            color: colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: colorScheme.outline.withOpacity(0.5)),
           ),
@@ -709,16 +744,26 @@ class _TourListScreenState extends State<TourListScreen>
                 color: colorScheme.primary,
               ),
               dropdownColor: colorScheme.surfaceContainerHighest,
-              items: allOptions.map((option) {
-                return DropdownMenuItem<String>(
-                  value: option,
-                  child: Text(
-                    option ?? 'All', // Display 'All' if option is null
-                    style: TextStyle(color: colorScheme.onSurface),
+              items: [
+                if (showClearOption)
+                  DropdownMenuItem<String>(
+                    value: null,
+                    child: Text(
+                      'All',
+                      style: TextStyle(color: colorScheme.onSurface),
+                    ),
                   ),
-                );
-              }).toList(),
-              onChanged: onChanged, // Directly use the passed onChanged
+                ...options.map((option) {
+                  return DropdownMenuItem<String>(
+                    value: option,
+                    child: Text(
+                      option,
+                      style: TextStyle(color: colorScheme.onSurface),
+                    ),
+                  );
+                }),
+              ],
+              onChanged: onChanged,
             ),
           ),
         ),
@@ -726,21 +771,64 @@ class _TourListScreenState extends State<TourListScreen>
     );
   }
 
-  // --- Updated Tour Card Widget ---
+  Widget _buildNumberField(
+    String label,
+    IconData icon,
+    String initialValue,
+    Function(String) onChanged, {
+    bool isInt = false,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
+          ),
+          child: TextField(
+            controller: TextEditingController(text: initialValue),
+            keyboardType:
+                isInt
+                    ? TextInputType.number
+                    : const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              prefixIcon: Icon(icon, color: colorScheme.outline),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+            ),
+            onChanged: onChanged,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildTourCard(Tour tour) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return Card(
-      clipBehavior:
-          Clip.antiAlias, // Ensures content respects card's rounded corners
-      elevation: 3, // Subtle shadow
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16), // More rounded corners
-      ),
+      clipBehavior: Clip.antiAlias,
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () {
-          HapticFeedback.lightImpact(); // Add haptic feedback
+          HapticFeedback.lightImpact();
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => TourDetailsScreen(tourId: tour.id),
@@ -748,35 +836,35 @@ class _TourListScreenState extends State<TourListScreen>
           );
         },
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.stretch, // Make children stretch
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Image Section
             SizedBox(
-              height: 150, // Adjusted image height
+              height: 150,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
                   tour.mainImageUrl != null && tour.mainImageUrl!.isNotEmpty
                       ? Image.network(
-                          tour.mainImageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              _buildImagePlaceholder(colorScheme),
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Center(
-                              child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes !=
-                                        null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                    : null,
-                                strokeWidth: 2,
-                              ),
-                            );
-                          },
-                        )
+                        tour.mainImageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (context, error, stackTrace) =>
+                                _buildImagePlaceholder(colorScheme),
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              value:
+                                  loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                              strokeWidth: 2,
+                            ),
+                          );
+                        },
+                      )
                       : _buildImagePlaceholder(colorScheme),
                   // Gradient overlay for text on image
                   Container(
@@ -855,7 +943,7 @@ class _TourListScreenState extends State<TourListScreen>
             ),
             // Content Section
             Padding(
-              padding: const EdgeInsets.all(12.0), // Reduced padding
+              padding: const EdgeInsets.all(12.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -892,7 +980,7 @@ class _TourListScreenState extends State<TourListScreen>
                     ],
                   ),
                   const SizedBox(height: 8),
-                  // Tour Details Chips (Duration, Activity, Difficulty)
+                  // Tour Details Chips
                   Wrap(
                     spacing: 6,
                     runSpacing: 4,
@@ -908,23 +996,19 @@ class _TourListScreenState extends State<TourListScreen>
                         colorScheme: colorScheme,
                       ),
                       _buildCompactDetailChip(
-                        icon: Icons
-                            .speed_rounded, // Using a consistent icon for difficulty
+                        icon: Icons.speed_rounded,
                         label: tour.difficultyLevel,
-                        chipColor: tour.difficultyColor.withOpacity(
-                          0.15,
-                        ), // Use tour's difficulty color
+                        chipColor: tour.difficultyColor.withOpacity(0.15),
                         textColor: tour.difficultyColor,
                         colorScheme: colorScheme,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10), // Spacer
+                  const SizedBox(height: 10),
                   // Price and Book Button
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment:
-                        CrossAxisAlignment.center, // Align items vertically
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -953,8 +1037,9 @@ class _TourListScreenState extends State<TourListScreen>
                           HapticFeedback.lightImpact();
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  TourDetailsScreen(tourId: tour.id),
+                              builder:
+                                  (context) =>
+                                      TourDetailsScreen(tourId: tour.id),
                             ),
                           );
                         },
@@ -989,7 +1074,7 @@ class _TourListScreenState extends State<TourListScreen>
 
   Widget _buildImagePlaceholder(ColorScheme colorScheme) {
     return Container(
-      color: colorScheme.surfaceContainerHighest, // Use a theme color
+      color: colorScheme.surfaceContainerHighest,
       child: Center(
         child: Icon(
           Icons.image_not_supported_outlined,
@@ -1004,8 +1089,8 @@ class _TourListScreenState extends State<TourListScreen>
     required IconData icon,
     required String label,
     required ColorScheme colorScheme,
-    Color? chipColor, // Optional custom chip color
-    Color? textColor, // Optional custom text color
+    Color? chipColor,
+    Color? textColor,
   }) {
     return Chip(
       avatar: Icon(
@@ -1024,9 +1109,8 @@ class _TourListScreenState extends State<TourListScreen>
       backgroundColor:
           chipColor ?? colorScheme.secondaryContainer.withOpacity(0.7),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      labelPadding: const EdgeInsets.only(left: 2, right: 4), // Adjust padding
-      materialTapTargetSize:
-          MaterialTapTargetSize.shrinkWrap, // Make chip smaller
+      labelPadding: const EdgeInsets.only(left: 2, right: 4),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: VisualDensity.compact,
     );
   }
