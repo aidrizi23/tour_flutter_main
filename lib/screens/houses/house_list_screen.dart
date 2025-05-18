@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tour_flutter_main/models/house_models.dart';
-import 'package:tour_flutter_main/services/house_service.dart';
-import 'package:tour_flutter_main/widgets/custom_button.dart';
-import 'package:tour_flutter_main/widgets/modern_widgets.dart';
+import 'package:intl/intl.dart';
+import '../../models/house_models.dart';
+import '../../services/house_service.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/modern_widgets.dart';
 import 'house_detail_screen.dart';
 
 class HouseListScreen extends StatefulWidget {
@@ -32,12 +33,16 @@ class _HouseListScreenState extends State<HouseListScreen>
   // Filter variables
   String? _selectedPropertyType;
   RangeValues _priceRange = const RangeValues(0, 1000);
-  RangeValues _bedroomsRange = const RangeValues(1, 5);
-  String? _selectedDestination;
+  RangeValues _bedroomRange = const RangeValues(1, 5);
+  String? _selectedLocation;
+  DateTime? _checkInDate;
+  DateTime? _checkOutDate;
+  int _guestCount = 2;
 
   bool _hasActiveFilters = false;
   List<String> _propertyTypes = [];
   List<String> _popularDestinations = [];
+  bool _showFilters = false;
 
   @override
   void initState() {
@@ -108,13 +113,16 @@ class _HouseListScreenState extends State<HouseListScreen>
         propertyType: _selectedPropertyType,
         minPrice: _priceRange.start,
         maxPrice: _priceRange.end,
-        minBedrooms: _bedroomsRange.start.round(),
-        maxBedrooms: _bedroomsRange.end.round(),
-        city: _selectedDestination?.split(',').first.trim(),
+        minBedrooms: _bedroomRange.start.round(),
+        maxBedrooms: _bedroomRange.end.round(),
+        city: _selectedLocation?.split(',').first.trim(),
         country:
-            _selectedDestination?.contains(',') == true
-                ? _selectedDestination?.split(',').last.trim()
+            _selectedLocation?.contains(',') == true
+                ? _selectedLocation?.split(',').last.trim()
                 : null,
+        minGuests: _guestCount,
+        availableFrom: _checkInDate,
+        availableTo: _checkOutDate,
         pageIndex: _currentPage,
         pageSize: _pageSize,
         sortBy: 'nightlyRate', // Default sort
@@ -126,9 +134,12 @@ class _HouseListScreenState extends State<HouseListScreen>
           _selectedPropertyType != null ||
           _priceRange.start > 0 ||
           _priceRange.end < 1000 ||
-          _bedroomsRange.start > 1 ||
-          _bedroomsRange.end < 5 ||
-          _selectedDestination != null;
+          _bedroomRange.start > 1 ||
+          _bedroomRange.end < 5 ||
+          _selectedLocation != null ||
+          _checkInDate != null ||
+          _checkOutDate != null ||
+          _guestCount > 2;
 
       final result = await _houseService.getHouses(filter: filter);
 
@@ -177,8 +188,11 @@ class _HouseListScreenState extends State<HouseListScreen>
     setState(() {
       _selectedPropertyType = null;
       _priceRange = const RangeValues(0, 1000);
-      _bedroomsRange = const RangeValues(1, 5);
-      _selectedDestination = null;
+      _bedroomRange = const RangeValues(1, 5);
+      _selectedLocation = null;
+      _checkInDate = null;
+      _checkOutDate = null;
+      _guestCount = 2;
       _searchController.clear();
     });
     _fetchHouses(refresh: true);
@@ -188,6 +202,14 @@ class _HouseListScreenState extends State<HouseListScreen>
   void _applyFilters() {
     _fetchHouses(refresh: true);
     Navigator.pop(context);
+  }
+
+  void _toggleFilters() {
+    _showFilterBottomSheet();
+  }
+
+  void _toggleDateFilter() {
+    _showDatePickerBottomSheet();
   }
 
   void _showFilterBottomSheet() {
@@ -339,7 +361,7 @@ class _HouseListScreenState extends State<HouseListScreen>
                                     ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                               Text(
-                                '${_bedroomsRange.start.round()} - ${_bedroomsRange.end.round()}',
+                                '${_bedroomRange.start.round()} - ${_bedroomRange.end.round()}',
                                 style: Theme.of(
                                   context,
                                 ).textTheme.bodyMedium?.copyWith(
@@ -350,19 +372,86 @@ class _HouseListScreenState extends State<HouseListScreen>
                           ),
                           const SizedBox(height: 8),
                           RangeSlider(
-                            values: _bedroomsRange,
+                            values: _bedroomRange,
                             min: 1,
                             max: 5,
                             divisions: 4,
                             labels: RangeLabels(
-                              '${_bedroomsRange.start.round()}',
-                              '${_bedroomsRange.end.round()}',
+                              '${_bedroomRange.start.round()}',
+                              '${_bedroomRange.end.round()}',
                             ),
                             onChanged: (values) {
                               setModalState(() {
-                                _bedroomsRange = values;
+                                _bedroomRange = values;
                               });
                             },
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Guest Count
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Guests',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              Row(
+                                children: [
+                                  IconButton(
+                                    onPressed:
+                                        _guestCount > 1
+                                            ? () => setModalState(
+                                              () => _guestCount--,
+                                            )
+                                            : null,
+                                    icon: const Icon(
+                                      Icons.remove_circle_outline,
+                                    ),
+                                    color:
+                                        _guestCount > 1
+                                            ? Theme.of(
+                                              context,
+                                            ).colorScheme.primary
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withOpacity(0.3),
+                                  ),
+                                  Text(
+                                    '$_guestCount',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed:
+                                        _guestCount < 10
+                                            ? () => setModalState(
+                                              () => _guestCount++,
+                                            )
+                                            : null,
+                                    icon: const Icon(Icons.add_circle_outline),
+                                    color:
+                                        _guestCount < 10
+                                            ? Theme.of(
+                                              context,
+                                            ).colorScheme.primary
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withOpacity(0.3),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
 
                           const SizedBox(height: 24),
@@ -381,15 +470,13 @@ class _HouseListScreenState extends State<HouseListScreen>
                                 _popularDestinations.map((destination) {
                                   return ModernChip(
                                     label: destination,
-                                    selected:
-                                        _selectedDestination == destination,
+                                    selected: _selectedLocation == destination,
                                     onTap: () {
                                       setModalState(() {
-                                        if (_selectedDestination ==
-                                            destination) {
-                                          _selectedDestination = null;
+                                        if (_selectedLocation == destination) {
+                                          _selectedLocation = null;
                                         } else {
-                                          _selectedDestination = destination;
+                                          _selectedLocation = destination;
                                         }
                                       });
                                     },
@@ -427,11 +514,276 @@ class _HouseListScreenState extends State<HouseListScreen>
     );
   }
 
+  void _showDatePickerBottomSheet() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => StatefulBuilder(
+            builder: (context, setModalState) {
+              return Container(
+                height: MediaQuery.of(context).size.height * 0.7,
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    // Header
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(color: colorScheme.secondary),
+                            ),
+                          ),
+                          Text(
+                            'Select Dates',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              setModalState(() {
+                                _checkInDate = null;
+                                _checkOutDate = null;
+                              });
+                            },
+                            child: const Text('Clear'),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Date selection
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Check-in & Check-out Dates',
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildDateSelector(
+                                    'Check-in',
+                                    _checkInDate,
+                                    (date) => setModalState(() {
+                                      _checkInDate = date;
+                                      // If check-out date is before check-in, update it
+                                      if (_checkOutDate != null &&
+                                          _checkOutDate!.isBefore(
+                                            _checkInDate!,
+                                          )) {
+                                        _checkOutDate = _checkInDate!.add(
+                                          const Duration(days: 1),
+                                        );
+                                      }
+                                    }),
+                                    icon: Icons.login,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildDateSelector(
+                                    'Check-out',
+                                    _checkOutDate,
+                                    (date) => setModalState(
+                                      () => _checkOutDate = date,
+                                    ),
+                                    icon: Icons.logout,
+                                    minDate: _checkInDate,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            if (_checkInDate != null &&
+                                _checkOutDate != null) ...[
+                              const SizedBox(height: 24),
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primaryContainer
+                                      .withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: colorScheme.primary.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      color: colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Your stay: ${_checkOutDate!.difference(_checkInDate!).inDays} ${_checkOutDate!.difference(_checkInDate!).inDays == 1 ? 'night' : 'nights'}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.primary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+
+                            const Spacer(),
+
+                            CustomButton(
+                              text: 'Apply Dates',
+                              onPressed: () {
+                                _fetchHouses(refresh: true);
+                                Navigator.pop(context);
+                              },
+                              icon: Icons.check,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+    );
+  }
+
+  Widget _buildDateSelector(
+    String label,
+    DateTime? selectedDate,
+    Function(DateTime) onDateSelected, {
+    IconData? icon,
+    DateTime? minDate,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final now = DateTime.now();
+    final firstDate =
+        minDate != null && minDate.isAfter(now)
+            ? minDate.add(const Duration(days: 1))
+            : now;
+
+    return GestureDetector(
+      onTap: () async {
+        final date = await showDatePicker(
+          context: context,
+          initialDate: selectedDate ?? firstDate,
+          firstDate: firstDate,
+          lastDate: now.add(const Duration(days: 365)),
+        );
+        if (date != null) {
+          onDateSelected(date);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color:
+                selectedDate != null
+                    ? colorScheme.primary
+                    : colorScheme.outline.withOpacity(0.3),
+            width: selectedDate != null ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          color:
+              selectedDate != null
+                  ? colorScheme.primary.withOpacity(0.1)
+                  : null,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: colorScheme.onSurface.withOpacity(0.7),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(
+                  icon ?? Icons.calendar_today,
+                  size: 18,
+                  color:
+                      selectedDate != null
+                          ? colorScheme.primary
+                          : colorScheme.onSurface.withOpacity(0.5),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    selectedDate != null
+                        ? DateFormat('MMM d, yyyy').format(selectedDate)
+                        : 'Select date',
+                    style: TextStyle(
+                      fontWeight:
+                          selectedDate != null
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                      fontSize: 16,
+                      color:
+                          selectedDate != null
+                              ? colorScheme.onSurface
+                              : colorScheme.onSurface.withOpacity(0.5),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth > 900;
+    final isTablet = screenWidth > 600 && screenWidth <= 900;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Accommodations'),
+        title: const Text('Find Accommodations'),
         actions: [
           IconButton(
             icon: const Icon(Icons.favorite_border),
@@ -450,22 +802,295 @@ class _HouseListScreenState extends State<HouseListScreen>
       body: Column(
         children: [
           // Search and filter bar
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: Row(
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
               children: [
-                Expanded(
-                  child: ModernSearchField(
-                    controller: _searchController,
-                    hintText: 'Search accommodations...',
-                    onSubmitted: (value) => _fetchHouses(refresh: true),
+                // Search field
+                ModernSearchField(
+                  controller: _searchController,
+                  hintText: 'Search destinations, properties...',
+                  onSubmitted: (value) => _fetchHouses(refresh: true),
+                ),
+                const SizedBox(height: 16),
+
+                // Filter chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      // Dates filter
+                      GestureDetector(
+                        onTap: _toggleDateFilter,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                _checkInDate != null || _checkOutDate != null
+                                    ? colorScheme.primary
+                                    : colorScheme.surface,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color:
+                                  _checkInDate != null || _checkOutDate != null
+                                      ? colorScheme.primary
+                                      : colorScheme.outline.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today,
+                                size: 16,
+                                color:
+                                    _checkInDate != null ||
+                                            _checkOutDate != null
+                                        ? colorScheme.onPrimary
+                                        : colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _checkInDate != null && _checkOutDate != null
+                                    ? "${DateFormat('MMM d').format(_checkInDate!)} - ${DateFormat('MMM d').format(_checkOutDate!)}"
+                                    : _checkInDate != null
+                                    ? "From ${DateFormat('MMM d').format(_checkInDate!)}"
+                                    : "Dates",
+                                style: TextStyle(
+                                  color:
+                                      _checkInDate != null ||
+                                              _checkOutDate != null
+                                          ? colorScheme.onPrimary
+                                          : colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Guests filter
+                      GestureDetector(
+                        onTap: _toggleFilters,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                _guestCount > 2
+                                    ? colorScheme.primary
+                                    : colorScheme.surface,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color:
+                                  _guestCount > 2
+                                      ? colorScheme.primary
+                                      : colorScheme.outline.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.people,
+                                size: 16,
+                                color:
+                                    _guestCount > 2
+                                        ? colorScheme.onPrimary
+                                        : colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                "$_guestCount ${_guestCount == 1 ? 'Guest' : 'Guests'}",
+                                style: TextStyle(
+                                  color:
+                                      _guestCount > 2
+                                          ? colorScheme.onPrimary
+                                          : colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Price filter
+                      GestureDetector(
+                        onTap: _toggleFilters,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                _priceRange.start > 0 || _priceRange.end < 1000
+                                    ? colorScheme.primary
+                                    : colorScheme.surface,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color:
+                                  _priceRange.start > 0 ||
+                                          _priceRange.end < 1000
+                                      ? colorScheme.primary
+                                      : colorScheme.outline.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.attach_money,
+                                size: 16,
+                                color:
+                                    _priceRange.start > 0 ||
+                                            _priceRange.end < 1000
+                                        ? colorScheme.onPrimary
+                                        : colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _priceRange.start > 0 || _priceRange.end < 1000
+                                    ? "\$${_priceRange.start.round()}-\$${_priceRange.end.round()}"
+                                    : "Price",
+                                style: TextStyle(
+                                  color:
+                                      _priceRange.start > 0 ||
+                                              _priceRange.end < 1000
+                                          ? colorScheme.onPrimary
+                                          : colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Property type filter
+                      if (_selectedPropertyType != null)
+                        GestureDetector(
+                          onTap: _toggleFilters,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: colorScheme.primary),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _getPropertyTypeIcon(_selectedPropertyType!),
+                                  size: 16,
+                                  color: colorScheme.onPrimary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _selectedPropertyType!,
+                                  style: TextStyle(
+                                    color: colorScheme.onPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      const SizedBox(width: 8),
+
+                      // More filters button
+                      GestureDetector(
+                        onTap: _toggleFilters,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                _hasActiveFilters
+                                    ? colorScheme.primary.withOpacity(0.1)
+                                    : colorScheme.surface,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color:
+                                  _hasActiveFilters
+                                      ? colorScheme.primary
+                                      : colorScheme.outline.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.tune,
+                                size: 16,
+                                color: colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                "Filters",
+                                style: TextStyle(color: colorScheme.primary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                ModernFilterButton(
-                  onPressed: _showFilterBottomSheet,
-                  hasActiveFilters: _hasActiveFilters,
+              ],
+            ),
+          ),
+
+          // Results count
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _isLoading
+                      ? 'Loading properties...'
+                      : '${_houses.length} ${_houses.length == 1 ? 'property' : 'properties'} found',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
+                if (_hasActiveFilters)
+                  TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _selectedPropertyType = null;
+                        _priceRange = const RangeValues(0, 1000);
+                        _bedroomRange = const RangeValues(1, 5);
+                        _selectedLocation = null;
+                        _checkInDate = null;
+                        _checkOutDate = null;
+                        _guestCount = 2;
+                        _searchController.clear();
+                      });
+                      _fetchHouses(refresh: true);
+                    },
+                    icon: const Icon(Icons.clear_all),
+                    label: const Text('Clear Filters'),
+                  ),
               ],
             ),
           ),
@@ -483,9 +1108,7 @@ class _HouseListScreenState extends State<HouseListScreen>
                           Icon(
                             Icons.house_outlined,
                             size: 64,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.5),
+                            color: colorScheme.primary.withOpacity(0.5),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -499,7 +1122,19 @@ class _HouseListScreenState extends State<HouseListScreen>
                           ),
                           const SizedBox(height: 24),
                           OutlinedButton.icon(
-                            onPressed: () => _resetFilters(),
+                            onPressed: () {
+                              setState(() {
+                                _selectedPropertyType = null;
+                                _priceRange = const RangeValues(0, 1000);
+                                _bedroomRange = const RangeValues(1, 5);
+                                _selectedLocation = null;
+                                _checkInDate = null;
+                                _checkOutDate = null;
+                                _guestCount = 2;
+                                _searchController.clear();
+                              });
+                              _fetchHouses(refresh: true);
+                            },
                             icon: const Icon(Icons.refresh),
                             label: const Text('Reset Filters'),
                           ),
@@ -538,6 +1173,8 @@ class _HouseListScreenState extends State<HouseListScreen>
   }
 
   Widget _buildHouseCard(House house) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -551,7 +1188,7 @@ class _HouseListScreenState extends State<HouseListScreen>
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -564,7 +1201,7 @@ class _HouseListScreenState extends State<HouseListScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // House image
+            // Image with property type badge
             ClipRRect(
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(16),
@@ -580,38 +1217,43 @@ class _HouseListScreenState extends State<HouseListScreen>
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              color: Colors.grey[300],
+                              color: colorScheme.surfaceContainerLow,
                               child: Center(
                                 child: Icon(
-                                  Icons.image_not_supported_outlined,
-                                  color: Colors.grey[500],
+                                  house.propertyTypeIconData,
+                                  size: 48,
+                                  color: colorScheme.onSurfaceVariant
+                                      .withOpacity(0.5),
                                 ),
                               ),
                             );
                           },
                         )
                         : Container(
-                          color: Colors.grey[300],
+                          color: colorScheme.surfaceContainerLow,
                           child: Center(
                             child: Icon(
-                              Icons.home_outlined,
-                              size: 64,
-                              color: Colors.grey[500],
+                              house.propertyTypeIconData,
+                              size: 48,
+                              color: colorScheme.onSurfaceVariant.withOpacity(
+                                0.5,
+                              ),
                             ),
                           ),
                         ),
+
                     // Property type badge
                     Positioned(
                       top: 12,
                       left: 12,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
+                          horizontal: 12,
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: house.propertyTypeColor.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(12),
+                          color: house.propertyTypeColor.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -619,9 +1261,9 @@ class _HouseListScreenState extends State<HouseListScreen>
                             Icon(
                               house.propertyTypeIconData,
                               color: Colors.white,
-                              size: 16,
+                              size: 14,
                             ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 4),
                             Text(
                               house.propertyType,
                               style: const TextStyle(
@@ -634,19 +1276,20 @@ class _HouseListScreenState extends State<HouseListScreen>
                         ),
                       ),
                     ),
-                    // Rating badge
+
+                    // Rating badge if available
                     if (house.averageRating != null)
                       Positioned(
                         top: 12,
                         right: 12,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
+                            horizontal: 10,
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(0.7),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -654,7 +1297,7 @@ class _HouseListScreenState extends State<HouseListScreen>
                               const Icon(
                                 Icons.star,
                                 color: Colors.amber,
-                                size: 16,
+                                size: 14,
                               ),
                               const SizedBox(width: 4),
                               Text(
@@ -674,7 +1317,7 @@ class _HouseListScreenState extends State<HouseListScreen>
               ),
             ),
 
-            // House info
+            // House details
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -685,18 +1328,16 @@ class _HouseListScreenState extends State<HouseListScreen>
                     children: [
                       Icon(
                         Icons.location_on,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.primary,
+                        size: 14,
+                        color: colorScheme.primary,
                       ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           house.displayLocation,
                           style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withOpacity(0.7),
-                            fontSize: 13,
+                            fontSize: 14,
+                            color: colorScheme.onSurface.withOpacity(0.7),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -720,30 +1361,19 @@ class _HouseListScreenState extends State<HouseListScreen>
                   // Features
                   Row(
                     children: [
-                      Icon(
-                        Icons.king_bed_outlined,
-                        size: 16,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withOpacity(0.7),
+                      _buildFeaturePill(
+                        Icons.king_bed,
+                        '${house.bedrooms} ${house.bedrooms > 1 ? 'beds' : 'bed'}',
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        house.displayRooms,
-                        style: Theme.of(context).textTheme.bodySmall,
+                      const SizedBox(width: 8),
+                      _buildFeaturePill(
+                        Icons.bathtub,
+                        '${house.bathrooms} ${house.bathrooms > 1 ? 'baths' : 'bath'}',
                       ),
-                      const SizedBox(width: 16),
-                      Icon(
-                        Icons.person_outline,
-                        size: 16,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withOpacity(0.7),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${house.maxGuests} guests',
-                        style: Theme.of(context).textTheme.bodySmall,
+                      const SizedBox(width: 8),
+                      _buildFeaturePill(
+                        Icons.people,
+                        '${house.maxGuests} ${house.maxGuests > 1 ? 'guests' : 'guest'}',
                       ),
                     ],
                   ),
@@ -751,52 +1381,17 @@ class _HouseListScreenState extends State<HouseListScreen>
 
                   // Price
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '\$${house.nightlyRate.toStringAsFixed(0)}',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          Text(
-                            '/night',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withOpacity(0.7),
-                            ),
-                          ),
-                        ],
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) =>
-                                      HouseDetailScreen(houseId: house.id),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                      Text(
+                        house.displayPrice,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
                         ),
-                        child: const Text('View'),
                       ),
                     ],
                   ),
@@ -807,5 +1402,43 @@ class _HouseListScreenState extends State<HouseListScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildFeaturePill(IconData icon, String text) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: colorScheme.primary),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(fontSize: 12, color: colorScheme.onSurface),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getPropertyTypeIcon(String propertyType) {
+    switch (propertyType.toLowerCase()) {
+      case 'house':
+        return Icons.house;
+      case 'apartment':
+        return Icons.apartment;
+      case 'villa':
+        return Icons.villa;
+      case 'cottage':
+        return Icons.cottage;
+      default:
+        return Icons.home;
+    }
   }
 }

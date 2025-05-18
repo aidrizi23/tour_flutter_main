@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:tour_flutter_main/models/house_models.dart';
-import 'package:tour_flutter_main/services/house_service.dart';
-import 'package:tour_flutter_main/widgets/custom_button.dart';
-import 'package:tour_flutter_main/widgets/modern_widgets.dart';
-import 'package:tour_flutter_main/widgets/payment_method_widget.dart';
+import '../../models/house_models.dart';
+import '../../services/house_service.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/modern_widgets.dart';
+import '../../widgets/payment_method_widget.dart';
+import 'booking_confirmation_screen.dart';
 
 class HouseBookingScreen extends StatefulWidget {
   final House house;
@@ -27,7 +28,8 @@ class HouseBookingScreen extends StatefulWidget {
   State<HouseBookingScreen> createState() => _HouseBookingScreenState();
 }
 
-class _HouseBookingScreenState extends State<HouseBookingScreen> {
+class _HouseBookingScreenState extends State<HouseBookingScreen>
+    with SingleTickerProviderStateMixin {
   final HouseService _houseService = HouseService();
   final TextEditingController _notesController = TextEditingController();
   final TextEditingController _discountCodeController = TextEditingController();
@@ -45,16 +47,31 @@ class _HouseBookingScreenState extends State<HouseBookingScreen> {
   int _discountPercentage = 0;
   bool _hasDiscount = false;
 
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
   @override
   void initState() {
     super.initState();
     _discountedTotal = widget.availabilityResponse.totalPrice;
+
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
+    _animationController.forward();
   }
 
   @override
   void dispose() {
     _notesController.dispose();
     _discountCodeController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -150,14 +167,15 @@ class _HouseBookingScreenState extends State<HouseBookingScreen> {
           MaterialPageRoute(
             builder:
                 (context) => BookingConfirmationScreen(
-                  title: 'House Booking Confirmed',
+                  title: 'Booking Confirmed!',
                   message:
-                      'Your booking at ${widget.house.name} has been confirmed!',
+                      'Your stay at ${widget.house.name} has been confirmed!',
                   details: [
                     'Check-in: ${DateFormat('MMM dd, yyyy').format(widget.checkInDate)}',
                     'Check-out: ${DateFormat('MMM dd, yyyy').format(widget.checkOutDate)}',
                     'Guests: ${widget.guestCount}',
                     'Total: \$${_discountedTotal.toStringAsFixed(2)}',
+                    'Property: ${widget.house.propertyType} in ${widget.house.city}, ${widget.house.country}',
                   ],
                   imagePath: widget.house.mainImageUrl,
                   bookingId: booking.id.toString(),
@@ -183,66 +201,92 @@ class _HouseBookingScreenState extends State<HouseBookingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Complete Your Booking')),
+      appBar: AppBar(
+        title: const Text('Complete Your Booking'),
+        centerTitle: true,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        elevation: 0,
+      ),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildBookingSummary(),
-                    const SizedBox(height: 24),
-                    _buildGuestInfoSection(),
-                    const SizedBox(height: 24),
-                    _buildDiscountSection(),
-                    const SizedBox(height: 24),
-                    _buildPaymentSection(),
-                    const SizedBox(height: 24),
-                    _buildTermsSection(),
-                    const SizedBox(height: 24),
-                    if (_bookingError != null)
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Colors.red.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.error_outline, color: Colors.red),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                _bookingError!,
-                                style: const TextStyle(color: Colors.red),
+              : FadeTransition(
+                opacity: _fadeAnimation,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 16 : 32,
+                    vertical: 16,
+                  ),
+                  child: Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 800),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildBookingSummary(),
+                          const SizedBox(height: 24),
+                          _buildGuestInfoSection(),
+                          const SizedBox(height: 24),
+                          _buildDiscountSection(),
+                          const SizedBox(height: 24),
+                          _buildPaymentSection(),
+                          const SizedBox(height: 24),
+                          _buildTermsSection(),
+                          const SizedBox(height: 24),
+                          if (_bookingError != null)
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Colors.red.withOpacity(0.3),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.error_outline,
+                                    color: Colors.red,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _bookingError!,
+                                      style: const TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
+                          const SizedBox(height: 24),
+                          CustomButton(
+                            text: 'Complete Booking',
+                            icon: Icons.check_circle,
+                            isLoading: _isCreatingBooking,
+                            onPressed: _createBooking,
+                          ),
+                          const SizedBox(height: 40),
+                        ],
                       ),
-                    const SizedBox(height: 24),
-                    CustomButton(
-                      text: 'Complete Booking',
-                      icon: Icons.check_circle,
-                      isLoading: _isCreatingBooking,
-                      onPressed: _createBooking,
                     ),
-                    const SizedBox(height: 40),
-                  ],
+                  ),
                 ),
               ),
     );
   }
 
   Widget _buildBookingSummary() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return ModernCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -265,8 +309,9 @@ class _HouseBookingScreenState extends State<HouseBookingScreen> {
                                 color: Colors.grey[300],
                                 child: Center(
                                   child: Icon(
-                                    Icons.image_not_supported_outlined,
+                                    widget.house.propertyTypeIconData,
                                     color: Colors.grey[500],
+                                    size: 40,
                                   ),
                                 ),
                               );
@@ -276,8 +321,9 @@ class _HouseBookingScreenState extends State<HouseBookingScreen> {
                             color: Colors.grey[300],
                             child: Center(
                               child: Icon(
-                                Icons.home_outlined,
+                                widget.house.propertyTypeIconData,
                                 color: Colors.grey[500],
+                                size: 40,
                               ),
                             ),
                           ),
@@ -372,7 +418,8 @@ class _HouseBookingScreenState extends State<HouseBookingScreen> {
                 '\$${widget.availabilityResponse.nightlyRate.toStringAsFixed(2)} × ${widget.availabilityResponse.nights} nights',
                 '\$${(widget.availabilityResponse.nightlyRate * widget.availabilityResponse.nights).toStringAsFixed(2)}',
               ),
-              if (widget.availabilityResponse.cleaningFee != null) ...[
+              if (widget.availabilityResponse.cleaningFee != null &&
+                  widget.availabilityResponse.cleaningFee! > 0) ...[
                 const SizedBox(height: 8),
                 _buildPriceItem(
                   'Cleaning Fee:',
@@ -404,14 +451,16 @@ class _HouseBookingScreenState extends State<HouseBookingScreen> {
   }
 
   Widget _buildBookingDetail(String label, String value, IconData icon) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            fontSize: 14,
+            color: colorScheme.onSurface.withOpacity(0.7),
           ),
         ),
         const SizedBox(height: 4),
@@ -420,14 +469,10 @@ class _HouseBookingScreenState extends State<HouseBookingScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                color: colorScheme.primary.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 16,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+              child: Icon(icon, size: 16, color: colorScheme.primary),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -449,6 +494,8 @@ class _HouseBookingScreenState extends State<HouseBookingScreen> {
     bool isBold = false,
     bool isDiscount = false,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -456,7 +503,7 @@ class _HouseBookingScreenState extends State<HouseBookingScreen> {
           label,
           style: TextStyle(
             fontSize: 14,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            color: colorScheme.onSurface.withOpacity(0.7),
           ),
         ),
         if (details.isNotEmpty)
@@ -465,7 +512,7 @@ class _HouseBookingScreenState extends State<HouseBookingScreen> {
               details,
               style: TextStyle(
                 fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                color: colorScheme.onSurface.withOpacity(0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -473,14 +520,14 @@ class _HouseBookingScreenState extends State<HouseBookingScreen> {
         Text(
           value,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: isBold ? 16 : 14,
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
             color:
                 isDiscount
                     ? Colors.green
                     : isBold
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurface,
+                    ? colorScheme.primary
+                    : colorScheme.onSurface,
           ),
         ),
       ],
@@ -488,178 +535,256 @@ class _HouseBookingScreenState extends State<HouseBookingScreen> {
   }
 
   Widget _buildGuestInfoSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Special Requests',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _notesController,
-          maxLines: 3,
-          decoration: InputDecoration(
-            labelText: 'Notes for the host (optional)',
-            hintText: 'Any special requests or information for your stay...',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ModernCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Special Requests',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Checkbox(
-              value: _sendUpdates,
-              onChanged: (value) {
-                setState(() {
-                  _sendUpdates = value ?? false;
-                });
-              },
-            ),
-            Expanded(
-              child: Text(
-                'Send me updates about my booking',
-                style: Theme.of(context).textTheme.bodyMedium,
+          const SizedBox(height: 16),
+          TextField(
+            controller: _notesController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              labelText: 'Notes for the host (optional)',
+              hintText: 'Any special requests or information for your stay...',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDiscountSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Discount Code',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _discountCodeController,
-                enabled: !_hasDiscount,
-                decoration: InputDecoration(
-                  labelText: 'Enter discount code',
-                  hintText: 'e.g. SUMMER20',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  errorText: _discountError,
-                  suffixIcon:
-                      _hasDiscount
-                          ? Icon(Icons.check_circle, color: Colors.green)
-                          : null,
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            SizedBox(
-              height: 56,
-              child: ElevatedButton(
-                onPressed:
-                    _hasDiscount
-                        ? () {
-                          setState(() {
-                            _hasDiscount = false;
-                            _discountPercentage = 0;
-                            _discountedTotal =
-                                widget.availabilityResponse.totalPrice;
-                            _discountCodeController.clear();
-                          });
-                        }
-                        : _isApplyingDiscount
-                        ? null
-                        : _applyDiscountCode,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  backgroundColor:
-                      _hasDiscount
-                          ? Colors.red
-                          : Theme.of(context).colorScheme.primary,
-                ),
-                child:
-                    _isApplyingDiscount
-                        ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        )
-                        : Text(_hasDiscount ? 'Remove' : 'Apply'),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPaymentSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Payment Method',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        PaymentMethodWidget(
-          onPaymentMethodChanged: _handlePaymentMethodChanged,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTermsSection() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Checkbox(
-          value: _agreeToTerms,
-          onChanged: (value) {
-            setState(() {
-              _agreeToTerms = value ?? false;
-            });
-          },
-        ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          ),
+          const SizedBox(height: 16),
+          Row(
             children: [
-              const Text(
-                'I agree to the Terms and Conditions',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Checkbox(
+                value: _sendUpdates,
+                onChanged: (value) {
+                  setState(() {
+                    _sendUpdates = value ?? false;
+                  });
+                },
               ),
-              const SizedBox(height: 4),
-              Text(
-                'By checking this box, you agree to the house rules, cancellation policy, and payment terms.',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withOpacity(0.7),
+              Expanded(
+                child: Text(
+                  'Send me updates about my booking',
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDiscountSection() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ModernCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Discount Code',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _discountCodeController,
+                  enabled: !_hasDiscount,
+                  decoration: InputDecoration(
+                    labelText: 'Enter discount code',
+                    hintText: 'e.g. SUMMER20',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    errorText: _discountError,
+                    suffixIcon:
+                        _hasDiscount
+                            ? Icon(Icons.check_circle, color: Colors.green)
+                            : null,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              SizedBox(
+                height: 56,
+                child: ElevatedButton(
+                  onPressed:
+                      _hasDiscount
+                          ? () {
+                            setState(() {
+                              _hasDiscount = false;
+                              _discountPercentage = 0;
+                              _discountedTotal =
+                                  widget.availabilityResponse.totalPrice;
+                              _discountCodeController.clear();
+                            });
+                          }
+                          : _isApplyingDiscount
+                          ? null
+                          : _applyDiscountCode,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    backgroundColor:
+                        _hasDiscount ? Colors.red : colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child:
+                      _isApplyingDiscount
+                          ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                          : Text(_hasDiscount ? 'Remove' : 'Apply'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 14,
+                color: colorScheme.onSurface.withOpacity(0.6),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Try "DISCOUNT20" for 20% off your first booking!',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    color: colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentSection() {
+    return ModernCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Payment Method',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          PaymentMethodWidget(
+            onPaymentMethodChanged: _handlePaymentMethodChanged,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTermsSection() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ModernCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Terms and Conditions',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Checkbox(
+                value: _agreeToTerms,
+                onChanged: (value) {
+                  setState(() {
+                    _agreeToTerms = value ?? false;
+                  });
+                },
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'I agree to the Terms and Conditions',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'By checking this box, you agree to the house rules, cancellation policy, and payment terms.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'Cancellation Policy: ',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                          const TextSpan(
+                            text:
+                                'Free cancellation up to 48 hours before check-in. After that, the first night is non-refundable.',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
