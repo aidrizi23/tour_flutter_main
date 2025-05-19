@@ -8,6 +8,7 @@ import 'screens/admin/admin_tour_create_screen.dart';
 import 'screens/admin/admin_panel_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/booking/booking_screen.dart';
+import 'screens/recommendation/recommendation_screen.dart'; // Import the new screen
 import 'services/auth_service.dart';
 import 'services/stripe_service.dart';
 
@@ -44,6 +45,8 @@ class MyApp extends StatelessWidget {
         '/admin/create-tour': (context) => const AdminTourCreateScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/bookings': (context) => const BookingScreen(),
+        '/recommendations':
+            (context) => const RecommendationScreen(), // Added route
       },
     );
   }
@@ -592,8 +595,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
+  // Update the screens list to include recommendations
   final List<Widget> _userScreens = [
     const TourListScreen(),
+    const RecommendationScreen(), // Add recommendation screen to position 1
     const CarListScreen(),
     const BookingScreen(),
     const ProfileScreen(),
@@ -601,6 +606,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   final List<Widget> _adminScreens = [
     const TourListScreen(),
+    const RecommendationScreen(), // Add recommendation screen to position 1
     const CarListScreen(),
     const BookingScreen(),
     const AdminPanelScreen(),
@@ -679,6 +685,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 icon: Icon(Icons.explore_outlined),
                 selectedIcon: Icon(Icons.explore),
                 label: 'Discover',
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.recommend_outlined),
+                selectedIcon: Icon(Icons.recommend),
+                label: 'For You',
               ),
               const NavigationDestination(
                 icon: Icon(Icons.directions_car_outlined),
@@ -835,16 +846,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                   _buildDrawerItem(
                     context,
+                    Icons.recommend,
+                    'For You',
+                    1,
+                    description: 'Personalized recommendations',
+                  ),
+                  _buildDrawerItem(
+                    context,
                     Icons.directions_car,
                     'Car Rentals',
-                    1,
+                    2,
                     description: 'Rent a car for your trip',
                   ),
                   _buildDrawerItem(
                     context,
                     Icons.bookmark,
                     'My Bookings',
-                    2,
+                    3,
                     description: 'View your trips',
                   ),
 
@@ -870,7 +888,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       context,
                       Icons.admin_panel_settings,
                       'Admin Panel',
-                      3,
+                      4,
                       description: 'Manage tours and system',
                       isAdmin: true,
                     ),
@@ -880,7 +898,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     context,
                     Icons.person,
                     'Profile',
-                    _isAdmin ? 4 : 3,
+                    _isAdmin ? 5 : 4,
                     description: 'Account settings',
                   ),
 

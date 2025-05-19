@@ -8,3 +8,4 @@ export 'booking/payment_screen.dart';
 export 'booking/payment_result_screen.dart';
 export 'profile/profile_screen.dart';
 export 'admin/admin_tour_create_screen.dart';
+export 'recommendation/recommendation_screen.dart'; // Added recommendation screen

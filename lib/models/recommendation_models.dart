@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'tour_models.dart';
+import 'package:tour_flutter_main/models/tour_models.dart';
 
-// Recommended tour model with reason
+// Represents a recommended tour with reasoning
 class RecommendedTour {
   final Tour tour;
   final String reasonForRecommendation;
@@ -17,7 +17,7 @@ class RecommendedTour {
   }
 }
 
-// Package (combination of tours, houses, etc.)
+// Travel package model
 class TravelPackage {
   final int id;
   final String name;
@@ -81,37 +81,31 @@ class TravelPackage {
     );
   }
 
-  bool get hasDiscount => originalPrice != null && originalPrice! > price;
+  // Helper getters
+  bool get hasDiscount =>
+      discountPercentage != null &&
+      discountPercentage! > 0 &&
+      originalPrice != null;
   String get displayPrice => '\$${price.toStringAsFixed(2)}';
-  String get durationText => '$duration ${duration == 1 ? 'day' : 'days'}';
   String get dateRange => '${_formatDate(startDate)} - ${_formatDate(endDate)}';
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
+  String get durationText => '$duration ${duration == 1 ? 'day' : 'days'}';
 
   Color getGradientStartColor() {
-    // Generate a consistent color based on name and location
-    final int hash = name.hashCode + location.hashCode;
-    return Color.fromARGB(
-      255,
-      ((hash & 0xFF0000) >> 16).clamp(20, 180),
-      ((hash & 0x00FF00) >> 8).clamp(20, 180),
-      (hash & 0x0000FF).clamp(60, 200),
-    );
+    if (isFeatured) return const Color(0xFF1A237E);
+    return const Color(0xFF1565C0);
   }
 
   Color getGradientEndColor() {
-    final Color start = getGradientStartColor();
-    return Color.fromARGB(
-      255,
-      (start.red * 0.7).round(),
-      (start.green * 0.7).round(),
-      (start.blue * 0.7).round(),
-    );
+    if (isFeatured) return const Color(0xFF3949AB);
+    return const Color(0xFF1976D2);
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.month}/${date.day}/${date.year}';
   }
 }
 
+// Tour included in a package
 class PackageTour {
   final int tourId;
   final String tourName;
@@ -142,10 +136,9 @@ class PackageTour {
       mainImageUrl: json['mainImageUrl'] as String?,
     );
   }
-
-  String get displayPrice => '\$${specialPrice.toStringAsFixed(2)}';
 }
 
+// House included in a package
 class PackageHouse {
   final int houseId;
   final String houseName;
@@ -179,14 +172,12 @@ class PackageHouse {
       mainImageUrl: json['mainImageUrl'] as String?,
     );
   }
-
-  String get displayPrice => '\$${specialPrice.toStringAsFixed(2)}';
 }
 
 // Flash deal model
 class FlashDeal {
   final int id;
-  final String type; // "Tour", "House", "Package"
+  final String type;
   final String name;
   final String description;
   final double originalPrice;
@@ -224,14 +215,16 @@ class FlashDeal {
     );
   }
 
+  // Helper getters
+  String get displayOriginalPrice => '\$${originalPrice.toStringAsFixed(2)}';
   String get displayDiscountedPrice =>
       '\$${discountedPrice.toStringAsFixed(2)}';
-  String get displayOriginalPrice => '\$${originalPrice.toStringAsFixed(2)}';
   String get displayDiscount => '$discountPercentage% OFF';
 
   bool get isExpiringSoon {
     final now = DateTime.now();
-    return endsAt.difference(now).inHours < 24;
+    final difference = endsAt.difference(now);
+    return difference.inHours <= 24;
   }
 
   String get timeRemaining {
@@ -239,13 +232,11 @@ class FlashDeal {
     final difference = endsAt.difference(now);
 
     if (difference.inDays > 0) {
-      return '${difference.inDays}d ${difference.inHours.remainder(24)}h left';
+      return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'} left';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ${difference.inMinutes.remainder(60)}m left';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m left';
+      return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} left';
     } else {
-      return 'Ending soon!';
+      return '${difference.inMinutes} min left';
     }
   }
 
@@ -258,7 +249,7 @@ class FlashDeal {
       case 'package':
         return Colors.purple;
       default:
-        return Colors.orange;
+        return Colors.amber;
     }
   }
 }
@@ -266,14 +257,14 @@ class FlashDeal {
 // Seasonal offer model
 class SeasonalOffer {
   final int id;
-  final String type; // "Tour", "House", "Package"
+  final String type;
   final String name;
   final String description;
   final double price;
   final double? discountAmount;
   final String? imageUrl;
   final String location;
-  final String season; // "Summer", "Fall", "Winter", "Spring"
+  final String season;
   final String seasonalHighlight;
 
   SeasonalOffer({
@@ -304,40 +295,41 @@ class SeasonalOffer {
     );
   }
 
+  // Helper getters
+  bool get hasDiscount => discountAmount != null && discountAmount! > 0;
   String get displayPrice => '\$${price.toStringAsFixed(2)}';
   String get displayDiscount =>
-      discountAmount != null
-          ? 'Save \$${discountAmount!.toStringAsFixed(2)}'
-          : '';
-  bool get hasDiscount => discountAmount != null && discountAmount! > 0;
+      hasDiscount ? 'Save \$${discountAmount!.toStringAsFixed(2)}' : '';
 
   Color getSeasonColor() {
     switch (season.toLowerCase()) {
-      case 'summer':
-        return Colors.orange;
-      case 'fall':
-        return Colors.amber.shade700;
-      case 'winter':
-        return Colors.lightBlue;
       case 'spring':
-        return Colors.green;
+        return Colors.green.shade600;
+      case 'summer':
+        return Colors.orange.shade600;
+      case 'fall':
+      case 'autumn':
+        return Colors.amber.shade800;
+      case 'winter':
+        return Colors.blue.shade700;
       default:
-        return Colors.teal;
+        return Colors.teal.shade600;
     }
   }
 
   IconData getSeasonIcon() {
     switch (season.toLowerCase()) {
+      case 'spring':
+        return Icons.local_florist_rounded;
       case 'summer':
         return Icons.wb_sunny_rounded;
       case 'fall':
-        return Icons.nature_rounded;
+      case 'autumn':
+        return Icons.eco_rounded;
       case 'winter':
         return Icons.ac_unit_rounded;
-      case 'spring':
-        return Icons.eco_rounded;
       default:
-        return Icons.event_rounded;
+        return Icons.calendar_today_rounded;
     }
   }
 }
