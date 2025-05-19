@@ -42,7 +42,7 @@ class _HouseListScreenState extends State<HouseListScreen>
   bool _hasActiveFilters = false;
   List<String> _propertyTypes = [];
   List<String> _popularDestinations = [];
-  bool _showFilters = false;
+  final bool _showFilters = false;
 
   @override
   void initState() {

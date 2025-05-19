@@ -34,7 +34,7 @@ class _HouseBookingScreenState extends State<HouseBookingScreen>
   final TextEditingController _notesController = TextEditingController();
   final TextEditingController _discountCodeController = TextEditingController();
 
-  bool _isLoading = false;
+  final bool _isLoading = false;
   bool _isApplyingDiscount = false;
   bool _isCreatingBooking = false;
   bool _agreeToTerms = false;

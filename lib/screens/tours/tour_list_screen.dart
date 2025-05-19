@@ -596,7 +596,7 @@ class _TourListScreenState extends State<TourListScreen>
 
         // Quick filters - mobile optimized
         const SizedBox(height: 12),
-        Container(
+        SizedBox(
           height: isMobile ? 36 : 40,
           child: ListView(
             scrollDirection: Axis.horizontal,

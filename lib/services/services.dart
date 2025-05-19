@@ -7,3 +7,4 @@ export 'car_booking_service.dart';
 export 'stripe_service.dart';
 export 'discount_service.dart';
 export 'house_service.dart';
+export 'recommendation_service.dart';  // Added recommendation service

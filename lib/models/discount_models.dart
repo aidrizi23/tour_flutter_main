@@ -250,8 +250,9 @@ class UpdateDiscountRequest {
     if (startDate != null) data['startDate'] = startDate!.toIso8601String();
     if (endDate != null) data['endDate'] = endDate!.toIso8601String();
     if (isActive != null) data['isActive'] = isActive;
-    if (applicableCategories != null)
+    if (applicableCategories != null) {
       data['applicableCategories'] = applicableCategories;
+    }
     return data;
   }
 }

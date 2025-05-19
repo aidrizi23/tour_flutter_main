@@ -1580,7 +1580,8 @@ class _HouseDetailScreenState extends State<HouseDetailScreen>
                       const Divider(height: 24),
                       _buildPriceRow(
                         '${_availability!.formattedNightlyRate} × ${_availability!.nights} nights',
-                        '${(_availability!.nightlyRate * _availability!.nights).toStringAsFixed(2)}',
+                        (_availability!.nightlyRate * _availability!.nights)
+                            .toStringAsFixed(2),
                       ),
                       if (_availability!.cleaningFee != null) ...[
                         const SizedBox(height: 8),
