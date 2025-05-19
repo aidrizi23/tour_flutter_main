@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:ui';
 import '../../models/tour_models.dart';
 import '../../services/tour_service.dart';
-import '../../widgets/custom_text_field.dart';
 import 'tour_details_screen.dart';
 
 class TourListScreen extends StatefulWidget {

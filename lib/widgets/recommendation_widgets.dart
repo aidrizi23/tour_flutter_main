@@ -319,7 +319,7 @@ class RecommendedTourCard extends StatelessWidget {
                           _buildFeatureChip(
                             context,
                             icon: Icons.star_rounded,
-                            label: '${tour.averageRating!.toStringAsFixed(1)}',
+                            label: tour.averageRating!.toStringAsFixed(1),
                             color: Colors.amber,
                           ),
                       ],

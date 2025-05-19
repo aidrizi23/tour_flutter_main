@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import '../../models/house_models.dart';
 import '../../services/house_service.dart';
 import '../../widgets/custom_button.dart';
-import '../../widgets/modern_widgets.dart';
 import 'house_booking_screen.dart';
 
 class HouseDetailScreen extends StatefulWidget {

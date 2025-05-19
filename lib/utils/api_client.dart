@@ -1,11 +1,11 @@
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:developer';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiClient {
   static const String baseUrl = 'http://192.168.0.7:5076/api';
-  static const Duration timeoutDuration = Duration(seconds: 30);
+  static const Duration defaultTimeoutDuration = Duration(seconds: 30);
 
   // Headers for all requests
   Map<String, String> get _defaultHeaders => {
@@ -34,6 +34,7 @@ class ApiClient {
     String endpoint, {
     Map<String, String>? queryParams,
     bool requiresAuth = false,
+    int timeoutSeconds = 30,
   }) async {
     try {
       // Build URL with query parameters
@@ -49,7 +50,7 @@ class ApiClient {
 
       final response = await http
           .get(uri, headers: headers)
-          .timeout(timeoutDuration);
+          .timeout(Duration(seconds: timeoutSeconds));
 
       log('Response Status: ${response.statusCode}');
       log('Response Body: ${response.body}');
@@ -66,6 +67,7 @@ class ApiClient {
     String endpoint, {
     Map<String, dynamic>? data,
     bool requiresAuth = false,
+    int timeoutSeconds = 30,
   }) async {
     try {
       final uri = Uri.parse('$baseUrl$endpoint');
@@ -78,7 +80,7 @@ class ApiClient {
 
       final response = await http
           .post(uri, headers: headers, body: body)
-          .timeout(timeoutDuration);
+          .timeout(Duration(seconds: timeoutSeconds));
 
       log('Response Status: ${response.statusCode}');
       log('Response Body: ${response.body}');
@@ -95,6 +97,7 @@ class ApiClient {
     String endpoint, {
     Map<String, dynamic>? data,
     bool requiresAuth = false,
+    int timeoutSeconds = 30,
   }) async {
     try {
       final uri = Uri.parse('$baseUrl$endpoint');
@@ -107,7 +110,7 @@ class ApiClient {
 
       final response = await http
           .put(uri, headers: headers, body: body)
-          .timeout(timeoutDuration);
+          .timeout(Duration(seconds: timeoutSeconds));
 
       log('Response Status: ${response.statusCode}');
       log('Response Body: ${response.body}');
@@ -124,6 +127,7 @@ class ApiClient {
     String endpoint, {
     Map<String, String>? queryParams,
     bool requiresAuth = false,
+    int timeoutSeconds = 30,
   }) async {
     try {
       // Build URL with query parameters
@@ -139,7 +143,7 @@ class ApiClient {
 
       final response = await http
           .delete(uri, headers: headers)
-          .timeout(timeoutDuration);
+          .timeout(Duration(seconds: timeoutSeconds));
 
       log('Response Status: ${response.statusCode}');
       log('Response Body: ${response.body}');
@@ -156,6 +160,7 @@ class ApiClient {
     String endpoint, {
     Map<String, dynamic>? data,
     bool requiresAuth = false,
+    int timeoutSeconds = 30,
   }) async {
     try {
       final uri = Uri.parse('$baseUrl$endpoint');
@@ -168,7 +173,7 @@ class ApiClient {
 
       final response = await http
           .patch(uri, headers: headers, body: body)
-          .timeout(timeoutDuration);
+          .timeout(Duration(seconds: timeoutSeconds));
 
       log('Response Status: ${response.statusCode}');
       log('Response Body: ${response.body}');
@@ -409,6 +414,7 @@ class ApiClient {
     Map<String, String>? queryParams,
     bool requiresAuth = false,
     int maxRetries = 3,
+    int timeoutSeconds = 30,
   }) async {
     Exception? lastException;
 
@@ -422,6 +428,7 @@ class ApiClient {
               endpoint,
               queryParams: queryParams,
               requiresAuth: requiresAuth,
+              timeoutSeconds: timeoutSeconds,
             );
             break;
           case 'POST':
@@ -429,6 +436,7 @@ class ApiClient {
               endpoint,
               data: data,
               requiresAuth: requiresAuth,
+              timeoutSeconds: timeoutSeconds,
             );
             break;
           case 'PUT':
@@ -436,6 +444,7 @@ class ApiClient {
               endpoint,
               data: data,
               requiresAuth: requiresAuth,
+              timeoutSeconds: timeoutSeconds,
             );
             break;
           case 'DELETE':
@@ -443,6 +452,7 @@ class ApiClient {
               endpoint,
               queryParams: queryParams,
               requiresAuth: requiresAuth,
+              timeoutSeconds: timeoutSeconds,
             );
             break;
           case 'PATCH':
@@ -450,6 +460,7 @@ class ApiClient {
               endpoint,
               data: data,
               requiresAuth: requiresAuth,
+              timeoutSeconds: timeoutSeconds,
             );
             break;
           default:

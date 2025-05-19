@@ -7,6 +7,23 @@ import '../utils/api_client.dart';
 class RecommendationService {
   final ApiClient _apiClient = ApiClient();
 
+  // Check connection state
+  Future<bool> checkConnection() async {
+    try {
+      // Try a lightweight API call to check connection
+      final response = await _apiClient.get(
+        '/health',
+        requiresAuth: false,
+        timeoutSeconds: 5,
+      );
+
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (e) {
+      log('Connection check failed: $e');
+      return false;
+    }
+  }
+
   // Get personalized tour recommendations
   Future<List<RecommendedTour>> getPersonalizedTourRecommendations({
     int limit = 5,
@@ -38,12 +55,20 @@ class RecommendationService {
         log(
           'Failed to fetch tour recommendations. Status: ${response.statusCode}',
         );
-        throw Exception('Failed to fetch tour recommendations');
+        if (response.statusCode == 401) {
+          throw Exception('Authentication required');
+        } else if (response.statusCode == 404) {
+          throw Exception('No recommendations available at this time');
+        } else {
+          final errorData = _parseErrorResponse(response);
+          throw Exception(
+            errorData['message'] ?? 'Failed to fetch recommendations',
+          );
+        }
       }
     } catch (e) {
       log('Error fetching tour recommendations: $e');
-      // Return empty list instead of throwing to handle gracefully in UI
-      return [];
+      rethrow;
     }
   }
 
@@ -68,11 +93,12 @@ class RecommendationService {
         log(
           'Failed to fetch popular destinations. Status: ${response.statusCode}',
         );
-        return [];
+        final errorData = _parseErrorResponse(response);
+        throw Exception(errorData['message'] ?? 'Failed to fetch destinations');
       }
     } catch (e) {
       log('Error fetching popular destinations: $e');
-      return [];
+      rethrow;
     }
   }
 
@@ -103,11 +129,12 @@ class RecommendationService {
         log(
           'Failed to fetch trending packages. Status: ${response.statusCode}',
         );
-        return [];
+        final errorData = _parseErrorResponse(response);
+        throw Exception(errorData['message'] ?? 'Failed to fetch packages');
       }
     } catch (e) {
       log('Error fetching trending packages: $e');
-      return [];
+      rethrow;
     }
   }
 
@@ -133,11 +160,18 @@ class RecommendationService {
         return tours;
       } else {
         log('Failed to fetch similar tours. Status: ${response.statusCode}');
-        return [];
+        if (response.statusCode == 404) {
+          throw Exception('No similar tours found');
+        } else {
+          final errorData = _parseErrorResponse(response);
+          throw Exception(
+            errorData['message'] ?? 'Failed to fetch similar tours',
+          );
+        }
       }
     } catch (e) {
       log('Error fetching similar tours: $e');
-      return [];
+      rethrow;
     }
   }
 
@@ -169,11 +203,18 @@ class RecommendationService {
         return packages;
       } else {
         log('Failed to fetch similar packages. Status: ${response.statusCode}');
-        return [];
+        if (response.statusCode == 404) {
+          throw Exception('No similar packages found');
+        } else {
+          final errorData = _parseErrorResponse(response);
+          throw Exception(
+            errorData['message'] ?? 'Failed to fetch similar packages',
+          );
+        }
       }
     } catch (e) {
       log('Error fetching similar packages: $e');
-      return [];
+      rethrow;
     }
   }
 
@@ -195,11 +236,19 @@ class RecommendationService {
         return insights;
       } else {
         log('Failed to fetch user insights. Status: ${response.statusCode}');
-        return null;
+
+        if (response.statusCode == 401) {
+          throw Exception('Authentication required to fetch insights');
+        } else if (response.statusCode == 404) {
+          throw Exception('No insights available - more travel history needed');
+        } else {
+          final errorData = _parseErrorResponse(response);
+          throw Exception(errorData['message'] ?? 'Failed to fetch insights');
+        }
       }
     } catch (e) {
       log('Error fetching user insights: $e');
-      return null;
+      rethrow;
     }
   }
 
@@ -225,11 +274,12 @@ class RecommendationService {
         return deals;
       } else {
         log('Failed to fetch flash deals. Status: ${response.statusCode}');
-        return [];
+        final errorData = _parseErrorResponse(response);
+        throw Exception(errorData['message'] ?? 'Failed to fetch flash deals');
       }
     } catch (e) {
       log('Error fetching flash deals: $e');
-      return [];
+      rethrow;
     }
   }
 
@@ -258,11 +308,26 @@ class RecommendationService {
         return offers;
       } else {
         log('Failed to fetch seasonal offers. Status: ${response.statusCode}');
-        return [];
+        final errorData = _parseErrorResponse(response);
+        throw Exception(
+          errorData['message'] ?? 'Failed to fetch seasonal offers',
+        );
       }
     } catch (e) {
       log('Error fetching seasonal offers: $e');
-      return [];
+      rethrow;
     }
+  }
+
+  // Helper method to parse error responses
+  Map<String, dynamic> _parseErrorResponse(dynamic response) {
+    try {
+      if (response.body != null && response.body.isNotEmpty) {
+        return json.decode(response.body) as Map<String, dynamic>;
+      }
+    } catch (e) {
+      log('Error parsing error response: $e');
+    }
+    return {'message': 'An unknown error occurred'};
   }
 }
