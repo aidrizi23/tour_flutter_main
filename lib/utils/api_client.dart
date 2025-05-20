@@ -4,7 +4,7 @@ import 'dart:developer';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://192.168.0.7:5076/api';
+  static const String baseUrl = 'http://localhost:5076/api';
   static const Duration defaultTimeoutDuration = Duration(seconds: 30);
 
   // Headers for all requests

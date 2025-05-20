@@ -27,20 +27,18 @@ class _RecommendationScreenState extends State<RecommendationScreen>
   UserInsights? _userInsights;
 
   // Loading states
-  bool _isLoadingTours = true;
-  bool _isLoadingPackages = true;
-  bool _isLoadingDestinations = true;
-  bool _isLoadingDeals = true;
-  bool _isLoadingOffers = true;
-  bool _isLoadingInsights = true;
+  bool _isLoading = true;
   bool _isRefreshing = false;
 
   // Animation controllers
   late AnimationController _fadeInController;
   late Animation<double> _fadeAnimation;
 
-  // Current section being viewed - for analytics or future features
-  String _currentSection = "All";
+  // Current category
+  String _currentCategory = "For You";
+
+  // Connection state
+  bool _hasConnection = true;
 
   @override
   void initState() {
@@ -48,16 +46,17 @@ class _RecommendationScreenState extends State<RecommendationScreen>
 
     // Initialize animations
     _fadeInController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeInController, curve: Curves.easeOut),
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeInController,
+      curve: Curves.easeOut,
     );
 
     // Load recommendation data
-    _loadRecommendations();
+    _loadAllRecommendations();
 
     // Start animations
     _fadeInController.forward();
@@ -70,21 +69,42 @@ class _RecommendationScreenState extends State<RecommendationScreen>
     super.dispose();
   }
 
-  Future<void> _loadRecommendations() async {
-    // Load all recommendation data in parallel
-    await Future.wait([
-      _loadPersonalizedTours(),
-      _loadTrendingPackages(),
-      _loadPopularDestinations(),
-      _loadFlashDeals(),
-      _loadSeasonalOffers(),
-      _loadUserInsights(),
-    ]);
+  Future<void> _loadAllRecommendations() async {
+    setState(() {
+      _isLoading = true;
+    });
 
-    if (mounted) {
-      setState(() {
-        _isRefreshing = false;
-      });
+    try {
+      // Check connection first
+      _hasConnection = await _recommendationService.checkConnection();
+
+      if (!_hasConnection) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+
+      // Load all recommendation data in parallel
+      await Future.wait([
+        _loadPersonalizedTours(),
+        _loadTrendingPackages(),
+        _loadPopularDestinations(),
+        _loadFlashDeals(),
+        _loadSeasonalOffers(),
+        _loadUserInsights(),
+      ]);
+    } catch (e) {
+      debugPrint('Error loading recommendations: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isRefreshing = false;
+        });
+      }
     }
   }
 
@@ -95,14 +115,13 @@ class _RecommendationScreenState extends State<RecommendationScreen>
       if (mounted) {
         setState(() {
           _personalizedTours = recommendations;
-          _isLoadingTours = false;
         });
       }
     } catch (e) {
+      debugPrint('Error loading personalized tours: $e');
       if (mounted) {
         setState(() {
           _personalizedTours = [];
-          _isLoadingTours = false;
         });
       }
     }
@@ -114,14 +133,13 @@ class _RecommendationScreenState extends State<RecommendationScreen>
       if (mounted) {
         setState(() {
           _trendingPackages = packages;
-          _isLoadingPackages = false;
         });
       }
     } catch (e) {
+      debugPrint('Error loading trending packages: $e');
       if (mounted) {
         setState(() {
           _trendingPackages = [];
-          _isLoadingPackages = false;
         });
       }
     }
@@ -134,14 +152,13 @@ class _RecommendationScreenState extends State<RecommendationScreen>
       if (mounted) {
         setState(() {
           _popularDestinations = destinations;
-          _isLoadingDestinations = false;
         });
       }
     } catch (e) {
+      debugPrint('Error loading popular destinations: $e');
       if (mounted) {
         setState(() {
           _popularDestinations = [];
-          _isLoadingDestinations = false;
         });
       }
     }
@@ -153,14 +170,13 @@ class _RecommendationScreenState extends State<RecommendationScreen>
       if (mounted) {
         setState(() {
           _flashDeals = deals;
-          _isLoadingDeals = false;
         });
       }
     } catch (e) {
+      debugPrint('Error loading flash deals: $e');
       if (mounted) {
         setState(() {
           _flashDeals = [];
-          _isLoadingDeals = false;
         });
       }
     }
@@ -172,14 +188,13 @@ class _RecommendationScreenState extends State<RecommendationScreen>
       if (mounted) {
         setState(() {
           _seasonalOffers = offers;
-          _isLoadingOffers = false;
         });
       }
     } catch (e) {
+      debugPrint('Error loading seasonal offers: $e');
       if (mounted) {
         setState(() {
           _seasonalOffers = [];
-          _isLoadingOffers = false;
         });
       }
     }
@@ -191,31 +206,26 @@ class _RecommendationScreenState extends State<RecommendationScreen>
       if (mounted) {
         setState(() {
           _userInsights = insights;
-          _isLoadingInsights = false;
         });
       }
     } catch (e) {
+      debugPrint('Error loading user insights: $e');
       if (mounted) {
         setState(() {
           _userInsights = null;
-          _isLoadingInsights = false;
         });
       }
     }
   }
 
   Future<void> _refreshRecommendations() async {
+    if (_isRefreshing) return;
+
     setState(() {
       _isRefreshing = true;
-      _isLoadingTours = true;
-      _isLoadingPackages = true;
-      _isLoadingDestinations = true;
-      _isLoadingDeals = true;
-      _isLoadingOffers = true;
-      _isLoadingInsights = true;
     });
 
-    await _loadRecommendations();
+    await _loadAllRecommendations();
   }
 
   void _navigateToTourDetails(Tour tour) {
@@ -230,342 +240,364 @@ class _RecommendationScreenState extends State<RecommendationScreen>
 
   void _viewPackageDetails(TravelPackage package) {
     HapticFeedback.lightImpact();
-    // TODO: Navigate to package details screen
+    // Show snackbar for now
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Package details coming soon: ${package.name}'),
+        content: Text('Package details: ${package.name}'),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
 
   void _viewFlashDeal(FlashDeal deal) {
     HapticFeedback.lightImpact();
-    // TODO: Navigate to appropriate screen based on deal type
+    // Show snackbar for now
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Flash deal details: ${deal.name}'),
+        content: Text('Limited time offer: ${deal.name}'),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
 
   void _viewSeasonalOffer(SeasonalOffer offer) {
     HapticFeedback.lightImpact();
-    // TODO: Navigate to seasonal offer details
+    // Show snackbar for now
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Seasonal offer details: ${offer.name}'),
+        content: Text('Seasonal offer: ${offer.name}'),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
 
   void _exploreDestination(String destination) {
     HapticFeedback.lightImpact();
-    // TODO: Navigate to a filtered tour list for this destination
+    // Show snackbar for now
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Exploring: $destination'),
+        content: Text('Exploring destination: $destination'),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  void _viewInsightsDetails() {
-    HapticFeedback.lightImpact();
-    // TODO: Navigate to detailed user insights screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Detailed travel insights coming soon!'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-      ),
-    );
-  }
+  void _changeCategory(String category) {
+    if (_currentCategory == category) return;
 
-  void _onSectionSelected(String section) {
+    HapticFeedback.selectionClick();
     setState(() {
-      _currentSection = section;
+      _currentCategory = category;
     });
-
-    // Scroll to respective section
-    switch (section) {
-      case "Deals":
-        _scrollToSection(0);
-        break;
-      case "For You":
-        _scrollToSection(1);
-        break;
-      case "Destinations":
-        _scrollToSection(2);
-        break;
-      case "Packages":
-        _scrollToSection(3);
-        break;
-      case "Seasonal":
-        _scrollToSection(4);
-        break;
-      default:
-        _scrollController.animateTo(
-          0,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeOutQuad,
-        );
-    }
-  }
-
-  void _scrollToSection(int sectionIndex) {
-    // Calculate approximate scroll positions for each section
-    // This is a simple approach - for more accuracy, you could use GlobalKeys
-    final sectionHeights = [0, 330, 580, 790, 1190];
-
-    if (sectionIndex < sectionHeights.length) {
-      _scrollController.animateTo(
-        sectionHeights[sectionIndex].toDouble(),
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeOutQuad,
-      );
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
     final isMobile = screenWidth < 600;
 
-    // Responsive card widths - scale based on screen size
-    final cardWidth = isMobile ? screenWidth * 0.85 : screenWidth * 0.4;
-
-    // Calculate container heights based on screen size for more responsiveness
-    final destinationHeight = isMobile ? 160.0 : 180.0;
+    // Responsive settings
+    final horizontalPadding = isMobile ? 16.0 : 24.0;
+    final cardWidth = isMobile ? 260.0 : 320.0;
 
     return Scaffold(
-      backgroundColor: colorScheme.surfaceContainerLowest,
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            _buildAppBar(context, isMobile),
-            // Quick navigation tabs
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _QuickNavHeaderDelegate(
-                minHeight: 60,
-                maxHeight: 60,
-                child: Container(
-                  color: colorScheme.surface,
-                  child: _buildNavigationTabs(context),
-                ),
-              ),
-            ),
-          ];
-        },
-        body: RefreshIndicator(
-          onRefresh: _refreshRecommendations,
-          color: colorScheme.primary,
-          backgroundColor: colorScheme.surface,
-          strokeWidth: 3,
-          child:
-              _isRefreshing
-                  ? _buildRefreshingUI(context)
-                  : FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: ListView(
-                      controller: _scrollController,
-                      padding: EdgeInsets.zero,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      children: [
-                        // User insights widget (if available)
-                        if (_userInsights != null && !_isLoadingInsights)
-                          UserInsightsWidget(
-                            insights: _userInsights!,
-                            onViewMorePressed: _viewInsightsDetails,
-                          )
-                        else if (!_isLoadingInsights)
-                          SizedBox(height: isMobile ? 8 : 16),
-
-                        // Flash deals section
-                        SectionTitle(
-                          title: 'Limited Time Deals',
-                          isLoading: _isLoadingDeals,
-                        ),
-                        FlashDealsList(
-                          deals: _flashDeals,
-                          onDealTap: _viewFlashDeal,
-                          isLoading: _isLoadingDeals,
-                          cardWidth: cardWidth,
-                        ),
-
-                        // Personalized tour recommendations
-                        SectionTitle(
-                          title: 'Just For You',
-                          isLoading: _isLoadingTours,
-                        ),
-                        RecommendedToursList(
-                          recommendations: _personalizedTours,
-                          onTourTap: (tour) => _navigateToTourDetails(tour),
-                          isLoading: _isLoadingTours,
-                          onRefresh: _loadPersonalizedTours,
-                          cardWidth: cardWidth,
-                        ),
-
-                        // Popular destinations section
-                        SectionTitle(
-                          title: 'Trending Destinations',
-                          isLoading: _isLoadingDestinations,
-                        ),
-                        SizedBox(
-                          height: destinationHeight,
-                          child: PopularDestinationsList(
-                            destinations: _popularDestinations,
-                            onDestinationTap: _exploreDestination,
-                            isLoading: _isLoadingDestinations,
-                          ),
-                        ),
-
-                        // Trending packages section
-                        SectionTitle(
-                          title: 'Premium Travel Packages',
-                          isLoading: _isLoadingPackages,
-                        ),
-                        TravelPackagesList(
-                          packages: _trendingPackages,
-                          onPackageTap: _viewPackageDetails,
-                          isLoading: _isLoadingPackages,
-                          cardWidth: cardWidth,
-                        ),
-
-                        // Seasonal offers section
-                        SectionTitle(
-                          title: 'Seasonal Experiences',
-                          isLoading: _isLoadingOffers,
-                        ),
-                        SeasonalOffersList(
-                          offers: _seasonalOffers,
-                          onOfferTap: _viewSeasonalOffer,
-                          isLoading: _isLoadingOffers,
-                          cardWidth: cardWidth,
-                        ),
-
-                        // Bottom spacing
-                        SizedBox(height: isMobile ? 100 : 80),
-                      ],
-                    ),
-                  ),
+      backgroundColor: colorScheme.background,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: colorScheme.surface,
+        title: Text(
+          'For You',
+          style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            onPressed: _refreshRecommendations,
+            icon: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child:
+                  _isRefreshing
+                      ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: colorScheme.primary,
+                        ),
+                      )
+                      : const Icon(Icons.refresh_rounded),
+            ),
+            tooltip: 'Refresh',
+          ),
+        ],
       ),
-      floatingActionButton: AnimatedOpacity(
-        opacity: _isScrolledDown(100) ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 300),
-        child: FloatingActionButton(
-          onPressed: () {
-            _scrollController.animateTo(
-              0,
-              duration: const Duration(milliseconds: 800),
-              curve: Curves.easeOutCubic,
-            );
-          },
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          elevation: 4,
-          mini: isMobile,
-          child: const Icon(Icons.arrow_upward_rounded),
+      body:
+          !_hasConnection && !_isLoading
+              ? _buildNoConnectionState()
+              : _isLoading && !_isRefreshing
+              ? _buildLoadingState()
+              : _buildMainContent(context, horizontalPadding, cardWidth),
+      floatingActionButton: _buildScrollToTopFAB(),
+    );
+  }
+
+  Widget _buildNoConnectionState() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.cloud_off_rounded,
+              size: 80,
+              color: colorScheme.onSurface.withOpacity(0.3),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Connection Issue',
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'We couldn\'t connect to our servers. Please check your internet connection and try again.',
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface.withOpacity(0.7),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: _loadAllRecommendations,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Try Again'),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  bool _isScrolledDown(double threshold) {
-    if (!_scrollController.hasClients) return false;
-    return _scrollController.position.pixels > threshold;
-  }
-
-  Widget _buildRefreshingUI(BuildContext context) {
+  Widget _buildLoadingState() {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(color: colorScheme.primary, strokeWidth: 3),
-          const SizedBox(height: 20),
+          CircularProgressIndicator(color: colorScheme.primary),
+          const SizedBox(height: 24),
           Text(
-            "Refreshing your recommendations...",
-            style: TextStyle(
-              color: colorScheme.onSurface.withOpacity(0.7),
-              fontSize: 16,
-            ),
+            'Finding experiences for you...',
+            style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildNavigationTabs(BuildContext context) {
+  Widget _buildMainContent(
+    BuildContext context,
+    double horizontalPadding,
+    double cardWidth,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final isMobile = screenWidth < 600;
+
+    return RefreshIndicator(
+      onRefresh: _refreshRecommendations,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: ListView(
+          controller: _scrollController,
+          padding: EdgeInsets.only(bottom: 100),
+          children: [
+            // Category selector
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                16,
+                horizontalPadding,
+                8,
+              ),
+              child: _buildCategorySelector(),
+            ),
+
+            // Show user insights compact card if available
+            if (_userInsights != null && _currentCategory == "For You")
+              _buildCompactInsightsCard(),
+
+            // Content based on selected category
+            if (_currentCategory == "For You" || _currentCategory == "Deals")
+              ..._buildDealsSection(horizontalPadding, cardWidth),
+
+            if (_currentCategory == "For You" ||
+                _currentCategory == "Recommendations")
+              ..._buildRecommendationsSection(horizontalPadding, cardWidth),
+
+            if (_currentCategory == "For You" ||
+                _currentCategory == "Destinations")
+              ..._buildDestinationsSection(horizontalPadding),
+
+            if (_currentCategory == "For You" || _currentCategory == "Packages")
+              ..._buildPackagesSection(horizontalPadding, cardWidth),
+
+            if (_currentCategory == "For You" || _currentCategory == "Seasonal")
+              ..._buildSeasonalSection(horizontalPadding, cardWidth),
+
+            // Empty content state if no data in selected category
+            if (_isEmptyCategory()) _buildEmptyCategoryState(),
+
+            // Extra bottom space for FAB
+            SizedBox(height: isMobile ? 60 : 80),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool _isEmptyCategory() {
+    switch (_currentCategory) {
+      case "Deals":
+        return _flashDeals.isEmpty;
+      case "Recommendations":
+        return _personalizedTours.isEmpty;
+      case "Destinations":
+        return _popularDestinations.isEmpty;
+      case "Packages":
+        return _trendingPackages.isEmpty;
+      case "Seasonal":
+        return _seasonalOffers.isEmpty;
+      case "For You":
+        return _flashDeals.isEmpty &&
+            _personalizedTours.isEmpty &&
+            _popularDestinations.isEmpty &&
+            _trendingPackages.isEmpty &&
+            _seasonalOffers.isEmpty;
+      default:
+        return false;
+    }
+  }
+
+  Widget _buildEmptyCategoryState() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    IconData icon;
+    String message;
+
+    switch (_currentCategory) {
+      case "Deals":
+        icon = Icons.flash_on_rounded;
+        message = 'No deals available at the moment';
+        break;
+      case "Recommendations":
+        icon = Icons.recommend_rounded;
+        message = 'No personalized recommendations yet';
+        break;
+      case "Destinations":
+        icon = Icons.place_rounded;
+        message = 'No trending destinations available';
+        break;
+      case "Packages":
+        icon = Icons.card_travel_rounded;
+        message = 'No travel packages available at the moment';
+        break;
+      case "Seasonal":
+        icon = Icons.wb_sunny_rounded;
+        message = 'No seasonal offers currently available';
+        break;
+      default:
+        icon = Icons.search_off_rounded;
+        message = 'No recommendations available yet';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(32.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 64, color: colorScheme.outline.withOpacity(0.5)),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurface.withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          OutlinedButton.icon(
+            onPressed: _refreshRecommendations,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Refresh'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategorySelector() {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isMobile = MediaQuery.of(context).size.width < 600;
 
-    final tabs = [
-      'All',
-      'Deals',
-      'For You',
-      'Destinations',
-      'Packages',
-      'Seasonal',
+    final categories = [
+      {'title': 'For You', 'icon': Icons.recommend_rounded},
+      {'title': 'Deals', 'icon': Icons.flash_on_rounded},
+      {'title': 'Recommendations', 'icon': Icons.favorite_rounded},
+      {'title': 'Destinations', 'icon': Icons.place_rounded},
+      {'title': 'Packages', 'icon': Icons.card_travel_rounded},
+      {'title': 'Seasonal', 'icon': Icons.wb_sunny_rounded},
     ];
 
-    final icons = [
-      Icons.apps_rounded,
-      Icons.flash_on_rounded,
-      Icons.favorite_rounded,
-      Icons.place_rounded,
-      Icons.card_travel_rounded,
-      Icons.wb_sunny_rounded,
-    ];
+    return Container(
+      height: 44,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.length,
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          final isSelected = _currentCategory == category['title'];
 
-    return ListView.builder(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      itemCount: tabs.length,
-      itemBuilder: (context, index) {
-        final isSelected = _currentSection == tabs[index];
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-          child: Material(
-            color: Colors.transparent,
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
             child: InkWell(
-              onTap: () => _onSectionSelected(tabs[index]),
-              borderRadius: BorderRadius.circular(30),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isMobile ? 12 : 16,
-                  vertical: 8,
-                ),
+              onTap: () => _changeCategory(category['title'] as String),
+              borderRadius: BorderRadius.circular(22),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color:
                       isSelected
-                          ? colorScheme.primaryContainer
-                          : colorScheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(30),
+                          ? colorScheme.primary.withOpacity(0.1)
+                          : Colors.transparent,
+                  borderRadius: BorderRadius.circular(22),
                   border: Border.all(
                     color:
                         isSelected
                             ? colorScheme.primary
-                            : colorScheme.outline.withOpacity(0.2),
+                            : colorScheme.outline.withOpacity(0.3),
                     width: isSelected ? 1.5 : 1,
                   ),
                 ),
@@ -573,22 +605,24 @@ class _RecommendationScreenState extends State<RecommendationScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      icons[index],
+                      category['icon'] as IconData,
                       size: 16,
                       color:
                           isSelected
                               ? colorScheme.primary
                               : colorScheme.onSurface.withOpacity(0.7),
                     ),
-                    if (!isMobile || tabs[index] == 'All' || isSelected) ...[
+                    if (!isMobile ||
+                        isSelected ||
+                        category['title'] == 'For You') ...[
                       const SizedBox(width: 8),
                       Text(
-                        tabs[index],
-                        style: textTheme.labelMedium?.copyWith(
+                        category['title'] as String,
+                        style: textTheme.bodyMedium?.copyWith(
                           color:
                               isSelected
                                   ? colorScheme.primary
-                                  : colorScheme.onSurface.withOpacity(0.8),
+                                  : colorScheme.onSurface.withOpacity(0.7),
                           fontWeight:
                               isSelected ? FontWeight.w600 : FontWeight.normal,
                         ),
@@ -598,104 +632,341 @@ class _RecommendationScreenState extends State<RecommendationScreen>
                 ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
-  SliverAppBar _buildAppBar(BuildContext context, bool isMobile) {
+  Widget _buildCompactInsightsCard() {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final insights = _userInsights!;
 
-    return SliverAppBar(
-      expandedHeight: isMobile ? 110.0 : 130.0,
-      pinned: true,
-      floating: false,
-      elevation: 0,
-      scrolledUnderElevation: 2,
-      backgroundColor: colorScheme.primary,
-      foregroundColor: colorScheme.onPrimary,
-      flexibleSpace: FlexibleSpaceBar(
-        titlePadding: EdgeInsets.fromLTRB(16, 0, 16, isMobile ? 16 : 20),
-        centerTitle: false,
-        collapseMode: CollapseMode.pin,
-        title: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'For You',
-              style: TextStyle(
-                fontSize: isMobile ? 22 : 26,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onPrimary,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Card(
+        elevation: 0,
+        color: colorScheme.primaryContainer.withOpacity(0.6),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.insights_rounded,
+                      color: colorScheme.primary,
+                      size: 16,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Your Travel Insights',
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            SizedBox(height: isMobile ? 2 : 4),
-            Text(
-              'Personalized recommendations',
-              style: TextStyle(
-                fontSize: isMobile ? 12 : 14,
-                fontWeight: FontWeight.w400,
-                color: colorScheme.onPrimary.withOpacity(0.9),
+              const SizedBox(height: 12),
+
+              // Insights stats in a row
+              Container(
+                height: 70,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    _buildInsightItem(
+                      'Favorite',
+                      insights.favoriteTourCategory,
+                      Icons.category_rounded,
+                    ),
+                    _buildInsightItem(
+                      'Trips',
+                      '${insights.totalTrips}',
+                      Icons.card_travel_rounded,
+                    ),
+                    _buildInsightItem(
+                      'Avg Duration',
+                      '${insights.averageTripDuration} days',
+                      Icons.calendar_today_rounded,
+                    ),
+                    _buildInsightItem(
+                      'Saved',
+                      '\$${insights.totalSavings.toStringAsFixed(0)}',
+                      Icons.savings_rounded,
+                      isLast: true,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colorScheme.primary,
-                colorScheme.primary.withOpacity(0.8),
-              ],
-            ),
+            ],
           ),
         ),
       ),
-      actions: [
-        IconButton(
-          onPressed: _refreshRecommendations,
-          icon: const Icon(Icons.refresh_rounded),
-          tooltip: 'Refresh recommendations',
-        ),
-      ],
     );
   }
-}
 
-class _QuickNavHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final double minHeight;
-  final double maxHeight;
-  final Widget child;
+  Widget _buildInsightItem(
+    String label,
+    String value,
+    IconData icon, {
+    bool isLast = false,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
-  _QuickNavHeaderDelegate({
-    required this.minHeight,
-    required this.maxHeight,
-    required this.child,
-  });
-
-  @override
-  double get minExtent => minHeight;
-
-  @override
-  double get maxExtent => maxHeight;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return SizedBox.expand(child: child);
+    return Container(
+      width: 120,
+      margin: EdgeInsets.only(right: isLast ? 0 : 16),
+      decoration: BoxDecoration(
+        color: colorScheme.onPrimaryContainer.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(10),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                size: 14,
+                color: colorScheme.onPrimaryContainer.withOpacity(0.7),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onPrimaryContainer.withOpacity(0.7),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onPrimaryContainer,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
   }
 
-  @override
-  bool shouldRebuild(_QuickNavHeaderDelegate oldDelegate) {
-    return maxHeight != oldDelegate.maxHeight ||
-        minHeight != oldDelegate.minHeight ||
-        child != oldDelegate.child;
+  List<Widget> _buildDealsSection(double horizontalPadding, double cardWidth) {
+    if (_flashDeals.isEmpty) {
+      return _currentCategory == "Deals" ? [] : [];
+    }
+
+    return [
+      Padding(
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          16,
+          horizontalPadding,
+          8,
+        ),
+        child: SectionTitle(
+          title: 'Limited Time Deals',
+          onSeeAllPressed:
+              _currentCategory == "For You"
+                  ? () => _changeCategory("Deals")
+                  : null,
+        ),
+      ),
+      FlashDealsList(
+        deals: _flashDeals,
+        onDealTap: _viewFlashDeal,
+        isLoading: false,
+        cardWidth: cardWidth,
+      ),
+      const SizedBox(height: 8),
+    ];
+  }
+
+  List<Widget> _buildRecommendationsSection(
+    double horizontalPadding,
+    double cardWidth,
+  ) {
+    if (_personalizedTours.isEmpty) {
+      return _currentCategory == "Recommendations" ? [] : [];
+    }
+
+    return [
+      Padding(
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          16,
+          horizontalPadding,
+          8,
+        ),
+        child: SectionTitle(
+          title: 'Recommended for You',
+          onSeeAllPressed:
+              _currentCategory == "For You"
+                  ? () => _changeCategory("Recommendations")
+                  : null,
+        ),
+      ),
+      RecommendedToursList(
+        recommendations: _personalizedTours,
+        onTourTap: (tour) => _navigateToTourDetails(tour),
+        isLoading: false,
+        onRefresh: _loadPersonalizedTours,
+        cardWidth: cardWidth,
+      ),
+      const SizedBox(height: 8),
+    ];
+  }
+
+  List<Widget> _buildDestinationsSection(double horizontalPadding) {
+    if (_popularDestinations.isEmpty) {
+      return _currentCategory == "Destinations" ? [] : [];
+    }
+
+    return [
+      Padding(
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          16,
+          horizontalPadding,
+          8,
+        ),
+        child: SectionTitle(
+          title: 'Popular Destinations',
+          onSeeAllPressed:
+              _currentCategory == "For You"
+                  ? () => _changeCategory("Destinations")
+                  : null,
+        ),
+      ),
+      SizedBox(
+        height: 150,
+        child: PopularDestinationsList(
+          destinations: _popularDestinations,
+          onDestinationTap: _exploreDestination,
+          isLoading: false,
+        ),
+      ),
+      const SizedBox(height: 8),
+    ];
+  }
+
+  List<Widget> _buildPackagesSection(
+    double horizontalPadding,
+    double cardWidth,
+  ) {
+    if (_trendingPackages.isEmpty) {
+      return _currentCategory == "Packages" ? [] : [];
+    }
+
+    return [
+      Padding(
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          16,
+          horizontalPadding,
+          8,
+        ),
+        child: SectionTitle(
+          title: 'Premium Travel Packages',
+          onSeeAllPressed:
+              _currentCategory == "For You"
+                  ? () => _changeCategory("Packages")
+                  : null,
+        ),
+      ),
+      TravelPackagesList(
+        packages: _trendingPackages,
+        onPackageTap: _viewPackageDetails,
+        isLoading: false,
+        cardWidth: cardWidth,
+      ),
+      const SizedBox(height: 8),
+    ];
+  }
+
+  List<Widget> _buildSeasonalSection(
+    double horizontalPadding,
+    double cardWidth,
+  ) {
+    if (_seasonalOffers.isEmpty) {
+      return _currentCategory == "Seasonal" ? [] : [];
+    }
+
+    return [
+      Padding(
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          16,
+          horizontalPadding,
+          8,
+        ),
+        child: SectionTitle(
+          title: 'Seasonal Experiences',
+          onSeeAllPressed:
+              _currentCategory == "For You"
+                  ? () => _changeCategory("Seasonal")
+                  : null,
+        ),
+      ),
+      SeasonalOffersList(
+        offers: _seasonalOffers,
+        onOfferTap: _viewSeasonalOffer,
+        isLoading: false,
+        cardWidth: cardWidth,
+      ),
+      const SizedBox(height: 8),
+    ];
+  }
+
+  Widget _buildScrollToTopFAB() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return AnimatedBuilder(
+      animation: _scrollController,
+      builder: (context, child) {
+        return AnimatedOpacity(
+          opacity: _shouldShowScrollTopButton() ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 200),
+          child: child,
+        );
+      },
+      child: FloatingActionButton(
+        mini: true,
+        onPressed: () {
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeOutQuad,
+          );
+        },
+        backgroundColor: colorScheme.primaryContainer,
+        foregroundColor: colorScheme.onPrimaryContainer,
+        child: const Icon(Icons.keyboard_arrow_up_rounded),
+      ),
+    );
+  }
+
+  bool _shouldShowScrollTopButton() {
+    if (!_scrollController.hasClients) return false;
+    return _scrollController.offset > 300;
   }
 }
