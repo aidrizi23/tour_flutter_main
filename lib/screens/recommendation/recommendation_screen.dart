@@ -20,8 +20,6 @@ class _RecommendationScreenState extends State<RecommendationScreen>
 
   // State variables for different recommendation types
   List<RecommendedTour> _personalizedTours = [];
-  List<TravelPackage> _trendingPackages = [];
-  List<String> _popularDestinations = [];
   List<FlashDeal> _flashDeals = [];
   List<SeasonalOffer> _seasonalOffers = [];
   UserInsights? _userInsights;
@@ -90,8 +88,6 @@ class _RecommendationScreenState extends State<RecommendationScreen>
       // Load all recommendation data in parallel
       await Future.wait([
         _loadPersonalizedTours(),
-        _loadTrendingPackages(),
-        _loadPopularDestinations(),
         _loadFlashDeals(),
         _loadSeasonalOffers(),
         _loadUserInsights(),
@@ -122,43 +118,6 @@ class _RecommendationScreenState extends State<RecommendationScreen>
       if (mounted) {
         setState(() {
           _personalizedTours = [];
-        });
-      }
-    }
-  }
-
-  Future<void> _loadTrendingPackages() async {
-    try {
-      final packages = await _recommendationService.getTrendingPackages();
-      if (mounted) {
-        setState(() {
-          _trendingPackages = packages;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error loading trending packages: $e');
-      if (mounted) {
-        setState(() {
-          _trendingPackages = [];
-        });
-      }
-    }
-  }
-
-  Future<void> _loadPopularDestinations() async {
-    try {
-      final destinations =
-          await _recommendationService.getPopularDestinations();
-      if (mounted) {
-        setState(() {
-          _popularDestinations = destinations;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error loading popular destinations: $e');
-      if (mounted) {
-        setState(() {
-          _popularDestinations = [];
         });
       }
     }
@@ -238,19 +197,6 @@ class _RecommendationScreenState extends State<RecommendationScreen>
     );
   }
 
-  void _viewPackageDetails(TravelPackage package) {
-    HapticFeedback.lightImpact();
-    // Show snackbar for now
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Package details: ${package.name}'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
   void _viewFlashDeal(FlashDeal deal) {
     HapticFeedback.lightImpact();
     // Show snackbar for now
@@ -270,19 +216,6 @@ class _RecommendationScreenState extends State<RecommendationScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Seasonal offer: ${offer.name}'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _exploreDestination(String destination) {
-    HapticFeedback.lightImpact();
-    // Show snackbar for now
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Exploring destination: $destination'),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 2),
@@ -312,7 +245,7 @@ class _RecommendationScreenState extends State<RecommendationScreen>
     final cardWidth = isMobile ? 260.0 : 320.0;
 
     return Scaffold(
-      backgroundColor: colorScheme.background,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: colorScheme.surface,
@@ -454,13 +387,6 @@ class _RecommendationScreenState extends State<RecommendationScreen>
                 _currentCategory == "Recommendations")
               ..._buildRecommendationsSection(horizontalPadding, cardWidth),
 
-            if (_currentCategory == "For You" ||
-                _currentCategory == "Destinations")
-              ..._buildDestinationsSection(horizontalPadding),
-
-            if (_currentCategory == "For You" || _currentCategory == "Packages")
-              ..._buildPackagesSection(horizontalPadding, cardWidth),
-
             if (_currentCategory == "For You" || _currentCategory == "Seasonal")
               ..._buildSeasonalSection(horizontalPadding, cardWidth),
 
@@ -481,17 +407,11 @@ class _RecommendationScreenState extends State<RecommendationScreen>
         return _flashDeals.isEmpty;
       case "Recommendations":
         return _personalizedTours.isEmpty;
-      case "Destinations":
-        return _popularDestinations.isEmpty;
-      case "Packages":
-        return _trendingPackages.isEmpty;
       case "Seasonal":
         return _seasonalOffers.isEmpty;
       case "For You":
         return _flashDeals.isEmpty &&
             _personalizedTours.isEmpty &&
-            _popularDestinations.isEmpty &&
-            _trendingPackages.isEmpty &&
             _seasonalOffers.isEmpty;
       default:
         return false;
@@ -513,14 +433,6 @@ class _RecommendationScreenState extends State<RecommendationScreen>
       case "Recommendations":
         icon = Icons.recommend_rounded;
         message = 'No personalized recommendations yet';
-        break;
-      case "Destinations":
-        icon = Icons.place_rounded;
-        message = 'No trending destinations available';
-        break;
-      case "Packages":
-        icon = Icons.card_travel_rounded;
-        message = 'No travel packages available at the moment';
         break;
       case "Seasonal":
         icon = Icons.wb_sunny_rounded;
@@ -565,12 +477,10 @@ class _RecommendationScreenState extends State<RecommendationScreen>
       {'title': 'For You', 'icon': Icons.recommend_rounded},
       {'title': 'Deals', 'icon': Icons.flash_on_rounded},
       {'title': 'Recommendations', 'icon': Icons.favorite_rounded},
-      {'title': 'Destinations', 'icon': Icons.place_rounded},
-      {'title': 'Packages', 'icon': Icons.card_travel_rounded},
       {'title': 'Seasonal', 'icon': Icons.wb_sunny_rounded},
     ];
 
-    return Container(
+    return SizedBox(
       height: 44,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -681,7 +591,7 @@ class _RecommendationScreenState extends State<RecommendationScreen>
               const SizedBox(height: 12),
 
               // Insights stats in a row
-              Container(
+              SizedBox(
                 height: 70,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
@@ -830,73 +740,6 @@ class _RecommendationScreenState extends State<RecommendationScreen>
         onTourTap: (tour) => _navigateToTourDetails(tour),
         isLoading: false,
         onRefresh: _loadPersonalizedTours,
-        cardWidth: cardWidth,
-      ),
-      const SizedBox(height: 8),
-    ];
-  }
-
-  List<Widget> _buildDestinationsSection(double horizontalPadding) {
-    if (_popularDestinations.isEmpty) {
-      return _currentCategory == "Destinations" ? [] : [];
-    }
-
-    return [
-      Padding(
-        padding: EdgeInsets.fromLTRB(
-          horizontalPadding,
-          16,
-          horizontalPadding,
-          8,
-        ),
-        child: SectionTitle(
-          title: 'Popular Destinations',
-          onSeeAllPressed:
-              _currentCategory == "For You"
-                  ? () => _changeCategory("Destinations")
-                  : null,
-        ),
-      ),
-      SizedBox(
-        height: 150,
-        child: PopularDestinationsList(
-          destinations: _popularDestinations,
-          onDestinationTap: _exploreDestination,
-          isLoading: false,
-        ),
-      ),
-      const SizedBox(height: 8),
-    ];
-  }
-
-  List<Widget> _buildPackagesSection(
-    double horizontalPadding,
-    double cardWidth,
-  ) {
-    if (_trendingPackages.isEmpty) {
-      return _currentCategory == "Packages" ? [] : [];
-    }
-
-    return [
-      Padding(
-        padding: EdgeInsets.fromLTRB(
-          horizontalPadding,
-          16,
-          horizontalPadding,
-          8,
-        ),
-        child: SectionTitle(
-          title: 'Premium Travel Packages',
-          onSeeAllPressed:
-              _currentCategory == "For You"
-                  ? () => _changeCategory("Packages")
-                  : null,
-        ),
-      ),
-      TravelPackagesList(
-        packages: _trendingPackages,
-        onPackageTap: _viewPackageDetails,
-        isLoading: false,
         cardWidth: cardWidth,
       ),
       const SizedBox(height: 8),

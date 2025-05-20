@@ -72,72 +72,6 @@ class RecommendationService {
     }
   }
 
-  // Get popular destinations
-  Future<List<String>> getPopularDestinations({int limit = 10}) async {
-    try {
-      log('Fetching popular destinations');
-
-      final response = await _apiClient.get(
-        '/recommendation/destinations/popular',
-        queryParams: {'limit': limit.toString()},
-        requiresAuth: false,
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        final destinations = data.map((item) => item as String).toList();
-
-        log('Successfully fetched ${destinations.length} popular destinations');
-        return destinations;
-      } else {
-        log(
-          'Failed to fetch popular destinations. Status: ${response.statusCode}',
-        );
-        final errorData = _parseErrorResponse(response);
-        throw Exception(errorData['message'] ?? 'Failed to fetch destinations');
-      }
-    } catch (e) {
-      log('Error fetching popular destinations: $e');
-      rethrow;
-    }
-  }
-
-  // Get trending packages
-  Future<List<TravelPackage>> getTrendingPackages({int limit = 5}) async {
-    try {
-      log('Fetching trending packages');
-
-      final response = await _apiClient.get(
-        '/recommendation/packages/trending',
-        queryParams: {'limit': limit.toString()},
-        requiresAuth: false,
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        final packages =
-            data
-                .map(
-                  (item) =>
-                      TravelPackage.fromJson(item as Map<String, dynamic>),
-                )
-                .toList();
-
-        log('Successfully fetched ${packages.length} trending packages');
-        return packages;
-      } else {
-        log(
-          'Failed to fetch trending packages. Status: ${response.statusCode}',
-        );
-        final errorData = _parseErrorResponse(response);
-        throw Exception(errorData['message'] ?? 'Failed to fetch packages');
-      }
-    } catch (e) {
-      log('Error fetching trending packages: $e');
-      rethrow;
-    }
-  }
-
   // Get similar tours
   Future<List<Tour>> getSimilarTours(int tourId, {int limit = 4}) async {
     try {
@@ -171,49 +105,6 @@ class RecommendationService {
       }
     } catch (e) {
       log('Error fetching similar tours: $e');
-      rethrow;
-    }
-  }
-
-  // Get similar packages
-  Future<List<TravelPackage>> getSimilarPackages(
-    int packageId, {
-    int limit = 4,
-  }) async {
-    try {
-      log('Fetching similar packages for package ID: $packageId');
-
-      final response = await _apiClient.get(
-        '/recommendation/packages/$packageId/similar',
-        queryParams: {'limit': limit.toString()},
-        requiresAuth: false,
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        final packages =
-            data
-                .map(
-                  (item) =>
-                      TravelPackage.fromJson(item as Map<String, dynamic>),
-                )
-                .toList();
-
-        log('Successfully fetched ${packages.length} similar packages');
-        return packages;
-      } else {
-        log('Failed to fetch similar packages. Status: ${response.statusCode}');
-        if (response.statusCode == 404) {
-          throw Exception('No similar packages found');
-        } else {
-          final errorData = _parseErrorResponse(response);
-          throw Exception(
-            errorData['message'] ?? 'Failed to fetch similar packages',
-          );
-        }
-      }
-    } catch (e) {
-      log('Error fetching similar packages: $e');
       rethrow;
     }
   }
