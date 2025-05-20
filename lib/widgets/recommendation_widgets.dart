@@ -8,12 +8,14 @@ class SectionTitle extends StatelessWidget {
   final String title;
   final VoidCallback? onSeeAllPressed;
   final bool isLoading;
+  final IconData? icon;
 
   const SectionTitle({
     super.key,
     required this.title,
     this.onSeeAllPressed,
     this.isLoading = false,
+    this.icon,
   });
 
   @override
@@ -27,6 +29,17 @@ class SectionTitle extends StatelessWidget {
         Expanded(
           child: Row(
             children: [
+              if (icon != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, size: 16, color: colorScheme.primary),
+                ),
+                const SizedBox(width: 12),
+              ],
               Text(
                 title,
                 style: textTheme.titleLarge?.copyWith(
@@ -243,6 +256,13 @@ class RecommendedToursList extends StatelessWidget {
                         color:
                             tour.hasDiscount ? Colors.red : colorScheme.primary,
                         borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Text(
                         tour.displayPrice,
@@ -267,6 +287,13 @@ class RecommendedToursList extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.amber.shade700,
                           borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Text(
                           '${tour.discountPercentage}% OFF',
@@ -738,6 +765,13 @@ class FlashDealsList extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.red,
                         borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Text(
                         deal.displayDiscount,
@@ -942,428 +976,6 @@ class FlashDealsList extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: colorScheme.surfaceContainerLow,
                           borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Seasonal offers horizontal list
-class SeasonalOffersList extends StatelessWidget {
-  final List<SeasonalOffer> offers;
-  final Function(SeasonalOffer) onOfferTap;
-  final bool isLoading;
-  final double cardWidth;
-
-  const SeasonalOffersList({
-    super.key,
-    required this.offers,
-    required this.onOfferTap,
-    this.isLoading = false,
-    this.cardWidth = 280,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    if (isLoading) {
-      return SizedBox(
-        height: 340,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: 3,
-          itemBuilder: (context, index) => _buildLoadingCard(context),
-        ),
-      );
-    }
-
-    if (offers.isEmpty) {
-      return SizedBox(
-        height: 200,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.wb_sunny_outlined,
-                size: 48,
-                color: colorScheme.outline,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No seasonal offers available',
-                style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: 340,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: offers.length,
-        itemBuilder: (context, index) {
-          final offer = offers[index];
-          return _buildOfferCard(context, offer);
-        },
-      ),
-    );
-  }
-
-  Widget _buildOfferCard(BuildContext context, SeasonalOffer offer) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final seasonColor = offer.getSeasonColor();
-
-    return Container(
-      width: cardWidth,
-      margin: const EdgeInsets.only(right: 16, bottom: 4, top: 4),
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.1),
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            onOfferTap(offer);
-          },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Season header
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      seasonColor.withOpacity(0.9),
-                      seasonColor.withOpacity(0.7),
-                    ],
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(offer.getSeasonIcon(), color: Colors.white, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${offer.season} Special',
-                      style: textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Image section
-              Container(
-                height: 120,
-                width: double.infinity,
-                decoration: BoxDecoration(color: seasonColor.withOpacity(0.1)),
-                child:
-                    offer.imageUrl != null
-                        ? Image.network(
-                          offer.imageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (context, error, stackTrace) =>
-                                  _buildImagePlaceholder(context, seasonColor),
-                        )
-                        : _buildImagePlaceholder(context, seasonColor),
-              ),
-
-              // Content section
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Type and location
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerLow,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            offer.type,
-                            style: textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.location_on_rounded,
-                                size: 12,
-                                color: colorScheme.primary,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  offer.location,
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Offer name
-                    Text(
-                      offer.name,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // Seasonal highlight
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: seasonColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: seasonColor.withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.stars_rounded,
-                            size: 16,
-                            color: seasonColor,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              offer.seasonalHighlight,
-                              style: textTheme.bodySmall?.copyWith(
-                                fontStyle: FontStyle.italic,
-                                color: colorScheme.onSurface,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Price and discount
-                    Row(
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              offer.displayPrice,
-                              style: textTheme.titleLarge?.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            if (offer.hasDiscount)
-                              Text(
-                                offer.displayDiscount,
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                          ],
-                        ),
-
-                        const Spacer(),
-
-                        // Book button
-                        OutlinedButton.icon(
-                          onPressed: () => onOfferTap(offer),
-                          icon: const Icon(
-                            Icons.bookmark_border_rounded,
-                            size: 18,
-                          ),
-                          label: const Text('Book Now'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: seasonColor,
-                            side: BorderSide(color: seasonColor),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImagePlaceholder(BuildContext context, Color seasonColor) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [seasonColor.withOpacity(0.2), seasonColor.withOpacity(0.1)],
-        ),
-      ),
-      child: Center(
-        child: Icon(
-          Icons.wb_sunny_rounded,
-          size: 40,
-          color: seasonColor.withOpacity(0.4),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingCard(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      width: cardWidth,
-      margin: const EdgeInsets.only(right: 16, bottom: 4, top: 4),
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header shimmer
-            Container(
-              height: 44,
-              width: double.infinity,
-              color: colorScheme.surfaceContainerLow,
-            ),
-
-            // Image shimmer
-            Container(
-              height: 120,
-              width: double.infinity,
-              color: colorScheme.surfaceContainerHigh.withOpacity(0.5),
-            ),
-
-            // Content shimmer
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Type/location shimmer
-                  Row(
-                    children: [
-                      Container(
-                        height: 24,
-                        width: 60,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        height: 16,
-                        width: 100,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Title shimmer
-                  Container(
-                    height: 20,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Highlight shimmer
-                  Container(
-                    height: 60,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Price/button shimmer
-                  Row(
-                    children: [
-                      Container(
-                        height: 24,
-                        width: 80,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        height: 40,
-                        width: 100,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                     ],

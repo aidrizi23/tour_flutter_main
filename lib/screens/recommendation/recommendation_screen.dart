@@ -27,6 +27,8 @@ class _RecommendationScreenState extends State<RecommendationScreen>
   // Loading states
   bool _isLoading = true;
   bool _isRefreshing = false;
+  bool _hasError = false;
+  String? _errorMessage;
 
   // Animation controllers
   late AnimationController _fadeInController;
@@ -68,38 +70,56 @@ class _RecommendationScreenState extends State<RecommendationScreen>
   }
 
   Future<void> _loadAllRecommendations() async {
+    if (_isRefreshing) return;
+
     setState(() {
-      _isLoading = true;
+      if (!_isRefreshing) _isLoading = true;
+      _isRefreshing = true;
+      _hasError = false;
+      _errorMessage = null;
     });
 
     try {
       // Check connection first
       _hasConnection = await _recommendationService.checkConnection();
 
-      if (!_hasConnection) {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-        return;
-      }
-
-      // Load all recommendation data in parallel
-      await Future.wait([
+      // Load data in parallel
+      final futures = await Future.wait([
         _loadPersonalizedTours(),
         _loadFlashDeals(),
         _loadSeasonalOffers(),
         _loadUserInsights(),
-      ]);
+      ], eagerError: false);
+
+      // Check if any data was loaded successfully
+      final hasAnyData =
+          _personalizedTours.isNotEmpty ||
+          _flashDeals.isNotEmpty ||
+          _seasonalOffers.isNotEmpty;
+
+      if (!hasAnyData && !_hasConnection) {
+        setState(() {
+          _hasError = true;
+          _errorMessage =
+              "Couldn't load recommendations. Please check your connection.";
+        });
+      }
     } catch (e) {
       debugPrint('Error loading recommendations: $e');
+      setState(() {
+        _hasError = true;
+        _errorMessage = "Something went wrong. Please try again.";
+      });
     } finally {
       if (mounted) {
         setState(() {
           _isLoading = false;
           _isRefreshing = false;
         });
+        // Animations
+        if (!_fadeInController.isCompleted) {
+          _fadeInController.forward();
+        }
       }
     }
   }
@@ -113,6 +133,7 @@ class _RecommendationScreenState extends State<RecommendationScreen>
           _personalizedTours = recommendations;
         });
       }
+      return;
     } catch (e) {
       debugPrint('Error loading personalized tours: $e');
       if (mounted) {
@@ -120,6 +141,7 @@ class _RecommendationScreenState extends State<RecommendationScreen>
           _personalizedTours = [];
         });
       }
+      return;
     }
   }
 
@@ -131,6 +153,7 @@ class _RecommendationScreenState extends State<RecommendationScreen>
           _flashDeals = deals;
         });
       }
+      return;
     } catch (e) {
       debugPrint('Error loading flash deals: $e');
       if (mounted) {
@@ -138,6 +161,7 @@ class _RecommendationScreenState extends State<RecommendationScreen>
           _flashDeals = [];
         });
       }
+      return;
     }
   }
 
@@ -149,6 +173,7 @@ class _RecommendationScreenState extends State<RecommendationScreen>
           _seasonalOffers = offers;
         });
       }
+      return;
     } catch (e) {
       debugPrint('Error loading seasonal offers: $e');
       if (mounted) {
@@ -156,6 +181,7 @@ class _RecommendationScreenState extends State<RecommendationScreen>
           _seasonalOffers = [];
         });
       }
+      return;
     }
   }
 
@@ -167,6 +193,7 @@ class _RecommendationScreenState extends State<RecommendationScreen>
           _userInsights = insights;
         });
       }
+      return;
     } catch (e) {
       debugPrint('Error loading user insights: $e');
       if (mounted) {
@@ -174,6 +201,7 @@ class _RecommendationScreenState extends State<RecommendationScreen>
           _userInsights = null;
         });
       }
+      return;
     }
   }
 
@@ -274,74 +302,8 @@ class _RecommendationScreenState extends State<RecommendationScreen>
           ),
         ],
       ),
-      body:
-          !_hasConnection && !_isLoading
-              ? _buildNoConnectionState()
-              : _isLoading && !_isRefreshing
-              ? _buildLoadingState()
-              : _buildMainContent(context, horizontalPadding, cardWidth),
+      body: _buildMainContent(context, horizontalPadding, cardWidth),
       floatingActionButton: _buildScrollToTopFAB(),
-    );
-  }
-
-  Widget _buildNoConnectionState() {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.cloud_off_rounded,
-              size: 80,
-              color: colorScheme.onSurface.withOpacity(0.3),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Connection Issue',
-              style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'We couldn\'t connect to our servers. Please check your internet connection and try again.',
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: _loadAllRecommendations,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Try Again'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(color: colorScheme.primary),
-          const SizedBox(height: 24),
-          Text(
-            'Finding experiences for you...',
-            style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
-          ),
-        ],
-      ),
     );
   }
 
@@ -350,11 +312,16 @@ class _RecommendationScreenState extends State<RecommendationScreen>
     double horizontalPadding,
     double cardWidth,
   ) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    final isMobile = screenWidth < 600;
+    if (_isLoading && !_isRefreshing) {
+      return _buildLoadingState();
+    }
+
+    if (_hasError &&
+        _personalizedTours.isEmpty &&
+        _flashDeals.isEmpty &&
+        _seasonalOffers.isEmpty) {
+      return _buildErrorState();
+    }
 
     return RefreshIndicator(
       onRefresh: _refreshRecommendations,
@@ -362,7 +329,7 @@ class _RecommendationScreenState extends State<RecommendationScreen>
         opacity: _fadeAnimation,
         child: ListView(
           controller: _scrollController,
-          padding: EdgeInsets.only(bottom: 100),
+          padding: const EdgeInsets.only(bottom: 100),
           children: [
             // Category selector
             Padding(
@@ -394,7 +361,92 @@ class _RecommendationScreenState extends State<RecommendationScreen>
             if (_isEmptyCategory()) _buildEmptyCategoryState(),
 
             // Extra bottom space for FAB
-            SizedBox(height: isMobile ? 60 : 80),
+            const SizedBox(height: 80),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 50,
+            height: 50,
+            child: CircularProgressIndicator(
+              strokeWidth: 3,
+              color: colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Finding experiences for you...',
+            style: TextStyle(
+              fontSize: 16,
+              color: colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: colorScheme.error.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.cloud_off_rounded,
+                size: 64,
+                color: colorScheme.error,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Connection Issue',
+              style: textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage ??
+                  'We couldn\'t load your recommendations. Please check your connection and try again.',
+              style: textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurface.withOpacity(0.7),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            FilledButton.icon(
+              onPressed: _loadAllRecommendations,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Try Again'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -770,13 +822,6 @@ class _RecommendationScreenState extends State<RecommendationScreen>
                   : null,
         ),
       ),
-      SeasonalOffersList(
-        offers: _seasonalOffers,
-        onOfferTap: _viewSeasonalOffer,
-        isLoading: false,
-        cardWidth: cardWidth,
-      ),
-      const SizedBox(height: 8),
     ];
   }
 
