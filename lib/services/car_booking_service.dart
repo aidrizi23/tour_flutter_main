@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:developer';
-import '../models/car_models.dart';
-import '../models/car_booking_models.dart';
-import '../utils/api_client.dart';
+
+import 'package:tour_flutter_main/models/car_booking_models.dart';
+import 'package:tour_flutter_main/models/car_models.dart';
+import 'package:tour_flutter_main/utils/api_client.dart';
 
 class CarBookingService {
   final ApiClient _apiClient = ApiClient();
@@ -16,12 +17,14 @@ class CarBookingService {
     try {
       log('Checking car availability for booking. Car ID: $carId');
 
+      // Use the correct API endpoint as specified in the controller
       final queryParams = {
         'carId': carId.toString(),
         'startDate': startDate.toIso8601String(),
         'endDate': endDate.toIso8601String(),
       };
 
+      // Use GET request with query parameters as specified in the controller
       final response = await _apiClient.get(
         '/carbookings/check-availability',
         queryParams: queryParams,
@@ -35,7 +38,7 @@ class CarBookingService {
         return availability;
       } else {
         log('Failed to check availability. Status: ${response.statusCode}');
-        throw Exception('Failed to check availability');
+        throw Exception('Failed to check availability: ${response.statusCode}');
       }
     } catch (e) {
       log('Error checking availability: $e');
@@ -66,7 +69,7 @@ class CarBookingService {
         requiresAuth: true,
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 201 || response.statusCode == 200) {
         final data = json.decode(response.body);
         final booking = CarBooking.fromJson(data);
         log('Car booking created successfully: ${booking.id}');
@@ -112,7 +115,7 @@ class CarBookingService {
     try {
       log('Creating quick car booking for car ID: $carId');
 
-      final request = QuickCarBookRequest(
+      final request = QuickBookingDto(
         carId: carId,
         rentalStartDate: rentalStartDate,
         rentalEndDate: rentalEndDate,
@@ -126,7 +129,7 @@ class CarBookingService {
         requiresAuth: true,
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 201 || response.statusCode == 200) {
         final data = json.decode(response.body);
         final booking = CarBooking.fromJson(data);
         log('Quick car booking created successfully: ${booking.id}');
@@ -268,9 +271,7 @@ class CarBookingService {
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        log('Successfully updated booking metadata');
-        // Note: The API might return different structure, adjust accordingly
+        // Return updated booking
         return await getBookingById(bookingId);
       } else {
         log('Failed to update booking. Status: ${response.statusCode}');
@@ -402,17 +403,5 @@ class CarBookingService {
 
       rethrow;
     }
-  }
-
-  // Helper method to format date for API
-  String formatDateForApi(DateTime date) {
-    return date.toUtc().toIso8601String();
-  }
-
-  // Helper method to validate booking dates
-  bool isValidBookingDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    return date.isAfter(today) || date.isAtSameMomentAs(today);
   }
 }
