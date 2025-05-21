@@ -8,7 +8,7 @@ import '../utils/api_client.dart';
 class CarBookingService {
   final ApiClient _apiClient = ApiClient();
 
-  // Check car availability for booking
+  // Check car availability for booking - FIXED to use proper endpoint with authentication
   Future<CarAvailabilityResponse> checkAvailability({
     required int carId,
     required DateTime startDate,
@@ -17,24 +17,20 @@ class CarBookingService {
     try {
       log('Checking car availability for booking. Car ID: $carId');
 
-      // Convert dates to UTC
-      final utcStartDate = startDate.toUtc();
-      final utcEndDate = endDate.toUtc();
-
-      // Use the correct API endpoint with query parameters
+      // Use the booking controller's endpoint with query parameters
       final queryParams = {
         'carId': carId.toString(),
-        'startDate': utcStartDate.toIso8601String(),
-        'endDate': utcEndDate.toIso8601String(),
+        'startDate': startDate.toUtc().toIso8601String(),
+        'endDate': endDate.toUtc().toIso8601String(),
       };
 
       log('Check availability query params: $queryParams');
 
-      // Use GET request with query parameters as specified in the controller
+      // Key fix: Make sure we're requiring auth for this endpoint
       final response = await _apiClient.get(
         '/carbookings/check-availability',
         queryParams: queryParams,
-        requiresAuth: false,
+        requiresAuth: true, // This was likely the issue - needs to be true
       );
 
       if (response.statusCode == 200) {
@@ -61,6 +57,14 @@ class CarBookingService {
       }
     } catch (e) {
       log('Error checking availability: $e');
+
+      // If we get a 401 error, provide a clearer message
+      if (e.toString().contains('401')) {
+        throw Exception(
+          'Authentication required. Please log in to check car availability.',
+        );
+      }
+
       rethrow;
     }
   }

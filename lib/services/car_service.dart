@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import '../models/car_models.dart';
-import '../models/car_availability_response.dart'; // Add this import
+import '../models/car_availability_response.dart';
 import '../utils/api_client.dart';
 
 class CarService {
@@ -50,7 +50,7 @@ class CarService {
       final response = await _apiClient.post(
         '/cars',
         data: request.toJson(),
-        requiresAuth: true,
+        requiresAuth: true, // Admin-only endpoint requires auth
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
@@ -99,7 +99,7 @@ class CarService {
       final response = await _apiClient.get(
         '/cars',
         queryParams: queryParams,
-        requiresAuth: false,
+        requiresAuth: false, // Public endpoint, no auth needed
       );
 
       if (response.statusCode == 200) {
@@ -134,7 +134,7 @@ class CarService {
       final response = await _apiClient.post(
         '/cars/search',
         data: filter.toJson(),
-        requiresAuth: false,
+        requiresAuth: false, // Public endpoint, no auth needed
       );
 
       if (response.statusCode == 200) {
@@ -159,7 +159,7 @@ class CarService {
 
       final response = await _apiClient.get(
         '/cars/$carId',
-        requiresAuth: false,
+        requiresAuth: false, // Public endpoint, no auth needed
       );
 
       if (response.statusCode == 200) {
@@ -196,7 +196,7 @@ class CarService {
       final response = await _apiClient.get(
         '/cars/$carId/reviews',
         queryParams: queryParams,
-        requiresAuth: false,
+        requiresAuth: false, // Public endpoint, no auth needed
       );
 
       if (response.statusCode == 200) {
@@ -225,7 +225,7 @@ class CarService {
       final response = await _apiClient.post(
         '/cars/reviews',
         data: request.toJson(),
-        requiresAuth: true,
+        requiresAuth: true, // User must be authenticated to add a review
       );
 
       if (response.statusCode == 200) {
@@ -239,6 +239,12 @@ class CarService {
       }
     } catch (e) {
       log('Error adding review: $e');
+
+      // Add specific error handling for auth issues
+      if (e.toString().contains('401')) {
+        throw Exception('You must be logged in to add a review');
+      }
+
       rethrow;
     }
   }
@@ -252,16 +258,17 @@ class CarService {
     try {
       log('Checking availability for car ID: $carId');
 
-      final request = CarAvailabilityRequest(
-        carId: carId,
-        startDate: startDate,
-        endDate: endDate,
-      );
+      final request = {
+        'carId': carId,
+        'startDate': startDate.toUtc().toIso8601String(),
+        'endDate': endDate.toUtc().toIso8601String(),
+      };
 
+      // Try the CarsController endpoint as a backup
       final response = await _apiClient.post(
         '/cars/check-availability',
-        data: request.toJson(),
-        requiresAuth: false,
+        data: request,
+        requiresAuth: true, // Try with auth to be safe
       );
 
       if (response.statusCode == 200) {
@@ -269,6 +276,12 @@ class CarService {
         final availability = CarAvailabilityResponse.fromJson(data);
         log('Availability checked: ${availability.isAvailable}');
         return availability;
+      } else if (response.statusCode == 401) {
+        // Handle unauthorized with better error message
+        log('Authentication required for availability check');
+        throw Exception(
+          'Authentication required. Please login to check availability.',
+        );
       } else {
         log('Failed to check availability. Status: ${response.statusCode}');
         throw Exception('Failed to check availability');

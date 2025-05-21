@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiClient {
+  // Update this to your actual server IP/hostname
   static const String baseUrl = 'http://192.168.224.82:5076/api';
   static const Duration defaultTimeoutDuration = Duration(seconds: 30);
 
@@ -13,7 +14,7 @@ class ApiClient {
     'Accept': 'application/json',
   };
 
-  // Add authorization header
+  // Add authorization header with improved error handling
   Future<Map<String, String>> _getHeaders({bool requiresAuth = false}) async {
     Map<String, String> headers = Map.from(_defaultHeaders);
 
@@ -21,15 +22,19 @@ class ApiClient {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
 
-      if (token != null) {
+      if (token != null && token.isNotEmpty) {
         headers['Authorization'] = 'Bearer $token';
+        log('Added authorization header');
+      } else {
+        log('WARNING: Authentication required but no token found!');
+        throw Exception('401: Authentication required. Please log in.');
       }
     }
 
     return headers;
   }
 
-  // GET request
+  // Improved GET request with better error handling
   Future<http.Response> get(
     String endpoint, {
     Map<String, String>? queryParams,
@@ -53,7 +58,14 @@ class ApiClient {
           .timeout(Duration(seconds: timeoutSeconds));
 
       log('Response Status: ${response.statusCode}');
-      log('Response Body: ${response.body}');
+      if (response.body.isNotEmpty) {
+        log('Response Body: ${_truncateLog(response.body)}');
+      }
+
+      // Check if token expired
+      if (response.statusCode == 401 && requiresAuth) {
+        log('Authentication failed. Token may have expired.');
+      }
 
       return response;
     } catch (e) {
@@ -62,7 +74,7 @@ class ApiClient {
     }
   }
 
-  // POST request
+  // Improved POST request with better error handling
   Future<http.Response> post(
     String endpoint, {
     Map<String, dynamic>? data,
@@ -76,14 +88,21 @@ class ApiClient {
 
       log('POST Request: ${uri.toString()}');
       log('Headers: ${headers.keys.join(', ')}');
-      log('Body: $body');
+      log('Body: ${_truncateLog(body)}');
 
       final response = await http
           .post(uri, headers: headers, body: body)
           .timeout(Duration(seconds: timeoutSeconds));
 
       log('Response Status: ${response.statusCode}');
-      log('Response Body: ${response.body}');
+      if (response.body.isNotEmpty) {
+        log('Response Body: ${_truncateLog(response.body)}');
+      }
+
+      // Check if token expired
+      if (response.statusCode == 401 && requiresAuth) {
+        log('Authentication failed. Token may have expired.');
+      }
 
       return response;
     } catch (e) {
@@ -92,7 +111,7 @@ class ApiClient {
     }
   }
 
-  // PUT request
+  // Improved PUT request with better error handling
   Future<http.Response> put(
     String endpoint, {
     Map<String, dynamic>? data,
@@ -106,14 +125,21 @@ class ApiClient {
 
       log('PUT Request: ${uri.toString()}');
       log('Headers: ${headers.keys.join(', ')}');
-      log('Body: $body');
+      log('Body: ${_truncateLog(body)}');
 
       final response = await http
           .put(uri, headers: headers, body: body)
           .timeout(Duration(seconds: timeoutSeconds));
 
       log('Response Status: ${response.statusCode}');
-      log('Response Body: ${response.body}');
+      if (response.body.isNotEmpty) {
+        log('Response Body: ${_truncateLog(response.body)}');
+      }
+
+      // Check if token expired
+      if (response.statusCode == 401 && requiresAuth) {
+        log('Authentication failed. Token may have expired.');
+      }
 
       return response;
     } catch (e) {
@@ -122,7 +148,7 @@ class ApiClient {
     }
   }
 
-  // DELETE request
+  // Improved DELETE request with better error handling
   Future<http.Response> delete(
     String endpoint, {
     Map<String, String>? queryParams,
@@ -146,7 +172,14 @@ class ApiClient {
           .timeout(Duration(seconds: timeoutSeconds));
 
       log('Response Status: ${response.statusCode}');
-      log('Response Body: ${response.body}');
+      if (response.body.isNotEmpty) {
+        log('Response Body: ${_truncateLog(response.body)}');
+      }
+
+      // Check if token expired
+      if (response.statusCode == 401 && requiresAuth) {
+        log('Authentication failed. Token may have expired.');
+      }
 
       return response;
     } catch (e) {
@@ -155,7 +188,7 @@ class ApiClient {
     }
   }
 
-  // PATCH request
+  // Improved PATCH request with better error handling
   Future<http.Response> patch(
     String endpoint, {
     Map<String, dynamic>? data,
@@ -169,20 +202,34 @@ class ApiClient {
 
       log('PATCH Request: ${uri.toString()}');
       log('Headers: ${headers.keys.join(', ')}');
-      log('Body: $body');
+      log('Body: ${_truncateLog(body)}');
 
       final response = await http
           .patch(uri, headers: headers, body: body)
           .timeout(Duration(seconds: timeoutSeconds));
 
       log('Response Status: ${response.statusCode}');
-      log('Response Body: ${response.body}');
+      if (response.body.isNotEmpty) {
+        log('Response Body: ${_truncateLog(response.body)}');
+      }
+
+      // Check if token expired
+      if (response.statusCode == 401 && requiresAuth) {
+        log('Authentication failed. Token may have expired.');
+      }
 
       return response;
     } catch (e) {
       log('PATCH Request Error: $e');
       rethrow;
     }
+  }
+
+  // Helper to truncate long responses in logs
+  String? _truncateLog(String? text) {
+    if (text == null) return null;
+    if (text.length <= 500) return text;
+    return '${text.substring(0, 500)}... [truncated]';
   }
 
   // Car-specific convenience methods
@@ -193,7 +240,7 @@ class ApiClient {
     bool requiresAuth = false,
   }) async {
     return await get(
-      'cars',
+      '/cars',
       queryParams: queryParams,
       requiresAuth: requiresAuth,
     );
@@ -206,7 +253,7 @@ class ApiClient {
     bool requiresAuth = false,
   }) async {
     return await post(
-      'cars/search${queryParams != null ? '?${Uri(queryParameters: queryParams).query}' : ''}',
+      '/cars/search${queryParams != null ? '?${Uri(queryParameters: queryParams).query}' : ''}',
       data: searchCriteria,
       requiresAuth: requiresAuth,
     );
@@ -217,16 +264,16 @@ class ApiClient {
     int carId, {
     bool requiresAuth = false,
   }) async {
-    return await get('cars/$carId', requiresAuth: requiresAuth);
+    return await get('/cars/$carId', requiresAuth: requiresAuth);
   }
 
   // Check car availability
   Future<http.Response> checkCarAvailability({
     required Map<String, dynamic> availabilityData,
-    bool requiresAuth = false,
+    bool requiresAuth = true, // Changed to true by default
   }) async {
     return await post(
-      'cars/check-availability',
+      '/cars/check-availability',
       data: availabilityData,
       requiresAuth: requiresAuth,
     );
@@ -239,7 +286,7 @@ class ApiClient {
     bool requiresAuth = false,
   }) async {
     return await get(
-      'cars/$carId/reviews',
+      '/cars/$carId/reviews',
       queryParams: queryParams,
       requiresAuth: requiresAuth,
     );
@@ -251,7 +298,7 @@ class ApiClient {
     bool requiresAuth = true,
   }) async {
     return await post(
-      'cars/reviews',
+      '/cars/reviews',
       data: reviewData,
       requiresAuth: requiresAuth,
     );
@@ -261,7 +308,7 @@ class ApiClient {
 
   // Get user car bookings
   Future<http.Response> getCarBookings({bool requiresAuth = true}) async {
-    return await get('carbookings', requiresAuth: requiresAuth);
+    return await get('/carbookings', requiresAuth: requiresAuth);
   }
 
   // Get specific car booking
@@ -269,7 +316,7 @@ class ApiClient {
     int bookingId, {
     bool requiresAuth = true,
   }) async {
-    return await get('carbookings/$bookingId', requiresAuth: requiresAuth);
+    return await get('/carbookings/$bookingId', requiresAuth: requiresAuth);
   }
 
   // Create car booking
@@ -278,8 +325,28 @@ class ApiClient {
     bool requiresAuth = true,
   }) async {
     return await post(
-      'carbookings',
+      '/carbookings',
       data: bookingData,
+      requiresAuth: requiresAuth,
+    );
+  }
+
+  // Check booking availability - NEW METHOD
+  Future<http.Response> checkBookingAvailability({
+    required int carId,
+    required DateTime startDate,
+    required DateTime endDate,
+    bool requiresAuth = true, // Important: must be true
+  }) async {
+    final queryParams = {
+      'carId': carId.toString(),
+      'startDate': startDate.toUtc().toIso8601String(),
+      'endDate': endDate.toUtc().toIso8601String(),
+    };
+
+    return await get(
+      '/carbookings/check-availability',
+      queryParams: queryParams,
       requiresAuth: requiresAuth,
     );
   }
@@ -290,7 +357,7 @@ class ApiClient {
     bool requiresAuth = true,
   }) async {
     return await post(
-      'carbookings/quick-book',
+      '/carbookings/quick-book',
       data: bookingData,
       requiresAuth: requiresAuth,
     );
@@ -302,7 +369,7 @@ class ApiClient {
     bool requiresAuth = true,
   }) async {
     return await get(
-      'carbookings/$bookingId/payment-info',
+      '/carbookings/$bookingId/payment-info',
       requiresAuth: requiresAuth,
     );
   }
@@ -314,7 +381,7 @@ class ApiClient {
     bool requiresAuth = true,
   }) async {
     return await put(
-      'carbookings/$bookingId/metadata',
+      '/carbookings/$bookingId/metadata',
       data: updateData,
       requiresAuth: requiresAuth,
     );
@@ -326,7 +393,7 @@ class ApiClient {
     bool requiresAuth = true,
   }) async {
     return await post(
-      'carbookings/$bookingId/initiate-payment',
+      '/carbookings/$bookingId/initiate-payment',
       requiresAuth: requiresAuth,
     );
   }
@@ -338,7 +405,7 @@ class ApiClient {
     bool requiresAuth = true,
   }) async {
     return await post(
-      'carbookings/$bookingId/process-payment',
+      '/carbookings/$bookingId/process-payment',
       data: paymentData,
       requiresAuth: requiresAuth,
     );
@@ -350,12 +417,12 @@ class ApiClient {
     bool requiresAuth = true,
   }) async {
     return await post(
-      'carbookings/$bookingId/cancel',
+      '/carbookings/$bookingId/cancel',
       requiresAuth: requiresAuth,
     );
   }
 
-  // Handle API errors
+  // Handle API errors with better error messages
   Exception _handleError(http.Response response) {
     String message;
 
@@ -370,9 +437,9 @@ class ApiClient {
       case 400:
         return Exception('Bad Request: $message');
       case 401:
-        return Exception('Unauthorized: Please log in again');
+        return Exception('Authentication required. Please log in again.');
       case 403:
-        return Exception('Forbidden: You don\'t have permission');
+        return Exception('Access denied. You don\'t have permission.');
       case 404:
         return Exception('Not Found: $message');
       case 422:
@@ -406,7 +473,7 @@ class ApiClient {
     }
   }
 
-  // Generic request method with retry logic
+  // Generic request method with retry logic and better auth handling
   Future<http.Response> request(
     String method,
     String endpoint, {
@@ -467,10 +534,21 @@ class ApiClient {
             throw Exception('Unsupported HTTP method: $method');
         }
 
+        // Don't retry 401 errors
+        if (response.statusCode == 401 && requiresAuth) {
+          throw Exception('Authentication required. Please log in.');
+        }
+
         return response;
       } catch (e) {
         lastException = e is Exception ? e : Exception(e.toString());
         log('Request attempt ${attempt + 1} failed: $e');
+
+        // Don't retry authentication errors
+        if (e.toString().contains('401') ||
+            e.toString().contains('Authentication required')) {
+          break;
+        }
 
         if (attempt < maxRetries - 1) {
           // Wait before retrying, with exponential backoff
@@ -479,6 +557,6 @@ class ApiClient {
       }
     }
 
-    throw lastException!;
+    throw lastException ?? Exception('Failed to complete request');
   }
 }
