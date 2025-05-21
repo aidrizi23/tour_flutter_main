@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import '../models/car_booking_models.dart';
-import '../models/car_availability_response.dart'; // Add this import
+import '../models/car_availability_response.dart';
 import '../utils/api_client.dart';
 
 class CarBookingService {
@@ -17,12 +17,18 @@ class CarBookingService {
     try {
       log('Checking car availability for booking. Car ID: $carId');
 
-      // Use the correct API endpoint as specified in the controller
+      // Convert dates to UTC
+      final utcStartDate = startDate.toUtc();
+      final utcEndDate = endDate.toUtc();
+
+      // Use the correct API endpoint with query parameters
       final queryParams = {
         'carId': carId.toString(),
-        'startDate': startDate.toIso8601String(),
-        'endDate': endDate.toIso8601String(),
+        'startDate': utcStartDate.toIso8601String(),
+        'endDate': utcEndDate.toIso8601String(),
       };
+
+      log('Check availability query params: $queryParams');
 
       // Use GET request with query parameters as specified in the controller
       final response = await _apiClient.get(
@@ -37,8 +43,21 @@ class CarBookingService {
         log('Availability checked successfully: ${availability.isAvailable}');
         return availability;
       } else {
-        log('Failed to check availability. Status: ${response.statusCode}');
-        throw Exception('Failed to check availability: ${response.statusCode}');
+        log(
+          'Failed to check availability. Status: ${response.statusCode}, Body: ${response.body}',
+        );
+
+        // Try to extract error message if available
+        try {
+          final errorData = json.decode(response.body);
+          final message =
+              errorData['message'] ?? 'Failed to check availability';
+          throw Exception(message);
+        } catch (e) {
+          throw Exception(
+            'Failed to check availability: ${response.statusCode}',
+          );
+        }
       }
     } catch (e) {
       log('Error checking availability: $e');
@@ -58,8 +77,8 @@ class CarBookingService {
 
       final request = CreateCarBookingRequest(
         carId: carId,
-        rentalStartDate: rentalStartDate,
-        rentalEndDate: rentalEndDate,
+        rentalStartDate: rentalStartDate.toUtc(), // Convert to UTC
+        rentalEndDate: rentalEndDate.toUtc(), // Convert to UTC
         notes: notes,
       );
 
@@ -75,7 +94,9 @@ class CarBookingService {
         log('Car booking created successfully: ${booking.id}');
         return booking;
       } else {
-        log('Failed to create booking. Status: ${response.statusCode}');
+        log(
+          'Failed to create booking. Status: ${response.statusCode}, Body: ${response.body}',
+        );
 
         // Parse error message if available
         try {
@@ -117,8 +138,8 @@ class CarBookingService {
 
       final request = QuickBookingDto(
         carId: carId,
-        rentalStartDate: rentalStartDate,
-        rentalEndDate: rentalEndDate,
+        rentalStartDate: rentalStartDate.toUtc(), // Convert to UTC
+        rentalEndDate: rentalEndDate.toUtc(), // Convert to UTC
         notes: notes,
         initiatePaymentImmediately: initiatePaymentImmediately,
       );
@@ -135,7 +156,9 @@ class CarBookingService {
         log('Quick car booking created successfully: ${booking.id}');
         return booking;
       } else {
-        log('Failed to create quick booking. Status: ${response.statusCode}');
+        log(
+          'Failed to create quick booking. Status: ${response.statusCode}, Body: ${response.body}',
+        );
 
         // Parse error message if available
         try {
@@ -182,7 +205,9 @@ class CarBookingService {
         log('Successfully fetched ${bookings.length} car bookings');
         return bookings;
       } else {
-        log('Failed to fetch bookings. Status: ${response.statusCode}');
+        log(
+          'Failed to fetch bookings. Status: ${response.statusCode}, Body: ${response.body}',
+        );
         throw Exception('Failed to fetch bookings');
       }
     } catch (e) {
@@ -214,7 +239,9 @@ class CarBookingService {
       } else if (response.statusCode == 404) {
         throw Exception('Booking not found');
       } else {
-        log('Failed to fetch booking. Status: ${response.statusCode}');
+        log(
+          'Failed to fetch booking. Status: ${response.statusCode}, Body: ${response.body}',
+        );
         throw Exception('Failed to fetch booking');
       }
     } catch (e) {
@@ -239,7 +266,9 @@ class CarBookingService {
         log('Successfully fetched payment info');
         return paymentInfo;
       } else {
-        log('Failed to fetch payment info. Status: ${response.statusCode}');
+        log(
+          'Failed to fetch payment info. Status: ${response.statusCode}, Body: ${response.body}',
+        );
         throw Exception('Failed to fetch payment information');
       }
     } catch (e) {
@@ -259,8 +288,8 @@ class CarBookingService {
       log('Updating car booking metadata for ID: $bookingId');
 
       final request = UpdateCarBookingMetadataRequest(
-        rentalStartDate: rentalStartDate,
-        rentalEndDate: rentalEndDate,
+        rentalStartDate: rentalStartDate?.toUtc(), // Convert to UTC if provided
+        rentalEndDate: rentalEndDate?.toUtc(), // Convert to UTC if provided
         notes: notes,
       );
 
@@ -274,7 +303,9 @@ class CarBookingService {
         // Return updated booking
         return await getBookingById(bookingId);
       } else {
-        log('Failed to update booking. Status: ${response.statusCode}');
+        log(
+          'Failed to update booking. Status: ${response.statusCode}, Body: ${response.body}',
+        );
         throw Exception('Failed to update booking');
       }
     } catch (e) {
@@ -298,7 +329,9 @@ class CarBookingService {
         log('Payment initiated successfully');
         return data;
       } else {
-        log('Failed to initiate payment. Status: ${response.statusCode}');
+        log(
+          'Failed to initiate payment. Status: ${response.statusCode}, Body: ${response.body}',
+        );
         throw Exception('Failed to initiate payment');
       }
     } catch (e) {
@@ -336,7 +369,9 @@ class CarBookingService {
         log('Payment processed successfully');
         return booking;
       } else {
-        log('Failed to process payment. Status: ${response.statusCode}');
+        log(
+          'Failed to process payment. Status: ${response.statusCode}, Body: ${response.body}',
+        );
 
         // Parse payment error message
         try {
@@ -376,7 +411,9 @@ class CarBookingService {
       if (response.statusCode == 200) {
         log('Car booking cancelled successfully');
       } else {
-        log('Failed to cancel booking. Status: ${response.statusCode}');
+        log(
+          'Failed to cancel booking. Status: ${response.statusCode}, Body: ${response.body}',
+        );
 
         // Parse cancellation error message
         try {

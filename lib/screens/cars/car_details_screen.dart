@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/car_models.dart';
@@ -187,9 +189,11 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
   void _toggleBookingPanel() {
     if (_showBookingPanel) {
       _bookingPanelController.reverse().then((_) {
-        setState(() {
-          _showBookingPanel = false;
-        });
+        if (mounted) {
+          setState(() {
+            _showBookingPanel = false;
+          });
+        }
       });
     } else {
       setState(() {
@@ -237,6 +241,10 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
     });
 
     try {
+      log(
+        'Checking availability for car ${_car!.id} from ${_selectedStartDate!.toIso8601String()} to ${_selectedEndDate!.toIso8601String()}',
+      );
+
       final availability = await _bookingService.checkAvailability(
         carId: _car!.id,
         startDate: _selectedStartDate!,
@@ -248,6 +256,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
         _isCheckingAvailability = false;
       });
 
+      log('Availability check result: ${availability.isAvailable}');
       HapticFeedback.lightImpact();
     } catch (e) {
       setState(() {
@@ -278,6 +287,8 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
     HapticFeedback.mediumImpact();
 
     try {
+      log('Creating quick booking for car ${_car!.id}');
+
       // Create quick booking
       final booking = await _bookingService.quickBook(
         carId: _car!.id,
@@ -333,7 +344,18 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
       setState(() {
         _isBooking = false;
       });
-      _showSnackBar('Booking failed: $e', Colors.red);
+
+      String errorMessage = 'Booking failed';
+      if (e.toString().contains('409')) {
+        errorMessage = 'Car is no longer available for the selected dates';
+      } else if (e.toString().contains('401')) {
+        errorMessage = 'Please sign in to book this car';
+      } else {
+        errorMessage =
+            'Booking failed: ${e.toString().replaceAll('Exception: ', '')}';
+      }
+
+      _showSnackBar(errorMessage, Colors.red);
     }
   }
 

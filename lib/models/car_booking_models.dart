@@ -38,9 +38,10 @@ class CarBooking {
       id: json['id'] as int,
       carId: json['carId'] as int,
       carName: json['carName'] as String,
-      bookingDate: DateTime.parse(json['bookingDate'] as String),
-      rentalStartDate: DateTime.parse(json['rentalStartDate'] as String),
-      rentalEndDate: DateTime.parse(json['rentalEndDate'] as String),
+      bookingDate: DateTime.parse(json['bookingDate'] as String).toLocal(),
+      rentalStartDate:
+          DateTime.parse(json['rentalStartDate'] as String).toLocal(),
+      rentalEndDate: DateTime.parse(json['rentalEndDate'] as String).toLocal(),
       totalAmount: (json['totalAmount'] as num).toDouble(),
       status: json['status'] as String,
       notes: json['notes'] as String?,
@@ -48,7 +49,7 @@ class CarBooking {
       paymentStatus: json['paymentStatus'] as String,
       paymentDate:
           json['paymentDate'] != null
-              ? DateTime.parse(json['paymentDate'] as String)
+              ? DateTime.parse(json['paymentDate'] as String).toLocal()
               : null,
       transactionId: json['transactionId'] as String?,
       paymentInfo:
@@ -65,15 +66,15 @@ class CarBooking {
       'id': id,
       'carId': carId,
       'carName': carName,
-      'bookingDate': bookingDate.toIso8601String(),
-      'rentalStartDate': rentalStartDate.toIso8601String(),
-      'rentalEndDate': rentalEndDate.toIso8601String(),
+      'bookingDate': bookingDate.toUtc().toIso8601String(),
+      'rentalStartDate': rentalStartDate.toUtc().toIso8601String(),
+      'rentalEndDate': rentalEndDate.toUtc().toIso8601String(),
       'totalAmount': totalAmount,
       'status': status,
       'notes': notes,
       'paymentMethod': paymentMethod,
       'paymentStatus': paymentStatus,
-      'paymentDate': paymentDate?.toIso8601String(),
+      'paymentDate': paymentDate?.toUtc().toIso8601String(),
       'transactionId': transactionId,
       'paymentInfo': paymentInfo?.toJson(),
     };
@@ -142,8 +143,8 @@ class CreateCarBookingRequest {
   Map<String, dynamic> toJson() {
     return {
       'carId': carId,
-      'rentalStartDate': rentalStartDate.toIso8601String(),
-      'rentalEndDate': rentalEndDate.toIso8601String(),
+      'rentalStartDate': rentalStartDate.toUtc().toIso8601String(),
+      'rentalEndDate': rentalEndDate.toUtc().toIso8601String(),
       'notes': notes,
     };
   }
@@ -167,8 +168,8 @@ class QuickBookingDto {
   Map<String, dynamic> toJson() {
     return {
       'carId': carId,
-      'rentalStartDate': rentalStartDate.toIso8601String(),
-      'rentalEndDate': rentalEndDate.toIso8601String(),
+      'rentalStartDate': rentalStartDate.toUtc().toIso8601String(),
+      'rentalEndDate': rentalEndDate.toUtc().toIso8601String(),
       'notes': notes,
       'initiatePaymentImmediately': initiatePaymentImmediately,
     };
@@ -212,8 +213,9 @@ class CarPaymentInfo {
       carId: json['carId'] as int,
       carName: json['carName'] as String,
       carImageUrl: json['carImageUrl'] as String?,
-      rentalStartDate: DateTime.parse(json['rentalStartDate'] as String),
-      rentalEndDate: DateTime.parse(json['rentalEndDate'] as String),
+      rentalStartDate:
+          DateTime.parse(json['rentalStartDate'] as String).toLocal(),
+      rentalEndDate: DateTime.parse(json['rentalEndDate'] as String).toLocal(),
       totalDays: json['totalDays'] as int,
       dailyRate: (json['dailyRate'] as num).toDouble(),
       totalAmount: (json['totalAmount'] as num).toDouble(),
@@ -230,8 +232,8 @@ class CarPaymentInfo {
       'carId': carId,
       'carName': carName,
       'carImageUrl': carImageUrl,
-      'rentalStartDate': rentalStartDate.toIso8601String(),
-      'rentalEndDate': rentalEndDate.toIso8601String(),
+      'rentalStartDate': rentalStartDate.toUtc().toIso8601String(),
+      'rentalEndDate': rentalEndDate.toUtc().toIso8601String(),
       'totalDays': totalDays,
       'dailyRate': dailyRate,
       'totalAmount': totalAmount,
@@ -246,7 +248,7 @@ class CarPaymentInfo {
   String get formattedTotalAmount => '\$${totalAmount.toStringAsFixed(2)}';
   String get formattedDailyRate => '\$${dailyRate.toStringAsFixed(2)}';
   String get rentalPeriod =>
-      '${rentalStartDate.day}/${rentalStartDate.month} - ${rentalEndDate.day}/${rentalEndDate.month}';
+      '${rentalStartDate.day}/${rentalStartDate.month} - ${rentalEndDate.day}/${rentalEndDate.month}/${rentalEndDate.year}';
 }
 
 class UpdateCarBookingMetadataRequest {
@@ -264,10 +266,10 @@ class UpdateCarBookingMetadataRequest {
     final Map<String, dynamic> data = {};
 
     if (rentalStartDate != null) {
-      data['rentalStartDate'] = rentalStartDate!.toIso8601String();
+      data['rentalStartDate'] = rentalStartDate!.toUtc().toIso8601String();
     }
     if (rentalEndDate != null) {
-      data['rentalEndDate'] = rentalEndDate!.toIso8601String();
+      data['rentalEndDate'] = rentalEndDate!.toUtc().toIso8601String();
     }
     if (notes != null) {
       data['notes'] = notes;
