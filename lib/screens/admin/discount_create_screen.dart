@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import '../../models/discount_models.dart';
 import '../../services/discount_service.dart';
 import '../../widgets/modern_widgets.dart';
@@ -19,6 +20,7 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
     with TickerProviderStateMixin {
   final DiscountService _discountService = DiscountService();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final ScrollController _scrollController = ScrollController();
 
   // Controllers
   final TextEditingController _codeController = TextEditingController();
@@ -38,10 +40,14 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
   List<String> _availableCategories = [];
   bool _isLoading = false;
   bool _isEditMode = false;
+  String? _errorMessage;
+  String? _successMessage;
 
   // Animation controllers
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
+  late AnimationController _slideController;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
@@ -54,14 +60,28 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
 
   void _setupAnimations() {
     _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _slideController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
     ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOut));
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.05),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+    );
+
     _fadeController.forward();
+    _slideController.forward();
   }
 
   void _initializeData() {
@@ -87,10 +107,19 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
       if (mounted) {
         setState(() {
           _availableCategories = categories;
+          // If we're in edit mode and have categories that don't exist in available categories, add them
+          if (_isEditMode && _selectedCategories.isNotEmpty) {
+            for (final category in _selectedCategories) {
+              if (!_availableCategories.contains(category)) {
+                _availableCategories.add(category);
+              }
+            }
+          }
         });
       }
     } catch (e) {
-      // Handle error silently
+      // Handle error silently or show in a non-intrusive way
+      debugPrint('Error loading categories: $e');
     }
   }
 
@@ -99,6 +128,7 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
     final firstDate = isStartDate ? DateTime.now() : _startDate;
     final lastDate = DateTime.now().add(const Duration(days: 365 * 2));
 
+    final ThemeData theme = Theme.of(context);
     final pickedDate = await showDatePicker(
       context: context,
       initialDate: initialDate,
@@ -106,9 +136,10 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
       lastDate: lastDate,
       builder: (context, child) {
         return Theme(
-          data: Theme.of(
-            context,
-          ).copyWith(colorScheme: Theme.of(context).colorScheme),
+          data: Theme.of(context).copyWith(
+            colorScheme: theme.colorScheme,
+            dialogBackgroundColor: theme.colorScheme.surface,
+          ),
           child: child!,
         );
       },
@@ -130,10 +161,16 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
   }
 
   Future<void> _saveDiscount() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      // Scroll to the first error
+      _scrollToFirstError();
+      return;
+    }
 
     setState(() {
       _isLoading = true;
+      _errorMessage = null;
+      _successMessage = null;
     });
 
     try {
@@ -162,6 +199,9 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
         );
 
         await _discountService.updateDiscount(widget.discount!.id, request);
+        setState(() {
+          _successMessage = 'Discount updated successfully!';
+        });
       } else {
         // Create new discount
         final request = CreateDiscountRequest(
@@ -189,7 +229,20 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
         );
 
         await _discountService.createDiscount(request);
+        setState(() {
+          _successMessage = 'Discount created successfully!';
+        });
       }
+
+      // Scroll to top to show success message
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+
+      // Provide haptic feedback for success
+      HapticFeedback.lightImpact();
 
       if (mounted) {
         ModernSnackBar.show(
@@ -200,9 +253,27 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
                   : 'Discount created successfully',
           type: SnackBarType.success,
         );
-        Navigator.of(context).pop(true);
+
+        // Wait a bit before closing the screen to let the user see the success message
+        Future.delayed(const Duration(milliseconds: 1200), () {
+          if (mounted) Navigator.of(context).pop(true);
+        });
       }
     } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+      });
+
+      // Scroll to top to show error message
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+
+      // Provide haptic feedback for error
+      HapticFeedback.mediumImpact();
+
       if (mounted) {
         ModernSnackBar.show(
           context,
@@ -217,6 +288,19 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
         });
       }
     }
+  }
+
+  void _scrollToFirstError() {
+    // This helps scroll to the first validation error
+    final FormState form = _formKey.currentState!;
+    form.save();
+
+    // Scroll to the top to show validation errors
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
   String? _validateCode(String? value) {
@@ -290,38 +374,236 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
     _minimumAmountController.dispose();
     _usageLimitController.dispose();
     _fadeController.dispose();
+    _slideController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isSmallScreen = MediaQuery.of(context).size.width < 600;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditMode ? 'Edit Discount' : 'Create Discount'),
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Reset Form',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder:
+                    (context) => AlertDialog(
+                      title: const Text('Reset Form?'),
+                      content: const Text(
+                        'This will clear all entered data. Are you sure?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancel'),
+                        ),
+                        FilledButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _initializeData();
+                          },
+                          child: const Text('Reset'),
+                        ),
+                      ],
+                    ),
+              );
+            },
+          ),
+        ],
       ),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              colorScheme.background,
+              colorScheme.surfaceContainerLowest.withOpacity(0.9),
+            ],
+            stops: const [0, 0.95],
+          ),
+        ),
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16),
+                children: [
+                  // Success/Error messages
+                  if (_successMessage != null || _errorMessage != null)
+                    _buildStatusMessage(),
+
+                  // Main content
+                  isSmallScreen ? _buildMobileLayout() : _buildDesktopLayout(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: _buildBottomBar(isSmallScreen),
+    );
+  }
+
+  Widget _buildStatusMessage() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child:
+          _successMessage != null
+              ? _buildSuccessMessage()
+              : _buildErrorMessage(),
+    );
+  }
+
+  Widget _buildSuccessMessage() {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.green.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.green.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, color: Colors.green),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _successMessage!,
+              style: const TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorMessage() {
+    if (_errorMessage == null) return const SizedBox.shrink();
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _errorMessage!,
+              style: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildBasicInfoSection(),
+        const SizedBox(height: 16),
+        _buildDiscountDetailsSection(),
+        const SizedBox(height: 16),
+        _buildValiditySection(),
+        const SizedBox(height: 16),
+        _buildCategoriesSection(),
+        const SizedBox(height: 16),
+        _buildPreviewSection(),
+        const SizedBox(
+          height: 60,
+        ), // Extra space at bottom for floating buttons
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left column (2/3 width)
+        Expanded(
+          flex: 2,
+          child: Column(
             children: [
               _buildBasicInfoSection(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildDiscountDetailsSection(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildValiditySection(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildCategoriesSection(),
-              const SizedBox(height: 24),
-              _buildPreviewSection(),
-              const SizedBox(height: 32),
-              _buildActionButtons(),
-              const SizedBox(height: 32),
             ],
           ),
         ),
+        const SizedBox(width: 16),
+        // Right column (1/3 width)
+        Expanded(flex: 1, child: Column(children: [_buildPreviewSection()])),
+      ],
+    );
+  }
+
+  Widget _buildBottomBar(bool isSmallScreen) {
+    return Container(
+      padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.close),
+              label: const Text('Cancel'),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: CustomButton(
+              onPressed: _isLoading ? null : _saveDiscount,
+              text: _isEditMode ? 'Update Discount' : 'Create Discount',
+              icon: _isEditMode ? Icons.update : Icons.check,
+              isLoading: _isLoading,
+              showLoadingText: true,
+              loadingText: _isEditMode ? 'Updating...' : 'Creating...',
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -433,30 +715,20 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
           Row(
             children: [
               Expanded(
-                child: ModernChip(
-                  label: 'Percentage',
-                  selected: _selectedType == DiscountType.percentage,
+                child: _buildTypeOption(
+                  title: 'Percentage',
+                  description: 'Discount as % off',
                   icon: Icons.percent,
-                  onTap:
-                      _isEditMode
-                          ? null
-                          : () => setState(
-                            () => _selectedType = DiscountType.percentage,
-                          ),
+                  value: DiscountType.percentage,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: ModernChip(
-                  label: 'Fixed Amount',
-                  selected: _selectedType == DiscountType.fixedAmount,
+                child: _buildTypeOption(
+                  title: 'Fixed Amount',
+                  description: 'Discount as \$ off',
                   icon: Icons.attach_money,
-                  onTap:
-                      _isEditMode
-                          ? null
-                          : () => setState(
-                            () => _selectedType = DiscountType.fixedAmount,
-                          ),
+                  value: DiscountType.fixedAmount,
                 ),
               ),
             ],
@@ -509,6 +781,81 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
     );
   }
 
+  Widget _buildTypeOption({
+    required String title,
+    required String description,
+    required IconData icon,
+    required DiscountType value,
+  }) {
+    final isSelected = _selectedType == value;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return GestureDetector(
+      onTap: _isEditMode ? null : () => setState(() => _selectedType = value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color:
+              isSelected
+                  ? colorScheme.primary.withOpacity(0.1)
+                  : colorScheme.surfaceContainerLow,
+          border: Border.all(
+            color:
+                isSelected
+                    ? colorScheme.primary
+                    : colorScheme.outline.withOpacity(0.3),
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  icon,
+                  color:
+                      isSelected
+                          ? colorScheme.primary
+                          : colorScheme.onSurface.withOpacity(0.7),
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color:
+                        isSelected
+                            ? colorScheme.primary
+                            : colorScheme.onSurface,
+                  ),
+                ),
+                const Spacer(),
+                if (isSelected)
+                  Icon(
+                    Icons.check_circle,
+                    color: colorScheme.primary,
+                    size: 18,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              description,
+              style: TextStyle(
+                fontSize: 12,
+                color: colorScheme.onSurface.withOpacity(0.7),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildValiditySection() {
     return ModernCard(
       child: Column(
@@ -535,91 +882,29 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
           ),
           const SizedBox(height: 20),
 
-          // Start Date
-          GestureDetector(
-            onTap: () => _selectDate(context, true),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Start Date',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.7),
-                        ),
-                      ),
-                      Text(
-                        '${_startDate.day}/${_startDate.month}/${_startDate.year}',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  const Icon(Icons.chevron_right),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
+          // Start Date & End Date (responsive layout)
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth > 500;
 
-          // End Date
-          GestureDetector(
-            onTap: () => _selectDate(context, false),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.event,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'End Date',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.7),
-                        ),
-                      ),
-                      Text(
-                        '${_endDate.day}/${_endDate.month}/${_endDate.year}',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  const Icon(Icons.chevron_right),
-                ],
-              ),
-            ),
+              if (isWide) {
+                return Row(
+                  children: [
+                    Expanded(child: _buildDatePicker(true)),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildDatePicker(false)),
+                  ],
+                );
+              } else {
+                return Column(
+                  children: [
+                    _buildDatePicker(true),
+                    const SizedBox(height: 12),
+                    _buildDatePicker(false),
+                  ],
+                );
+              }
+            },
           ),
           const SizedBox(height: 16),
 
@@ -632,6 +917,56 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
             contentPadding: EdgeInsets.zero,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDatePicker(bool isStartDate) {
+    final date = isStartDate ? _startDate : _endDate;
+    final formatter = DateFormat('MMM d, yyyy');
+
+    return GestureDetector(
+      onTap: () => _selectDate(context, isStartDate),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isStartDate ? Icons.calendar_today : Icons.event,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isStartDate ? 'Start Date' : 'End Date',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                  Text(
+                    formatter.format(date),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right),
+          ],
+        ),
       ),
     );
   }
@@ -655,25 +990,39 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
                 ),
               ),
               const SizedBox(width: 16),
-              Text(
-                'Applicable Categories',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Applicable Categories',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Select which categories this discount applies to. Leave empty for all categories.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            'Select which categories this discount applies to. Leave empty for all categories.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-            ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           if (_availableCategories.isEmpty)
-            const Center(child: CircularProgressIndicator())
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator(),
+              ),
+            )
           else
             Wrap(
               spacing: 8,
@@ -702,8 +1051,10 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
   }
 
   Widget _buildPreviewSection() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return ModernCard(
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
+      backgroundColor: colorScheme.surfaceContainerLow,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -712,13 +1063,10 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  color: colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  Icons.preview,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                child: Icon(Icons.preview, color: colorScheme.primary),
               ),
               const SizedBox(width: 16),
               Text(
@@ -731,117 +1079,241 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
           ),
           const SizedBox(height: 16),
 
+          _buildDiscountCard(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDiscountCard() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final formatter = DateFormat('MMM d, yyyy');
+    final code =
+        _codeController.text.isNotEmpty
+            ? _codeController.text.toUpperCase()
+            : 'CODE';
+    final name =
+        _nameController.text.isNotEmpty
+            ? _nameController.text
+            : 'Discount Name';
+    final description = _descriptionController.text;
+
+    // Get value from controller or show placeholder
+    final valueText =
+        _valueController.text.isNotEmpty
+            ? (_selectedType == DiscountType.percentage
+                ? '${_valueController.text}% OFF'
+                : '\$${_valueController.text} OFF')
+            : (_selectedType == DiscountType.percentage
+                ? '20% OFF'
+                : '\$10 OFF');
+
+    // Get minimum amount text
+    final minAmountText =
+        _minimumAmountController.text.isNotEmpty
+            ? 'Min. order: \$${_minimumAmountController.text}'
+            : 'No minimum';
+
+    // Get usage limit text
+    final usageLimitText =
+        _usageLimitController.text.isNotEmpty
+            ? 'Limited to ${_usageLimitController.text} uses'
+            : 'Unlimited uses';
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colorScheme.surface,
+            colorScheme.surfaceContainerHigh.withOpacity(0.7),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header with code and status
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+              color: colorScheme.primary.withOpacity(0.1),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
               ),
             ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      code,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        _isActive
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color:
+                          _isActive
+                              ? Colors.green.withOpacity(0.3)
+                              : Colors.grey.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _isActive
+                            ? Icons.check_circle_outline
+                            : Icons.block_outlined,
+                        color: _isActive ? Colors.green : Colors.grey,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _isActive ? 'Active' : 'Inactive',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: _isActive ? Colors.green : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                if (description.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                const SizedBox(height: 16),
+
+                // Discount value
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
+                        color:
+                            _selectedType == DiscountType.percentage
+                                ? Colors.purple.withOpacity(0.1)
+                                : Colors.green.withOpacity(0.1),
+                        shape: BoxShape.circle,
                       ),
-                      child: Text(
-                        _codeController.text.toUpperCase(),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                          fontSize: 12,
-                        ),
+                      child: Icon(
+                        _selectedType.icon,
+                        color:
+                            _selectedType == DiscountType.percentage
+                                ? Colors.purple
+                                : Colors.green,
+                        size: 16,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    ModernTag(
-                      label: _isActive ? 'Active' : 'Inactive',
-                      backgroundColor:
-                          _isActive
-                              ? Colors.green.withOpacity(0.1)
-                              : Colors.grey.withOpacity(0.1),
-                      textColor: _isActive ? Colors.green : Colors.grey,
-                      icon: _isActive ? Icons.check_circle : Icons.pause_circle,
-                      isSmall: true,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _nameController.text.isNotEmpty
-                      ? _nameController.text
-                      : 'Discount Name',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                if (_descriptionController.text.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    _descriptionController.text,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(
-                      _selectedType.icon,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 4),
                     Text(
-                      _valueController.text.isNotEmpty
-                          ? (_selectedType == DiscountType.percentage
-                              ? '${_valueController.text}% OFF'
-                              : '\$${_valueController.text} OFF')
-                          : 'Value not set',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
+                      valueText,
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                        color: colorScheme.primary,
                       ),
                     ),
                   ],
                 ),
-                if (_minimumAmountController.text.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    'Minimum order: \$${_minimumAmountController.text}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-                if (_usageLimitController.text.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    'Limited to ${_usageLimitController.text} uses',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-                const SizedBox(height: 8),
-                Text(
-                  'Valid: ${_startDate.day}/${_startDate.month}/${_startDate.year} - ${_endDate.day}/${_endDate.month}/${_endDate.year}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withOpacity(0.7),
-                  ),
+
+                const SizedBox(height: 16),
+
+                const Divider(),
+
+                const SizedBox(height: 12),
+
+                // Footer details
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildPreviewDetail(
+                        'Applies to:',
+                        _selectedCategories.isEmpty
+                            ? 'All categories'
+                            : _selectedCategories.length > 1
+                            ? '${_selectedCategories.length} categories'
+                            : _selectedCategories.first,
+                        Icons.category_outlined,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildPreviewDetail(
+                        'Limits:',
+                        '$minAmountText, $usageLimitText',
+                        Icons.info_outline,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // Date range
+                _buildPreviewDetail(
+                  'Valid:',
+                  '${formatter.format(_startDate)} - ${formatter.format(_endDate)}',
+                  Icons.event_outlined,
                 ),
               ],
             ),
@@ -851,22 +1323,35 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildPreviewDetail(String label, String value, IconData icon) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 8),
         Expanded(
-          child: CustomButton(
-            onPressed: () => Navigator.of(context).pop(),
-            text: 'Cancel',
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: CustomButton(
-            onPressed: _saveDiscount,
-            text: _isEditMode ? 'Update Discount' : 'Create Discount',
-            isLoading: _isLoading,
-            icon: _isEditMode ? Icons.update : Icons.add,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withOpacity(0.7),
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 12,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
       ],
