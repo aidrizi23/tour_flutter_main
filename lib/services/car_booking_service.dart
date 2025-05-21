@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:tour_flutter_main/models/car_booking_models.dart';
-import 'package:tour_flutter_main/models/car_models.dart';
-import 'package:tour_flutter_main/utils/api_client.dart';
+import '../models/car_booking_models.dart';
+import '../models/car_availability_response.dart'; // Add this import
+import '../utils/api_client.dart';
 
 class CarBookingService {
   final ApiClient _apiClient = ApiClient();

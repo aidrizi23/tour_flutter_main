@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/car_models.dart';
+import '../../models/car_availability_response.dart'; // Add this import
 import '../../services/car_service.dart';
 import '../../services/car_booking_service.dart';
 import '../../widgets/custom_button.dart';

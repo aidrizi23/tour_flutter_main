@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import '../models/car_models.dart';
+import '../models/car_availability_response.dart'; // Add this import
 import '../utils/api_client.dart';
 
 class CarService {
