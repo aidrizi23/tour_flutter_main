@@ -130,6 +130,7 @@ class CarBookingService {
   }
 
   // Quick book car with immediate payment intent
+  // Quick book car with immediate payment intent - improved with better response handling
   Future<CarBooking> quickBook({
     required int carId,
     required DateTime rentalStartDate,
@@ -156,8 +157,48 @@ class CarBookingService {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = json.decode(response.body);
+        log('Quick car booking created successfully');
+
+        // Create booking object from response
         final booking = CarBooking.fromJson(data);
-        log('Quick car booking created successfully: ${booking.id}');
+        log('Booking ID: ${booking.id}');
+
+        // Check if payment info is included in the response
+        if (booking.paymentInfo == null) {
+          log(
+            'Payment info not included in quick booking response, attempting to fetch separately',
+          );
+
+          // If payment info is missing but we have a booking ID, try to fetch payment info directly
+          if (booking.id > 0) {
+            try {
+              // Try to fetch payment info
+              final paymentInfo = await getBookingPaymentInfo(booking.id);
+
+              // Create a new booking object with the payment info
+              return CarBooking(
+                id: booking.id,
+                carId: booking.carId,
+                carName: booking.carName,
+                bookingDate: booking.bookingDate,
+                rentalStartDate: booking.rentalStartDate,
+                rentalEndDate: booking.rentalEndDate,
+                totalAmount: booking.totalAmount,
+                status: booking.status,
+                notes: booking.notes,
+                paymentMethod: booking.paymentMethod,
+                paymentStatus: booking.paymentStatus,
+                paymentDate: booking.paymentDate,
+                transactionId: booking.transactionId,
+                paymentInfo: paymentInfo,
+              );
+            } catch (e) {
+              log('Failed to fetch payment info separately: $e');
+              // Continue with the original booking object without payment info
+            }
+          }
+        }
+
         return booking;
       } else {
         log(
@@ -255,26 +296,60 @@ class CarBookingService {
   }
 
   // Get booking payment info
+  // Get booking payment info - improved with better error handling and retry logic
   Future<CarPaymentInfo> getBookingPaymentInfo(int bookingId) async {
     try {
       log('Fetching payment info for car booking ID: $bookingId');
 
-      final response = await _apiClient.get(
-        '/carbookings/$bookingId/payment-info',
-        requiresAuth: true,
-      );
+      // Try up to 3 times with a short delay between attempts
+      // This helps with race conditions where the payment info might not be ready yet
+      Exception? lastException;
+      for (int attempt = 0; attempt < 3; attempt++) {
+        try {
+          final response = await _apiClient.get(
+            '/carbookings/$bookingId/payment-info',
+            requiresAuth: true,
+          );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final paymentInfo = CarPaymentInfo.fromJson(data);
-        log('Successfully fetched payment info');
-        return paymentInfo;
-      } else {
-        log(
-          'Failed to fetch payment info. Status: ${response.statusCode}, Body: ${response.body}',
-        );
-        throw Exception('Failed to fetch payment information');
+          if (response.statusCode == 200) {
+            final data = json.decode(response.body);
+            final paymentInfo = CarPaymentInfo.fromJson(data);
+            log('Successfully fetched payment info on attempt ${attempt + 1}');
+
+            // Ensure critical fields are available
+            if (paymentInfo.carId > 0 && paymentInfo.totalAmount > 0) {
+              return paymentInfo;
+            } else {
+              log(
+                'Warning: Payment info missing critical fields, retry attempt ${attempt + 1}',
+              );
+              throw Exception('Incomplete payment information received');
+            }
+          } else if (response.statusCode == 404) {
+            log('Payment info not found, retry attempt ${attempt + 1}');
+            throw Exception('Payment information not found');
+          } else {
+            log(
+              'Failed to fetch payment info. Status: ${response.statusCode}, Body: ${response.body}',
+            );
+            throw Exception('Failed to fetch payment information');
+          }
+        } catch (e) {
+          lastException = e is Exception ? e : Exception(e.toString());
+          log('Attempt ${attempt + 1} to fetch payment info failed: $e');
+
+          if (attempt < 2) {
+            // Wait before retrying (increase wait time for each attempt)
+            await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+          }
+        }
       }
+
+      // If we get here, all attempts failed
+      throw lastException ??
+          Exception(
+            'Failed to fetch payment information after multiple attempts',
+          );
     } catch (e) {
       log('Error fetching payment info: $e');
       rethrow;

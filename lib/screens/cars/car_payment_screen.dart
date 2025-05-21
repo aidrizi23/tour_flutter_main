@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:flutter/services.dart';
@@ -28,6 +30,7 @@ class _CarPaymentScreenState extends State<CarPaymentScreen>
   bool _saveCard = false;
   CardFieldInputDetails? _cardFieldInputDetails;
   BillingDetails? _billingDetails;
+  late CarPaymentInfo _paymentInfo;
 
   // Animation controllers
   late AnimationController _fadeController;
@@ -38,6 +41,10 @@ class _CarPaymentScreenState extends State<CarPaymentScreen>
   @override
   void initState() {
     super.initState();
+
+    // Validate and initialize payment info
+    _paymentInfo = widget.paymentInfo;
+    _validatePaymentInfo();
 
     // Initialize animations
     _fadeController = AnimationController(
@@ -70,6 +77,66 @@ class _CarPaymentScreenState extends State<CarPaymentScreen>
     _slideController.forward();
   }
 
+  void _validatePaymentInfo() {
+    // Validate critical payment info fields and handle missing data if needed
+    log('Validating payment info for booking ID: ${_paymentInfo.bookingId}');
+
+    try {
+      // Handle case where client secret is missing
+      if (_paymentInfo.clientSecret == null ||
+          _paymentInfo.clientSecret!.isEmpty) {
+        log('Warning: Missing client secret in payment info');
+
+        // Attempt to refresh payment info
+        _refreshPaymentInfo();
+      }
+
+      // Validate total amount
+      if (_paymentInfo.totalAmount <= 0) {
+        log(
+          'Warning: Invalid total amount in payment info: ${_paymentInfo.totalAmount}',
+        );
+      }
+
+      // Validate car info
+      if (_paymentInfo.carName.isEmpty) {
+        log('Warning: Missing car name in payment info');
+      }
+    } catch (e) {
+      log('Error validating payment info: $e');
+    }
+  }
+
+  Future<void> _refreshPaymentInfo() async {
+    try {
+      // Only try to refresh if we have a valid booking ID
+      if (_paymentInfo.bookingId > 0) {
+        log(
+          'Attempting to refresh payment info for booking ID: ${_paymentInfo.bookingId}',
+        );
+
+        // Try to initiate payment to get a client secret
+        await _bookingService.initiatePayment(_paymentInfo.bookingId);
+
+        // Get fresh payment info
+        final refreshedInfo = await _bookingService.getBookingPaymentInfo(
+          _paymentInfo.bookingId,
+        );
+
+        // Update payment info if refresh was successful
+        if (refreshedInfo.clientSecret != null &&
+            refreshedInfo.clientSecret!.isNotEmpty) {
+          setState(() {
+            _paymentInfo = refreshedInfo;
+          });
+          log('Successfully refreshed payment info');
+        }
+      }
+    } catch (e) {
+      log('Error refreshing payment info: $e');
+    }
+  }
+
   @override
   void dispose() {
     _fadeController.dispose();
@@ -100,21 +167,25 @@ class _CarPaymentScreenState extends State<CarPaymentScreen>
 
     try {
       // Get the booking ID
-      final bookingId = widget.paymentInfo.bookingId;
+      final bookingId = _paymentInfo.bookingId;
 
       // If we don't already have a payment intent client secret, create one
-      CarPaymentInfo paymentInfo = widget.paymentInfo;
-      if (widget.paymentInfo.clientSecret == null ||
-          widget.paymentInfo.clientSecret!.isEmpty) {
+      if (_paymentInfo.clientSecret == null ||
+          _paymentInfo.clientSecret!.isEmpty) {
+        log('No client secret found, initiating payment');
         await _bookingService.initiatePayment(bookingId);
         // Get updated payment info with client secret
-        paymentInfo = await _bookingService.getBookingPaymentInfo(bookingId);
+        _paymentInfo = await _bookingService.getBookingPaymentInfo(bookingId);
       }
 
-      if (paymentInfo.clientSecret == null ||
-          paymentInfo.clientSecret!.isEmpty) {
-        throw Exception('Unable to create payment intent');
+      if (_paymentInfo.clientSecret == null ||
+          _paymentInfo.clientSecret!.isEmpty) {
+        throw Exception(
+          'Unable to create payment intent, client secret is missing',
+        );
       }
+
+      log('Using client secret to process payment');
 
       // First, create a payment method
       final paymentMethod = await Stripe.instance.createPaymentMethod(
@@ -125,7 +196,7 @@ class _CarPaymentScreenState extends State<CarPaymentScreen>
 
       // Then, confirm the payment with the payment method
       final paymentIntent = await Stripe.instance.confirmPayment(
-        paymentIntentClientSecret: paymentInfo.clientSecret!,
+        paymentIntentClientSecret: _paymentInfo.clientSecret!,
         data: PaymentMethodParams.cardFromMethodId(
           paymentMethodData: PaymentMethodDataCardFromMethod(
             paymentMethodId: paymentMethod.id,
@@ -174,21 +245,25 @@ class _CarPaymentScreenState extends State<CarPaymentScreen>
             content: Center(
               child: material.Card(
                 child: Padding(
-                  padding: EdgeInsets.all(20.0),
+                  padding: const EdgeInsets.all(20.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle, color: Colors.green, size: 80),
-                      SizedBox(height: 20),
-                      Text(
+                      const Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                        size: 80,
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
                         'Payment Successful!',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 10),
-                      Text('Your car rental has been confirmed.'),
+                      const SizedBox(height: 10),
+                      const Text('Your car rental has been confirmed.'),
                     ],
                   ),
                 ),
@@ -446,17 +521,15 @@ class _CarPaymentScreenState extends State<CarPaymentScreen>
                   borderRadius: BorderRadius.circular(12),
                   color: colorScheme.surfaceContainerLow,
                   image:
-                      widget.paymentInfo.carImageUrl != null
+                      _paymentInfo.carImageUrl != null
                           ? DecorationImage(
-                            image: NetworkImage(
-                              widget.paymentInfo.carImageUrl!,
-                            ),
+                            image: NetworkImage(_paymentInfo.carImageUrl!),
                             fit: BoxFit.cover,
                           )
                           : null,
                 ),
                 child:
-                    widget.paymentInfo.carImageUrl == null
+                    _paymentInfo.carImageUrl == null
                         ? Center(
                           child: Icon(
                             Icons.directions_car,
@@ -475,19 +548,19 @@ class _CarPaymentScreenState extends State<CarPaymentScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.paymentInfo.carName,
+                      _paymentInfo.carName,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      widget.paymentInfo.rentalPeriod,
+                      _paymentInfo.rentalPeriod,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${widget.paymentInfo.totalDays} ${widget.paymentInfo.totalDays == 1 ? 'day' : 'days'}',
+                      '${_paymentInfo.totalDays} ${_paymentInfo.totalDays == 1 ? 'day' : 'days'}',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
@@ -507,7 +580,7 @@ class _CarPaymentScreenState extends State<CarPaymentScreen>
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               Text(
-                widget.paymentInfo.formattedDailyRate,
+                _paymentInfo.formattedDailyRate,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
@@ -524,7 +597,7 @@ class _CarPaymentScreenState extends State<CarPaymentScreen>
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               Text(
-                '${widget.paymentInfo.totalDays} ${widget.paymentInfo.totalDays == 1 ? 'day' : 'days'}',
+                '${_paymentInfo.totalDays} ${_paymentInfo.totalDays == 1 ? 'day' : 'days'}',
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
@@ -546,7 +619,7 @@ class _CarPaymentScreenState extends State<CarPaymentScreen>
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               Text(
-                widget.paymentInfo.formattedTotalAmount,
+                _paymentInfo.formattedTotalAmount,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.primary,
@@ -557,7 +630,7 @@ class _CarPaymentScreenState extends State<CarPaymentScreen>
 
           // Payment status
           const SizedBox(height: 16),
-          PaymentStatusChip(status: widget.paymentInfo.paymentStatus),
+          PaymentStatusChip(status: _paymentInfo.paymentStatus),
         ],
       ),
     );

@@ -208,18 +208,69 @@ class CarPaymentInfo {
   });
 
   factory CarPaymentInfo.fromJson(Map<String, dynamic> json) {
+    // Handle potential missing date fields with fallbacks
+    DateTime parseDate(String key, {DateTime? defaultValue}) {
+      try {
+        if (json[key] != null) {
+          return DateTime.parse(json[key] as String).toLocal();
+        }
+      } catch (e) {
+        print('Error parsing date for key $key: $e');
+      }
+      return defaultValue ?? DateTime.now();
+    }
+
+    // Use safe parsing for numeric values
+    double parseDouble(String key, {double defaultValue = 0.0}) {
+      try {
+        if (json[key] != null) {
+          return (json[key] as num).toDouble();
+        }
+      } catch (e) {
+        print('Error parsing double for key $key: $e');
+      }
+      return defaultValue;
+    }
+
+    int parseInt(String key, {int defaultValue = 0}) {
+      try {
+        if (json[key] != null) {
+          return (json[key] as num).toInt();
+        }
+      } catch (e) {
+        print('Error parsing int for key $key: $e');
+      }
+      return defaultValue;
+    }
+
+    // Use now + 1 day as default rental end date if missing
+    final startDate = parseDate(
+      'rentalStartDate',
+      defaultValue: DateTime.now(),
+    );
+    final endDate = parseDate(
+      'rentalEndDate',
+      defaultValue: startDate.add(const Duration(days: 1)),
+    );
+
+    // Calculate total days if missing
+    int totalDays = parseInt('totalDays');
+    if (totalDays <= 0) {
+      totalDays = endDate.difference(startDate).inDays;
+      if (totalDays <= 0) totalDays = 1; // Ensure minimum of 1 day
+    }
+
     return CarPaymentInfo(
-      bookingId: json['bookingId'] as int,
-      carId: json['carId'] as int,
-      carName: json['carName'] as String,
+      bookingId: parseInt('bookingId'),
+      carId: parseInt('carId'),
+      carName: json['carName'] as String? ?? 'Car Rental',
       carImageUrl: json['carImageUrl'] as String?,
-      rentalStartDate:
-          DateTime.parse(json['rentalStartDate'] as String).toLocal(),
-      rentalEndDate: DateTime.parse(json['rentalEndDate'] as String).toLocal(),
-      totalDays: json['totalDays'] as int,
-      dailyRate: (json['dailyRate'] as num).toDouble(),
-      totalAmount: (json['totalAmount'] as num).toDouble(),
-      paymentStatus: json['paymentStatus'] as String,
+      rentalStartDate: startDate,
+      rentalEndDate: endDate,
+      totalDays: totalDays,
+      dailyRate: parseDouble('dailyRate'),
+      totalAmount: parseDouble('totalAmount'),
+      paymentStatus: json['paymentStatus'] as String? ?? 'Pending',
       paymentMethod: json['paymentMethod'] as String?,
       transactionId: json['transactionId'] as String?,
       clientSecret: json['clientSecret'] as String?,
@@ -244,11 +295,45 @@ class CarPaymentInfo {
     };
   }
 
-  // Helper getters
+  // Helper getters with improved fallbacks
   String get formattedTotalAmount => '\$${totalAmount.toStringAsFixed(2)}';
   String get formattedDailyRate => '\$${dailyRate.toStringAsFixed(2)}';
-  String get rentalPeriod =>
-      '${rentalStartDate.day}/${rentalStartDate.month} - ${rentalEndDate.day}/${rentalEndDate.month}/${rentalEndDate.year}';
+  String get rentalPeriod => _formatDateRange(rentalStartDate, rentalEndDate);
+
+  // Format date range in a user-friendly way
+  String _formatDateRange(DateTime start, DateTime end) {
+    final startMonth = _getMonthName(start.month);
+    final endMonth = _getMonthName(end.month);
+
+    if (start.year == end.year) {
+      if (start.month == end.month) {
+        return '${start.day} - ${end.day} $endMonth ${end.year}';
+      } else {
+        return '${start.day} $startMonth - ${end.day} $endMonth ${end.year}';
+      }
+    } else {
+      return '${start.day} $startMonth ${start.year} - ${end.day} $endMonth ${end.year}';
+    }
+  }
+
+  // Helper to get month name from month number
+  String _getMonthName(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return months[month - 1];
+  }
 }
 
 class UpdateCarBookingMetadataRequest {

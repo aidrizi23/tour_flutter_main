@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:tour_flutter_main/models/car_booking_models.dart';
 import '../../models/car_models.dart';
 import '../../models/car_availability_response.dart'; // Add this import
 import '../../services/car_service.dart';
@@ -298,14 +299,34 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
         initiatePaymentImmediately: true,
       );
 
-      // Get payment info
-      if (booking.paymentInfo != null) {
+      // Get payment info - either from booking response or fetch separately if missing
+      CarPaymentInfo? paymentInfo = booking.paymentInfo;
+
+      // If payment info wasn't included in the booking response, fetch it separately
+      if (paymentInfo == null) {
+        log(
+          'Payment info not included in booking response, fetching separately',
+        );
+        try {
+          paymentInfo = await _bookingService.getBookingPaymentInfo(booking.id);
+        } catch (e) {
+          log('Error fetching payment info: $e');
+          throw Exception('Could not retrieve payment information: $e');
+        }
+      }
+
+      // Verify we have payment info before proceeding
+      if (paymentInfo != null) {
+        log(
+          'Payment info retrieved successfully, proceeding to payment screen',
+        );
+
         // Navigate to payment screen
         final result = await Navigator.of(context).push(
           PageRouteBuilder(
             pageBuilder:
                 (context, animation, secondaryAnimation) =>
-                    CarPaymentScreen(paymentInfo: booking.paymentInfo!),
+                    CarPaymentScreen(paymentInfo: paymentInfo!),
             transitionsBuilder: (
               context,
               animation,
@@ -338,7 +359,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
           });
         }
       } else {
-        throw Exception('Payment information not available');
+        throw Exception('Payment information not available. Please try again.');
       }
     } catch (e) {
       setState(() {
