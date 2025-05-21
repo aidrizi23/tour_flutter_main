@@ -79,7 +79,7 @@ class SectionTitle extends StatelessWidget {
   }
 }
 
-// Horizontal list for recommended tours
+// Enhanced horizontal list for recommended tours
 class RecommendedToursList extends StatelessWidget {
   final List<RecommendedTour> recommendations;
   final Function(Tour) onTourTap;
@@ -102,7 +102,7 @@ class RecommendedToursList extends StatelessWidget {
 
     if (isLoading) {
       return SizedBox(
-        height: 320,
+        height: 340, // Increased height for better cards
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -144,14 +144,18 @@ class RecommendedToursList extends StatelessWidget {
     }
 
     return SizedBox(
-      height: 320,
+      height: 380, // Increased height for better cards
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: recommendations.length,
         itemBuilder: (context, index) {
           final recommendation = recommendations[index];
-          return _buildRecommendationCard(context, recommendation);
+          // Add a small rotation effect for a more dynamic feel
+          return Transform.rotate(
+            angle: (index % 2 == 0) ? 0.01 : -0.01, // Very slight angle
+            child: _buildRecommendationCard(context, recommendation, index),
+          );
         },
       ),
     );
@@ -160,278 +164,443 @@ class RecommendedToursList extends StatelessWidget {
   Widget _buildRecommendationCard(
     BuildContext context,
     RecommendedTour recommendation,
+    int index,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final tour = recommendation.tour;
 
-    return Container(
-      width: cardWidth,
-      margin: const EdgeInsets.only(right: 16, bottom: 4, top: 4),
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.1),
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            onTourTap(tour);
-          },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image section with overlay
-              Stack(
-                children: [
-                  // Image
-                  Container(
-                    height: 160,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerLow,
-                    ),
-                    child:
-                        tour.mainImageUrl != null
-                            ? Image.network(
-                              tour.mainImageUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder:
-                                  (context, error, stackTrace) =>
-                                      _buildImagePlaceholder(context),
-                            )
-                            : _buildImagePlaceholder(context),
-                  ),
-
-                  // Gradient overlay for better text readability
-                  Positioned.fill(
-                    child: Container(
+    // Create a smooth tween animation for hover-like effect
+    return TweenAnimationBuilder(
+      tween: Tween<double>(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 600 + (index * 100)),
+      curve: Curves.easeOutCubic,
+      builder: (context, double value, child) {
+        return Transform.translate(
+          offset: Offset(0, 20 * (1 - value)), // Slides up
+          child: Opacity(opacity: value, child: child),
+        );
+      },
+      child: Container(
+        width: cardWidth,
+        margin: const EdgeInsets.only(right: 16, bottom: 8, top: 8),
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 6, // Increased elevation for better depth
+          shadowColor: Colors.black.withOpacity(0.2),
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onTourTap(tour);
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image section with overlay
+                Stack(
+                  children: [
+                    // Image with gradient container
+                    Container(
+                      height: 180, // Increased height
+                      width: double.infinity,
                       decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerLow,
                         gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                           colors: [
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.7),
+                            colorScheme.primary.withOpacity(0.9),
+                            colorScheme.primary.withOpacity(0.6),
                           ],
-                          stops: const [0.6, 1.0],
                         ),
                       ),
+                      child:
+                          tour.mainImageUrl != null
+                              ? Hero(
+                                tag: 'tour_${tour.id}',
+                                child: Image.network(
+                                  tour.mainImageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder:
+                                      (context, error, stackTrace) =>
+                                          _buildImagePlaceholder(context),
+                                ),
+                              )
+                              : _buildImagePlaceholder(context),
                     ),
-                  ),
 
-                  // Location
-                  Positioned(
-                    bottom: 12,
-                    left: 12,
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.location_on_rounded,
-                          color: Colors.white,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          tour.location,
-                          style: textTheme.bodySmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
+                    // Gradient overlay for better text readability
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.7),
+                            ],
+                            stops: const [0.6, 1.0],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-
-                  // Price badge
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            tour.hasDiscount ? Colors.red : colorScheme.primary,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        tour.displayPrice,
-                        style: textTheme.labelSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
                       ),
                     ),
-                  ),
 
-                  // Discount badge if applicable
-                  if (tour.hasDiscount)
+                    // Category badge at top left
                     Positioned(
                       top: 12,
                       left: 12,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                          horizontal: 10,
+                          vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.amber.shade700,
+                          color: Colors.white.withOpacity(0.85),
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _getCategoryIcon(tour.category),
+                              size: 12,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              tour.category,
+                              style: textTheme.labelSmall?.copyWith(
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Location at bottom
+                    Positioned(
+                      bottom: 12,
+                      left: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.location_on_rounded,
+                              color: Colors.white,
+                              size: 14,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              tour.location,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Price badge
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              tour.hasDiscount
+                                  ? Colors.red
+                                  : colorScheme.primary,
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withOpacity(0.3),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
                           ],
                         ),
                         child: Text(
-                          '${tour.discountPercentage}% OFF',
+                          tour.displayPrice,
                           style: textTheme.labelSmall?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
+                            fontSize: 12,
                           ),
                         ),
                       ),
                     ),
-                ],
-              ),
 
-              // Content section
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title
-                    Text(
-                      tour.name,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        height: 1.2,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // Features row
-                    Row(
-                      children: [
-                        _buildFeatureChip(
-                          context,
-                          icon: Icons.schedule_rounded,
-                          label: tour.durationText,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildFeatureChip(
-                          context,
-                          icon: tour.activityIcon,
-                          label: tour.activityType,
-                        ),
-                        if (tour.averageRating != null) ...[
-                          const Spacer(),
-                          Row(
+                    // Discount badge if applicable
+                    if (tour.hasDiscount)
+                      Positioned(
+                        bottom: 12,
+                        right: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade700,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(
-                                Icons.star_rounded,
-                                color: Colors.amber,
-                                size: 16,
+                                Icons.flash_on_rounded,
+                                color: Colors.white,
+                                size: 12,
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                tour.averageRating!.toStringAsFixed(1),
-                                style: const TextStyle(
+                                '${tour.discountPercentage}% OFF',
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
                           ),
-                        ],
-                      ],
-                    ),
-
-                    // Reason for recommendation
-                    if (recommendation.reasonForRecommendation.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primaryContainer.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: colorScheme.primaryContainer,
-                          ),
                         ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      ),
+                  ],
+                ),
+
+                // Content section
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Tour name with star rating
+                        Row(
                           children: [
-                            Icon(
-                              Icons.lightbulb_outline,
-                              size: 16,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                recommendation.reasonForRecommendation,
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
+                                tour.name,
+                                style: textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  height: 1.2,
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
+                            if (tour.averageRating != null) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primaryContainer
+                                      .withOpacity(0.4),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.star_rounded,
+                                      color: Colors.amber,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      tour.averageRating!.toStringAsFixed(1),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
                         ),
-                      ),
-                    ],
-                  ],
+
+                        const SizedBox(height: 8),
+
+                        // Features chips in a wrap
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            _buildFeatureChip(
+                              context,
+                              icon: Icons.schedule_rounded,
+                              label: tour.durationText,
+                              color: colorScheme.primaryContainer,
+                            ),
+                            _buildFeatureChip(
+                              context,
+                              icon: tour.activityIcon,
+                              label: tour.activityType,
+                              color: colorScheme.secondaryContainer,
+                            ),
+                            _buildFeatureChip(
+                              context,
+                              icon: Icons.speed_rounded,
+                              label: tour.difficultyLevel,
+                              color: _getDifficultyColor(
+                                tour.difficultyLevel,
+                                colorScheme,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const Spacer(),
+
+                        // Reason for recommendation in a highlighted container
+                        if (recommendation.reasonForRecommendation.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  colorScheme.primary.withOpacity(0.1),
+                                  colorScheme.primaryContainer.withOpacity(0.2),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: colorScheme.primary.withOpacity(0.2),
+                              ),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.lightbulb_outline,
+                                  size: 16,
+                                  color: colorScheme.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    recommendation.reasonForRecommendation,
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurface.withOpacity(
+                                        0.8,
+                                      ),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'adventure':
+        return Icons.terrain_rounded;
+      case 'cultural':
+        return Icons.museum_rounded;
+      case 'relaxation':
+        return Icons.spa_rounded;
+      case 'historical':
+        return Icons.history_edu_rounded;
+      case 'culinary':
+        return Icons.restaurant_rounded;
+      case 'wildlife':
+        return Icons.pets_rounded;
+      default:
+        return Icons.category_rounded;
+    }
+  }
+
+  Color _getDifficultyColor(String difficulty, ColorScheme colorScheme) {
+    switch (difficulty.toLowerCase()) {
+      case 'easy':
+        return Colors.green.withOpacity(0.2);
+      case 'moderate':
+        return Colors.orange.withOpacity(0.2);
+      case 'challenging':
+        return Colors.red.withOpacity(0.2);
+      default:
+        return colorScheme.surfaceContainerLow;
+    }
+  }
+
   Widget _buildFeatureChip(
     BuildContext context, {
     required IconData icon,
     required String label,
+    required Color color,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
+        color: color,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: colorScheme.primary),
+          Icon(icon, size: 12, color: colorScheme.onSurface.withOpacity(0.7)),
           const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: colorScheme.onSurface,
+              color: colorScheme.onSurface.withOpacity(0.8),
             ),
           ),
         ],
@@ -448,16 +617,30 @@ class RecommendedToursList extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            colorScheme.primary.withOpacity(0.1),
-            colorScheme.primary.withOpacity(0.2),
+            colorScheme.primary.withOpacity(0.4),
+            colorScheme.secondary.withOpacity(0.3),
           ],
         ),
       ),
       child: Center(
-        child: Icon(
-          Icons.landscape_rounded,
-          size: 40,
-          color: colorScheme.outline,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.landscape_rounded,
+              size: 40,
+              color: Colors.white.withOpacity(0.7),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Image not available',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -471,81 +654,115 @@ class RecommendedToursList extends StatelessWidget {
       margin: const EdgeInsets.only(right: 16, bottom: 4, top: 4),
       child: Card(
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 6, // Increased elevation
+        shadowColor: Colors.black.withOpacity(0.1),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Shimmer image placeholder
-            Container(
-              height: 160,
+            // Animated shimmer effect for loading
+            _buildShimmerContainer(
+              context: context,
+              height: 180,
               width: double.infinity,
-              color: colorScheme.surfaceContainerLow,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
             ),
 
             // Shimmer content
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Title shimmer
-                  Container(
-                    height: 18,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildShimmerContainer(
+                          context: context,
+                          height: 18,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildShimmerContainer(
+                        context: context,
+                        height: 24,
+                        width: 40,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
-                  Container(
+                  _buildShimmerContainer(
+                    context: context,
                     height: 18,
                     width: 200,
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
+                    borderRadius: BorderRadius.circular(4),
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
                   // Features shimmer
                   Row(
                     children: [
-                      Container(
+                      _buildShimmerContainer(
+                        context: context,
                         height: 24,
                         width: 80,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       const SizedBox(width: 8),
-                      Container(
+                      _buildShimmerContainer(
+                        context: context,
                         height: 24,
                         width: 80,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 12),
-
+                  const SizedBox(height: 50), // Spacer
                   // Recommendation reason shimmer
-                  Container(
+                  _buildShimmerContainer(
+                    context: context,
                     height: 60,
                     width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerContainer({
+    required BuildContext context,
+    required double height,
+    double? width,
+    BorderRadius? borderRadius,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: borderRadius,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colorScheme.surfaceContainerLow,
+            colorScheme.surfaceContainer,
+            colorScheme.surfaceContainerLow,
           ],
         ),
       ),

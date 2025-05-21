@@ -399,7 +399,7 @@ class RecommendationService {
     return SeasonalOffer(
       id: tour.id,
       type: tour.category,
-      name: '${season} ${tour.name}',
+      name: '$season ${tour.name}',
       description: tour.description,
       price: tour.price,
       discountAmount: discountAmount,

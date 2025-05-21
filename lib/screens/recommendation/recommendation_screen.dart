@@ -219,8 +219,23 @@ class _RecommendationScreenState extends State<RecommendationScreen>
     HapticFeedback.lightImpact();
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => TourDetailsScreen(tourId: tour.id),
+      PageRouteBuilder(
+        pageBuilder:
+            (context, animation, secondaryAnimation) =>
+                TourDetailsScreen(tourId: tour.id),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.05),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 400),
       ),
     );
   }
@@ -270,19 +285,69 @@ class _RecommendationScreenState extends State<RecommendationScreen>
 
     // Responsive settings
     final horizontalPadding = isMobile ? 16.0 : 24.0;
-    final cardWidth = isMobile ? 260.0 : 320.0;
+    final cardWidth = isMobile ? 280.0 : 340.0;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: colorScheme.surface,
-        title: Text(
-          'For You',
-          style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+      appBar: _buildAppBar(),
+      body: _buildMainContent(context, horizontalPadding, cardWidth),
+      floatingActionButton: _buildScrollToTopFAB(),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
+    return AppBar(
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      backgroundColor: colorScheme.surface,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              colorScheme.primary.withOpacity(0.05),
+              colorScheme.surface,
+            ],
+          ),
         ),
-        actions: [
-          IconButton(
+      ),
+      title: Row(
+        children: [
+          Icon(Icons.recommend_rounded, color: colorScheme.primary, size: 28),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'For You',
+                style: textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              Text(
+                'Personalized recommendations',
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        Container(
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerLow,
+            shape: BoxShape.circle,
+          ),
+          child: IconButton(
             onPressed: _refreshRecommendations,
             icon: AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
@@ -300,10 +365,8 @@ class _RecommendationScreenState extends State<RecommendationScreen>
             ),
             tooltip: 'Refresh',
           ),
-        ],
-      ),
-      body: _buildMainContent(context, horizontalPadding, cardWidth),
-      floatingActionButton: _buildScrollToTopFAB(),
+        ),
+      ],
     );
   }
 
@@ -325,43 +388,70 @@ class _RecommendationScreenState extends State<RecommendationScreen>
 
     return RefreshIndicator(
       onRefresh: _refreshRecommendations,
+      color: Theme.of(context).colorScheme.primary,
       child: FadeTransition(
         opacity: _fadeAnimation,
-        child: ListView(
+        child: CustomScrollView(
           controller: _scrollController,
-          padding: const EdgeInsets.only(bottom: 100),
-          children: [
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            // Add subtle decorative header
+            SliverToBoxAdapter(child: _buildDecorativeHeader()),
+
             // Category selector
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                horizontalPadding,
-                16,
-                horizontalPadding,
-                8,
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  horizontalPadding,
+                  8,
+                  horizontalPadding,
+                  8,
+                ),
+                child: _buildCategorySelector(),
               ),
-              child: _buildCategorySelector(),
             ),
 
             // Show user insights compact card if available
             if (_userInsights != null && _currentCategory == "For You")
-              _buildCompactInsightsCard(),
+              SliverToBoxAdapter(child: _buildCompactInsightsCard()),
 
             // Content based on selected category
-            if (_currentCategory == "For You" || _currentCategory == "Deals")
-              ..._buildDealsSection(horizontalPadding, cardWidth),
-
             if (_currentCategory == "For You" ||
                 _currentCategory == "Recommendations")
               ..._buildRecommendationsSection(horizontalPadding, cardWidth),
+
+            if (_currentCategory == "For You" || _currentCategory == "Deals")
+              ..._buildDealsSection(horizontalPadding, cardWidth),
 
             if (_currentCategory == "For You" || _currentCategory == "Seasonal")
               ..._buildSeasonalSection(horizontalPadding, cardWidth),
 
             // Empty content state if no data in selected category
-            if (_isEmptyCategory()) _buildEmptyCategoryState(),
+            if (_isEmptyCategory())
+              SliverFillRemaining(child: _buildEmptyCategoryState()),
 
             // Extra bottom space for FAB
-            const SizedBox(height: 80),
+            SliverToBoxAdapter(child: SizedBox(height: 80)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDecorativeHeader() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
+    return Container(
+      height: isMobile ? 15 : 20,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colorScheme.primary.withOpacity(0.05),
+            colorScheme.primaryContainer.withOpacity(0.05),
+            colorScheme.primary.withOpacity(0.05),
           ],
         ),
       ),
@@ -375,12 +465,19 @@ class _RecommendationScreenState extends State<RecommendationScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(
-            width: 50,
-            height: 50,
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
-              color: colorScheme.primary,
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                color: colorScheme.primary,
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -527,75 +624,79 @@ class _RecommendationScreenState extends State<RecommendationScreen>
 
     final categories = [
       {'title': 'For You', 'icon': Icons.recommend_rounded},
-      {'title': 'Deals', 'icon': Icons.flash_on_rounded},
       {'title': 'Recommendations', 'icon': Icons.favorite_rounded},
+      {'title': 'Deals', 'icon': Icons.flash_on_rounded},
       {'title': 'Seasonal', 'icon': Icons.wb_sunny_rounded},
     ];
 
-    return SizedBox(
-      height: 44,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          final isSelected = _currentCategory == category['title'];
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: colorScheme.surfaceContainerLowest,
+      ),
+      child: SizedBox(
+        height: 44,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            final category = categories[index];
+            final isSelected = _currentCategory == category['title'];
 
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: InkWell(
-              onTap: () => _changeCategory(category['title'] as String),
-              borderRadius: BorderRadius.circular(22),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color:
-                      isSelected
-                          ? colorScheme.primary.withOpacity(0.1)
-                          : Colors.transparent,
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _changeCategory(category['title'] as String),
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color:
-                        isSelected
-                            ? colorScheme.primary
-                            : colorScheme.outline.withOpacity(0.3),
-                    width: isSelected ? 1.5 : 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      category['icon'] as IconData,
-                      size: 16,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
                       color:
-                          isSelected
-                              ? colorScheme.primary
-                              : colorScheme.onSurface.withOpacity(0.7),
+                          isSelected ? colorScheme.primary : Colors.transparent,
+                      borderRadius: BorderRadius.circular(22),
                     ),
-                    if (!isMobile ||
-                        isSelected ||
-                        category['title'] == 'For You') ...[
-                      const SizedBox(width: 8),
-                      Text(
-                        category['title'] as String,
-                        style: textTheme.bodyMedium?.copyWith(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          category['icon'] as IconData,
+                          size: 16,
                           color:
                               isSelected
-                                  ? colorScheme.primary
+                                  ? colorScheme.onPrimary
                                   : colorScheme.onSurface.withOpacity(0.7),
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.normal,
                         ),
-                      ),
-                    ],
-                  ],
+                        if (!isMobile ||
+                            isSelected ||
+                            category['title'] == 'For You') ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            category['title'] as String,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color:
+                                  isSelected
+                                      ? colorScheme.onPrimary
+                                      : colorScheme.onSurface.withOpacity(0.7),
+                              fontWeight:
+                                  isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -606,73 +707,99 @@ class _RecommendationScreenState extends State<RecommendationScreen>
     final insights = _userInsights!;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: Card(
-        elevation: 0,
-        color: colorScheme.primaryContainer.withOpacity(0.6),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.insights_rounded,
-                      color: colorScheme.primary,
-                      size: 16,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Your Travel Insights',
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // Insights stats in a row
-              SizedBox(
-                height: 70,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
+        elevation: 4,
+        shadowColor: colorScheme.primary.withOpacity(0.2),
+        color: colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colorScheme.primary.withOpacity(0.05),
+                colorScheme.primaryContainer.withOpacity(0.2),
+              ],
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    _buildInsightItem(
-                      'Favorite',
-                      insights.favoriteTourCategory,
-                      Icons.category_rounded,
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.insights_rounded,
+                        color: colorScheme.primary,
+                        size: 20,
+                      ),
                     ),
-                    _buildInsightItem(
-                      'Trips',
-                      '${insights.totalTrips}',
-                      Icons.card_travel_rounded,
-                    ),
-                    _buildInsightItem(
-                      'Avg Duration',
-                      '${insights.averageTripDuration} days',
-                      Icons.calendar_today_rounded,
-                    ),
-                    _buildInsightItem(
-                      'Saved',
-                      '\$${insights.totalSavings.toStringAsFixed(0)}',
-                      Icons.savings_rounded,
-                      isLast: true,
+                    const SizedBox(width: 14),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Your Travel Insights',
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        Text(
+                          'Based on your travel history',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+
+                // Insights stats in a row
+                SizedBox(
+                  height: 80,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: EdgeInsets.zero,
+                    children: [
+                      _buildInsightItem(
+                        'Favorite',
+                        insights.favoriteTourCategory,
+                        Icons.category_rounded,
+                      ),
+                      _buildInsightItem(
+                        'Trips',
+                        '${insights.totalTrips}',
+                        Icons.card_travel_rounded,
+                      ),
+                      _buildInsightItem(
+                        'Avg Duration',
+                        '${insights.averageTripDuration} days',
+                        Icons.calendar_today_rounded,
+                      ),
+                      _buildInsightItem(
+                        'Saved',
+                        '\$${insights.totalSavings.toStringAsFixed(0)}',
+                        Icons.savings_rounded,
+                        isLast: true,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -689,40 +816,43 @@ class _RecommendationScreenState extends State<RecommendationScreen>
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
-      width: 120,
-      margin: EdgeInsets.only(right: isLast ? 0 : 16),
+      width: 130,
+      margin: EdgeInsets.only(right: isLast ? 0 : 12),
       decoration: BoxDecoration(
-        color: colorScheme.onPrimaryContainer.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(12),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                icon,
-                size: 14,
-                color: colorScheme.onPrimaryContainer.withOpacity(0.7),
-              ),
-              const SizedBox(width: 4),
+              Icon(icon, size: 16, color: colorScheme.primary),
+              const SizedBox(width: 6),
               Text(
                 label,
                 style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onPrimaryContainer.withOpacity(0.7),
+                  color: colorScheme.onSurface.withOpacity(0.7),
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Text(
             value,
-            style: textTheme.titleSmall?.copyWith(
+            style: textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: colorScheme.onPrimaryContainer,
+              color: colorScheme.onSurface,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -732,69 +862,119 @@ class _RecommendationScreenState extends State<RecommendationScreen>
     );
   }
 
-  List<Widget> _buildDealsSection(double horizontalPadding, double cardWidth) {
-    if (_flashDeals.isEmpty) {
-      return _currentCategory == "Deals" ? [] : [];
-    }
-
-    return [
-      Padding(
-        padding: EdgeInsets.fromLTRB(
-          horizontalPadding,
-          16,
-          horizontalPadding,
-          8,
-        ),
-        child: SectionTitle(
-          title: 'Limited Time Deals',
-          onSeeAllPressed:
-              _currentCategory == "For You"
-                  ? () => _changeCategory("Deals")
-                  : null,
-        ),
-      ),
-      FlashDealsList(
-        deals: _flashDeals,
-        onDealTap: _viewFlashDeal,
-        isLoading: false,
-        cardWidth: cardWidth,
-      ),
-      const SizedBox(height: 8),
-    ];
-  }
-
   List<Widget> _buildRecommendationsSection(
     double horizontalPadding,
     double cardWidth,
   ) {
+    if (_personalizedTours.isEmpty && _currentCategory == "Recommendations") {
+      return [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              16,
+              horizontalPadding,
+              8,
+            ),
+            child: SectionTitle(
+              title: 'Recommended for You',
+              icon: Icons.favorite_rounded,
+              isLoading: _isRefreshing,
+            ),
+          ),
+        ),
+      ];
+    }
+
     if (_personalizedTours.isEmpty) {
-      return _currentCategory == "Recommendations" ? [] : [];
+      return [];
     }
 
     return [
-      Padding(
-        padding: EdgeInsets.fromLTRB(
-          horizontalPadding,
-          16,
-          horizontalPadding,
-          8,
-        ),
-        child: SectionTitle(
-          title: 'Recommended for You',
-          onSeeAllPressed:
-              _currentCategory == "For You"
-                  ? () => _changeCategory("Recommendations")
-                  : null,
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            24,
+            horizontalPadding,
+            16,
+          ),
+          child: SectionTitle(
+            title: 'Recommended for You',
+            icon: Icons.favorite_rounded,
+            onSeeAllPressed:
+                _currentCategory == "For You"
+                    ? () => _changeCategory("Recommendations")
+                    : null,
+            isLoading: _isRefreshing && _currentCategory == "Recommendations",
+          ),
         ),
       ),
-      RecommendedToursList(
-        recommendations: _personalizedTours,
-        onTourTap: (tour) => _navigateToTourDetails(tour),
-        isLoading: false,
-        onRefresh: _loadPersonalizedTours,
-        cardWidth: cardWidth,
+      SliverToBoxAdapter(
+        child: RecommendedToursList(
+          recommendations: _personalizedTours,
+          onTourTap: (tour) => _navigateToTourDetails(tour),
+          isLoading: _isRefreshing && _currentCategory == "Recommendations",
+          onRefresh: _loadPersonalizedTours,
+          cardWidth: cardWidth,
+        ),
       ),
-      const SizedBox(height: 8),
+    ];
+  }
+
+  List<Widget> _buildDealsSection(double horizontalPadding, double cardWidth) {
+    if (_flashDeals.isEmpty && _currentCategory == "Deals") {
+      return [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              16,
+              horizontalPadding,
+              8,
+            ),
+            child: SectionTitle(
+              title: 'Limited Time Deals',
+              icon: Icons.flash_on_rounded,
+              isLoading: _isRefreshing,
+            ),
+          ),
+        ),
+      ];
+    }
+
+    if (_flashDeals.isEmpty) {
+      return [];
+    }
+
+    return [
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            24,
+            horizontalPadding,
+            16,
+          ),
+          child: SectionTitle(
+            title: 'Limited Time Deals',
+            icon: Icons.flash_on_rounded,
+            onSeeAllPressed:
+                _currentCategory == "For You"
+                    ? () => _changeCategory("Deals")
+                    : null,
+            isLoading: _isRefreshing && _currentCategory == "Deals",
+          ),
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: FlashDealsList(
+          deals: _flashDeals,
+          onDealTap: _viewFlashDeal,
+          isLoading: _isRefreshing && _currentCategory == "Deals",
+          cardWidth: cardWidth,
+        ),
+      ),
     ];
   }
 
@@ -802,24 +982,48 @@ class _RecommendationScreenState extends State<RecommendationScreen>
     double horizontalPadding,
     double cardWidth,
   ) {
+    if (_seasonalOffers.isEmpty && _currentCategory == "Seasonal") {
+      return [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              16,
+              horizontalPadding,
+              8,
+            ),
+            child: SectionTitle(
+              title: 'Seasonal Experiences',
+              icon: Icons.wb_sunny_rounded,
+              isLoading: _isRefreshing,
+            ),
+          ),
+        ),
+      ];
+    }
+
     if (_seasonalOffers.isEmpty) {
-      return _currentCategory == "Seasonal" ? [] : [];
+      return [];
     }
 
     return [
-      Padding(
-        padding: EdgeInsets.fromLTRB(
-          horizontalPadding,
-          16,
-          horizontalPadding,
-          8,
-        ),
-        child: SectionTitle(
-          title: 'Seasonal Experiences',
-          onSeeAllPressed:
-              _currentCategory == "For You"
-                  ? () => _changeCategory("Seasonal")
-                  : null,
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            24,
+            horizontalPadding,
+            8,
+          ),
+          child: SectionTitle(
+            title: 'Seasonal Experiences',
+            icon: Icons.wb_sunny_rounded,
+            onSeeAllPressed:
+                _currentCategory == "For You"
+                    ? () => _changeCategory("Seasonal")
+                    : null,
+            isLoading: _isRefreshing && _currentCategory == "Seasonal",
+          ),
         ),
       ),
     ];

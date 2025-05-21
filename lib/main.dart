@@ -34,7 +34,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: _buildLightTheme(),
       darkTheme: _buildDarkTheme(),
-      themeMode: ThemeMode.system,
+      themeMode:
+          ThemeMode.light, // Changed from ThemeMode.system to ThemeMode.light
       home: const AuthWrapper(),
       routes: {
         '/login': (context) => const LoginScreen(),
