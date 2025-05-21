@@ -2,14 +2,15 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tour_flutter_main/models/car_booking_models.dart';
+import 'package:intl/intl.dart';
+import '../../models/car_booking_models.dart';
 import '../../models/car_models.dart';
-import '../../models/car_availability_response.dart'; // Add this import
+import '../../models/car_availability_response.dart';
 import '../../services/car_service.dart';
 import '../../services/car_booking_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
-import '../booking/car_payment_screen.dart';
+import 'car_payment_screen.dart';
 
 class CarDetailsScreen extends StatefulWidget {
   final int carId;
@@ -48,6 +49,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
   DateTime? _selectedEndDate;
   CarAvailabilityResponse? _availability;
   bool _agreedToTerms = false;
+  String? _availabilityErrorMessage;
 
   late AnimationController _animationController;
   late AnimationController _fabController;
@@ -143,6 +145,16 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
 
       _animationController.forward();
       _staggerController.forward();
+
+      // Set initial valid dates (from tomorrow to next week)
+      final now = DateTime.now();
+      final tomorrow = DateTime(now.year, now.month, now.day + 1);
+      final nextWeek = DateTime(now.year, now.month, now.day + 8);
+
+      setState(() {
+        _selectedStartDate = tomorrow;
+        _selectedEndDate = nextWeek;
+      });
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
@@ -199,6 +211,8 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
     } else {
       setState(() {
         _showBookingPanel = true;
+        // Clear any previous availability error
+        _availabilityErrorMessage = null;
       });
       _bookingPanelController.forward();
     }
@@ -215,30 +229,59 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
     );
   }
 
-  Future<void> _checkAvailability() async {
-    if (_selectedStartDate == null ||
-        _selectedEndDate == null ||
-        _car == null) {
-      _showSnackBar('Please select both start and end dates', Colors.orange);
-      return;
+  bool _validateDates() {
+    // Clear any previous error message
+    setState(() {
+      _availabilityErrorMessage = null;
+    });
+
+    if (_selectedStartDate == null || _selectedEndDate == null) {
+      setState(() {
+        _availabilityErrorMessage = 'Please select both start and end dates';
+      });
+      return false;
     }
 
-    // Validate dates
+    // Check if start date is in the past
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+
     if (_selectedStartDate!.isBefore(today)) {
-      _showSnackBar('Please select a future start date', Colors.orange);
-      return;
+      setState(() {
+        _availabilityErrorMessage = 'Start date cannot be in the past';
+      });
+      return false;
     }
 
+    // Check if end date is before start date
     if (_selectedEndDate!.isBefore(_selectedStartDate!)) {
-      _showSnackBar('End date must be after start date', Colors.orange);
+      setState(() {
+        _availabilityErrorMessage = 'End date must be after start date';
+      });
+      return false;
+    }
+
+    // Check if the date range is too long (e.g., more than 30 days)
+    final difference = _selectedEndDate!.difference(_selectedStartDate!).inDays;
+    if (difference > 30) {
+      setState(() {
+        _availabilityErrorMessage = 'Rental period cannot exceed 30 days';
+      });
+      return false;
+    }
+
+    return true;
+  }
+
+  Future<void> _checkAvailability() async {
+    if (!_validateDates() || _car == null) {
       return;
     }
 
     setState(() {
       _isCheckingAvailability = true;
       _availability = null;
+      _availabilityErrorMessage = null;
     });
 
     try {
@@ -259,11 +302,21 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
 
       log('Availability check result: ${availability.isAvailable}');
       HapticFeedback.lightImpact();
+
+      // If available, animate the booking panel to draw attention
+      if (availability.isAvailable) {
+        _bookingPanelController.reset();
+        _bookingPanelController.forward();
+      }
     } catch (e) {
       setState(() {
         _isCheckingAvailability = false;
+        _availabilityErrorMessage = e.toString().replaceAll('Exception: ', '');
       });
-      _showSnackBar('Failed to check availability: $e', Colors.red);
+      _showSnackBar(
+        'Error: ${e.toString().replaceAll('Exception: ', '')}',
+        Colors.red,
+      );
     }
   }
 
@@ -1777,14 +1830,17 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                           _isBooking
                               ? null
                               : () async {
+                                final now = DateTime.now();
+                                final tomorrow = DateTime(
+                                  now.year,
+                                  now.month,
+                                  now.day + 1,
+                                );
+
                                 final date = await showDatePicker(
                                   context: context,
-                                  initialDate:
-                                      _selectedStartDate ??
-                                      DateTime.now().add(
-                                        const Duration(days: 1),
-                                      ),
-                                  firstDate: DateTime.now(),
+                                  initialDate: _selectedStartDate ?? tomorrow,
+                                  firstDate: tomorrow,
                                   lastDate: DateTime.now().add(
                                     const Duration(days: 365),
                                   ),
@@ -1792,11 +1848,20 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                                 if (date != null) {
                                   setState(() {
                                     _selectedStartDate = date;
-                                    if (_selectedEndDate != null &&
-                                        _selectedEndDate!.isBefore(date)) {
-                                      _selectedEndDate = null;
+
+                                    // If end date exists but is now before or same as start date,
+                                    // set it to start date + 1 day
+                                    if (_selectedEndDate == null ||
+                                        !_selectedEndDate!.isAfter(
+                                          _selectedStartDate!,
+                                        )) {
+                                      _selectedEndDate = _selectedStartDate!
+                                          .add(const Duration(days: 1));
                                     }
+
+                                    // Reset availability info when dates change
                                     _availability = null;
+                                    _availabilityErrorMessage = null;
                                   });
                                 }
                               },
@@ -1830,7 +1895,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                             Expanded(
                               child: Text(
                                 _selectedStartDate != null
-                                    ? '${_selectedStartDate!.day}/${_selectedStartDate!.month}/${_selectedStartDate!.year}'
+                                    ? DateFormat(
+                                      'MMM d, yyyy',
+                                    ).format(_selectedStartDate!)
                                     : 'Start date',
                                 style: Theme.of(
                                   context,
@@ -1859,34 +1926,36 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                   Expanded(
                     child: InkWell(
                       onTap:
-                          _isBooking
+                          _isBooking || _selectedStartDate == null
                               ? null
                               : () async {
+                                // Set the mininum end date to start date + 1 day
+                                final minimumEndDate = _selectedStartDate!.add(
+                                  const Duration(days: 1),
+                                );
+
                                 final date = await showDatePicker(
                                   context: context,
                                   initialDate:
-                                      _selectedEndDate ??
-                                      (_selectedStartDate?.add(
-                                            const Duration(days: 1),
-                                          ) ??
-                                          DateTime.now().add(
-                                            const Duration(days: 2),
-                                          )),
-                                  firstDate:
-                                      _selectedStartDate?.add(
-                                        const Duration(days: 1),
-                                      ) ??
-                                      DateTime.now().add(
-                                        const Duration(days: 1),
-                                      ),
-                                  lastDate: DateTime.now().add(
-                                    const Duration(days: 365),
+                                      _selectedEndDate != null &&
+                                              _selectedEndDate!.isAfter(
+                                                minimumEndDate,
+                                              )
+                                          ? _selectedEndDate!
+                                          : minimumEndDate,
+                                  firstDate: minimumEndDate,
+                                  lastDate: _selectedStartDate!.add(
+                                    const Duration(
+                                      days: 30,
+                                    ), // Maximum 30-day booking
                                   ),
                                 );
                                 if (date != null) {
                                   setState(() {
                                     _selectedEndDate = date;
+                                    // Reset availability info when dates change
                                     _availability = null;
+                                    _availabilityErrorMessage = null;
                                   });
                                 }
                               },
@@ -1920,7 +1989,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                             Expanded(
                               child: Text(
                                 _selectedEndDate != null
-                                    ? '${_selectedEndDate!.day}/${_selectedEndDate!.month}/${_selectedEndDate!.year}'
+                                    ? DateFormat(
+                                      'MMM d, yyyy',
+                                    ).format(_selectedEndDate!)
                                     : 'End date',
                                 style: Theme.of(
                                   context,
@@ -1945,6 +2016,42 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                   ),
                 ],
               ),
+
+              // Error message if validation fails
+              if (_availabilityErrorMessage != null) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.errorContainer.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: colorScheme.error.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 16,
+                        color: colorScheme.error,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _availabilityErrorMessage!,
+                          style: TextStyle(
+                            color: colorScheme.error,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
               const SizedBox(height: 20),
 
               // Check Availability Button
@@ -2391,7 +2498,7 @@ class _BookingSuccessDialogState extends State<BookingSuccessDialog>
                 child: Column(
                   children: [
                     Text(
-                      'Booking Initiated!',
+                      'Booking Confirmed!',
                       style: Theme.of(
                         context,
                       ).textTheme.headlineSmall?.copyWith(
@@ -2401,7 +2508,7 @@ class _BookingSuccessDialogState extends State<BookingSuccessDialog>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Your payment is being processed...',
+                      'Your rental is now booked and confirmed',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: colorScheme.onSurface.withOpacity(0.7),
                       ),
