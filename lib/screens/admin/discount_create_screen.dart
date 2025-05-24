@@ -137,8 +137,7 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: theme.colorScheme,
-            dialogBackgroundColor: theme.colorScheme.surface,
+            colorScheme: theme.colorScheme, dialogTheme: DialogThemeData(backgroundColor: theme.colorScheme.surface),
           ),
           child: child!,
         );
