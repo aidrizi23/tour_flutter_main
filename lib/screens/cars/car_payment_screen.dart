@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import '../../models/car_booking_models.dart';
 import '../../services/car_booking_service.dart';
-import '../../widgets/payment_method_widget.dart';
 import '../../widgets/payment_widgets.dart';
 import '../../utils/billing_details_helper.dart';
 

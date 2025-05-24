@@ -425,7 +425,7 @@ class _DiscountCreateScreenState extends State<DiscountCreateScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              colorScheme.background,
+              colorScheme.surface,
               colorScheme.surfaceContainerLowest.withOpacity(0.9),
             ],
             stops: const [0, 0.95],

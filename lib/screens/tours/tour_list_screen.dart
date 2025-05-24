@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/tour_models.dart';
 import '../../services/tour_service.dart';
-import 'tour_details_screen.dart';
+import '../../widgets/responsive_tour_card.dart';
+import '../../widgets/modern_widgets.dart';
 
 class TourListScreen extends StatefulWidget {
   const TourListScreen({super.key});
@@ -20,6 +21,7 @@ class _TourListScreenState extends State<TourListScreen>
       GlobalKey<RefreshIndicatorState>();
 
   List<Tour> _tours = [];
+  List<Tour> _favoriteToursLocal = []; // Local favorites storage
   bool _isLoading = false;
   bool _isLoadingMore = false;
   String? _errorMessage;
@@ -255,18 +257,31 @@ class _TourListScreenState extends State<TourListScreen>
     _loadTours(isRefresh: true);
   }
 
+  void _toggleFavorite(Tour tour) {
+    setState(() {
+      if (_favoriteToursLocal.any((t) => t.id == tour.id)) {
+        _favoriteToursLocal.removeWhere((t) => t.id == tour.id);
+      } else {
+        _favoriteToursLocal.add(tour);
+      }
+    });
+  }
+
+  bool _isFavorite(Tour tour) {
+    return _favoriteToursLocal.any((t) => t.id == tour.id);
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final isDesktop = screenWidth > 1024;
-    final isTablet = screenWidth > 600 && screenWidth <= 1024;
+    final isDesktop = screenWidth > 1200;
+    final isTablet = screenWidth > 600 && screenWidth <= 1200;
     final isMobile = screenWidth <= 600;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       backgroundColor: colorScheme.surfaceContainerLowest,
-      appBar: _buildAppBar(context),
       body: RefreshIndicator(
         key: _refreshIndicatorKey,
         onRefresh: () => _loadTours(isRefresh: true),
@@ -277,28 +292,77 @@ class _TourListScreenState extends State<TourListScreen>
           controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            // Search section - improved for mobile
-            SliverToBoxAdapter(
-              child: FadeTransition(
-                opacity: _searchBarAnimation,
-                child: Container(
-                  padding: EdgeInsets.all(isMobile ? 12 : 16),
+            // Modern App Bar
+            SliverAppBar(
+              expandedHeight: isMobile ? 120 : 140,
+              floating: false,
+              pinned: true,
+              elevation: 0,
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
                   decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        colorScheme.primary,
+                        colorScheme.primary.withOpacity(0.8),
+                      ],
+                    ),
                   ),
-                  child: _buildMobileSearchAndFilters(context),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        isMobile ? 16 : 24,
+                        isMobile ? 16 : 24,
+                        isMobile ? 16 : 24,
+                        isMobile ? 8 : 12,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            'Discover Amazing Tours',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.headlineMedium?.copyWith(
+                              color: colorScheme.onPrimary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: isMobile ? 24 : 32,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _totalCount > 0
+                                ? '$_totalCount experiences waiting for you'
+                                : 'Find your next adventure',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodyLarge?.copyWith(
+                              color: colorScheme.onPrimary.withOpacity(0.9),
+                              fontSize: isMobile ? 14 : 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
 
-            // Filters panel - mobile optimized
+            // Search and filter section
+            SliverToBoxAdapter(
+              child: FadeTransition(
+                opacity: _searchBarAnimation,
+                child: _buildModernSearchSection(),
+              ),
+            ),
+
+            // Filters panel
             if (_showFilters)
               SliverToBoxAdapter(
                 child: AnimatedBuilder(
@@ -308,70 +372,14 @@ class _TourListScreenState extends State<TourListScreen>
                       offset: Offset(0, -20 * (1 - _filterAnimation.value)),
                       child: Opacity(
                         opacity: _filterAnimation.value,
-                        child: _buildMobileFiltersPanel(),
+                        child: _buildFiltersPanel(),
                       ),
                     );
                   },
                 ),
               ),
 
-            // Results header - more compact on mobile
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  isMobile ? 12 : 16,
-                  isMobile ? 12 : 16,
-                  isMobile ? 12 : 16,
-                  isMobile ? 8 : 8,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _isLoading
-                            ? 'Finding experiences...'
-                            : _totalCount == 1
-                            ? '1 experience found'
-                            : '$_totalCount experiences found',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurface.withOpacity(0.8),
-                          fontSize: isMobile ? 14 : 16,
-                        ),
-                      ),
-                    ),
-                    if (_tours.isNotEmpty && !_isLoading)
-                      Container(
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(
-                            isMobile ? 8 : 10,
-                          ),
-                        ),
-                        child: IconButton(
-                          onPressed: _toggleFilters,
-                          icon: AnimatedRotation(
-                            turns: _showFilters ? 0.5 : 0,
-                            duration: const Duration(milliseconds: 300),
-                            child: Icon(
-                              Icons.tune_rounded,
-                              size: isMobile ? 20 : 22,
-                            ),
-                          ),
-                          color: colorScheme.primary,
-                          tooltip: 'Filter & Sort',
-                          padding: EdgeInsets.all(isMobile ? 8 : 10),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Tours grid/list - optimized for mobile
+            // Main content
             if (_isLoading && _tours.isEmpty)
               SliverFillRemaining(child: _buildLoadingState())
             else if (_errorMessage != null)
@@ -379,38 +387,12 @@ class _TourListScreenState extends State<TourListScreen>
             else if (_tours.isEmpty)
               SliverFillRemaining(child: _buildEmptyState())
             else
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                  isMobile ? 12 : 16,
-                  0,
-                  isMobile ? 12 : 16,
-                  isMobile ? 12 : 16,
-                ),
-                sliver: SliverGrid(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: isMobile ? 1 : (isTablet ? 2 : 3),
-                    crossAxisSpacing: isMobile ? 0 : 16,
-                    mainAxisSpacing: isMobile ? 16 : 16,
-                    childAspectRatio: _calculateAspectRatio(isMobile, isTablet),
-                  ),
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    if (index < _tours.length) {
-                      return _buildMobileTourCard(_tours[index], isMobile);
-                    } else if (_isLoadingMore) {
-                      return _buildLoadingMoreCard(isMobile);
-                    }
-                    return null;
-                  }, childCount: _tours.length + (_isLoadingMore ? 1 : 0)),
-                ),
-              ),
-
-            // Bottom spacing for mobile
-            SliverToBoxAdapter(child: SizedBox(height: isMobile ? 80 : 40)),
+              _buildToursList(isDesktop, isTablet, isMobile),
           ],
         ),
       ),
       floatingActionButton:
-          _showFAB
+          _showFAB && !isMobile
               ? ScaleTransition(
                 scale: _fabAnimation,
                 child: FloatingActionButton.extended(
@@ -423,7 +405,7 @@ class _TourListScreenState extends State<TourListScreen>
                     );
                   },
                   icon: const Icon(Icons.keyboard_arrow_up_rounded),
-                  label: const Text('Top'),
+                  label: const Text('Back to Top'),
                   backgroundColor: colorScheme.primary,
                   foregroundColor: colorScheme.onPrimary,
                 ),
@@ -432,715 +414,360 @@ class _TourListScreenState extends State<TourListScreen>
     );
   }
 
-  double _calculateAspectRatio(bool isMobile, bool isTablet) {
-    if (isMobile) return 1.2;
-    if (isTablet) return 0.9;
-    return 0.85;
-  }
-
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
+  Widget _buildModernSearchSection() {
     final colorScheme = Theme.of(context).colorScheme;
-    final isMobile = MediaQuery.of(context).size.width <= 600;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth <= 600;
+    final isTablet = screenWidth > 600 && screenWidth <= 1200;
 
-    return AppBar(
-      elevation: 0,
-      scrolledUnderElevation: 2,
-      backgroundColor: colorScheme.primary,
-      foregroundColor: colorScheme.onPrimary,
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      color: colorScheme.surface,
+      padding: EdgeInsets.fromLTRB(
+        isMobile ? 16 : (isTablet ? 24 : 32),
+        isMobile ? 16 : 24,
+        isMobile ? 16 : (isTablet ? 24 : 32),
+        isMobile ? 12 : 16,
+      ),
+      child: Column(
         children: [
-          Text(
-            'Discover',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: colorScheme.onPrimary,
-              fontWeight: FontWeight.bold,
-              fontSize: isMobile ? 24 : 28,
+          // Search bar with booking.com style
+          Container(
+            constraints: BoxConstraints(
+              maxWidth: isTablet ? 600 : (isMobile ? double.infinity : 800),
             ),
-          ),
-          Text(
-            'Amazing experiences await',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onPrimary.withOpacity(0.9),
-              fontSize: isMobile ? 13 : 14,
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        IconButton(
-          onPressed: () {
-            // TODO: Add favorites/wishlist feature
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Favorites feature coming soon!'),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color:
+                      _isSearchFocused
+                          ? colorScheme.primary
+                          : colorScheme.outline.withOpacity(0.3),
+                  width: _isSearchFocused ? 2 : 1,
                 ),
-                margin: EdgeInsets.all(isMobile ? 12 : 16),
-              ),
-            );
-          },
-          icon: const Icon(Icons.favorite_border_rounded),
-          color: colorScheme.onPrimary,
-          tooltip: 'Favorites',
-        ),
-      ],
-      flexibleSpace: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMobileSearchAndFilters(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isMobile = MediaQuery.of(context).size.width <= 600;
-
-    return Column(
-      children: [
-        // Search bar - mobile optimized
-        Container(
-          height: isMobile ? 52 : 56,
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(isMobile ? 14 : 16),
-            border: Border.all(
-              color:
-                  _isSearchFocused
-                      ? colorScheme.primary
-                      : colorScheme.outline.withOpacity(0.2),
-              width: _isSearchFocused ? 2 : 1,
-            ),
-            boxShadow:
-                _isSearchFocused
-                    ? [
-                      BoxShadow(
-                        color: colorScheme.primary.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                    : null,
-          ),
-          child: Focus(
-            onFocusChange: (hasFocus) {
-              setState(() {
-                _isSearchFocused = hasFocus;
-              });
-            },
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText:
-                    isMobile
-                        ? 'Search experiences...'
-                        : 'Where do you want to go?',
-                hintStyle: TextStyle(
-                  color: colorScheme.onSurface.withOpacity(0.6),
-                  fontSize: isMobile ? 15 : 16,
-                ),
-                prefixIcon: Container(
-                  width: isMobile ? 45 : 50,
-                  height: isMobile ? 45 : 50,
-                  alignment: Alignment.center,
-                  child: Icon(
-                    Icons.search_rounded,
-                    color:
-                        _isSearchFocused
-                            ? colorScheme.primary
-                            : colorScheme.outline,
-                    size: isMobile ? 22 : 24,
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.shadow.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
-                ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: isMobile ? 16 : 20,
-                  vertical: isMobile ? 14 : 16,
-                ),
-                suffixIcon:
-                    _searchController.text.isNotEmpty
-                        ? IconButton(
-                          onPressed: () {
-                            _searchController.clear();
-                            _loadTours(isRefresh: true);
-                            setState(() {});
-                          },
-                          icon: Icon(
-                            Icons.clear_rounded,
-                            size: isMobile ? 20 : 22,
-                          ),
-                          color: colorScheme.outline,
-                        )
-                        : null,
+                ],
               ),
-              style: TextStyle(fontSize: isMobile ? 15 : 16),
-              onSubmitted: (_) => _loadTours(isRefresh: true),
-              onChanged: (value) {
-                setState(() {});
-                if (value.isEmpty) {
-                  _loadTours(isRefresh: true);
-                }
-              },
+              child: Focus(
+                onFocusChange: (hasFocus) {
+                  setState(() {
+                    _isSearchFocused = hasFocus;
+                  });
+                },
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Where would you like to go?',
+                    hintStyle: TextStyle(
+                      color: colorScheme.onSurface.withOpacity(0.6),
+                      fontSize: isMobile ? 16 : 18,
+                    ),
+                    prefixIcon: Container(
+                      width: 60,
+                      height: 60,
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.search_rounded,
+                        color:
+                            _isSearchFocused
+                                ? colorScheme.primary
+                                : colorScheme.outline,
+                        size: isMobile ? 24 : 28,
+                      ),
+                    ),
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_searchController.text.isNotEmpty)
+                          IconButton(
+                            onPressed: () {
+                              _searchController.clear();
+                              _loadTours(isRefresh: true);
+                              setState(() {});
+                            },
+                            icon: Icon(
+                              Icons.clear_rounded,
+                              color: colorScheme.outline,
+                            ),
+                          ),
+                        Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          child: FilledButton.icon(
+                            onPressed: _toggleFilters,
+                            icon: AnimatedRotation(
+                              turns: _showFilters ? 0.5 : 0,
+                              duration: const Duration(milliseconds: 300),
+                              child: Icon(
+                                Icons.tune_rounded,
+                                size: isMobile ? 18 : 20,
+                              ),
+                            ),
+                            label: Text(
+                              isMobile ? 'Filter' : 'Filters',
+                              style: TextStyle(fontSize: isMobile ? 14 : 16),
+                            ),
+                            style: FilledButton.styleFrom(
+                              backgroundColor:
+                                  _showFilters
+                                      ? colorScheme.primary
+                                      : colorScheme.surfaceContainerHigh,
+                              foregroundColor:
+                                  _showFilters
+                                      ? colorScheme.onPrimary
+                                      : colorScheme.onSurface,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isMobile ? 12 : 16,
+                                vertical: isMobile ? 8 : 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: isMobile ? 16 : 20,
+                    ),
+                  ),
+                  style: TextStyle(fontSize: isMobile ? 16 : 18),
+                  onSubmitted: (_) => _loadTours(isRefresh: true),
+                  onChanged: (value) {
+                    setState(() {});
+                    if (value.isEmpty) {
+                      _loadTours(isRefresh: true);
+                    }
+                  },
+                ),
+              ),
             ),
           ),
-        ),
 
-        // Quick filters - mobile optimized
-        const SizedBox(height: 12),
-        SizedBox(
-          height: isMobile ? 36 : 40,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              _buildQuickFilter('All', _selectedCategory == null, () {
-                setState(() => _selectedCategory = null);
-                _loadTours(isRefresh: true);
-              }, isMobile),
-              ...(_categories.isNotEmpty
-                  ? _categories
-                      .take(isMobile ? 3 : 4)
-                      .map(
-                        (category) => Padding(
-                          padding: EdgeInsets.only(right: isMobile ? 6 : 8),
-                          child: _buildQuickFilter(
+          if (!isMobile) ...[
+            const SizedBox(height: 16),
+            // Quick filters for desktop/tablet
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: [
+                _buildQuickFilter(
+                  'All Categories',
+                  _selectedCategory == null,
+                  () {
+                    setState(() => _selectedCategory = null);
+                    _loadTours(isRefresh: true);
+                  },
+                ),
+                ...(_categories.isNotEmpty
+                    ? _categories
+                        .take(isTablet ? 4 : 6)
+                        .map(
+                          (category) => _buildQuickFilter(
                             category,
                             _selectedCategory == category,
                             () {
                               setState(() => _selectedCategory = category);
                               _loadTours(isRefresh: true);
                             },
-                            isMobile,
                           ),
-                        ),
-                      )
-                  : []),
-              _buildMoreFiltersButton(isMobile),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildQuickFilter(
-    String label,
-    bool isSelected,
-    VoidCallback onTap,
-    bool isMobile,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: EdgeInsets.only(right: isMobile ? 6 : 8),
-      child: GestureDetector(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          onTap();
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: EdgeInsets.symmetric(
-            horizontal: isMobile ? 12 : 16,
-            vertical: isMobile ? 6 : 8,
-          ),
-          decoration: BoxDecoration(
-            color: isSelected ? colorScheme.primary : colorScheme.surface,
-            borderRadius: BorderRadius.circular(isMobile ? 18 : 20),
-            border: Border.all(
-              color:
-                  isSelected
-                      ? colorScheme.primary
-                      : colorScheme.outline.withOpacity(0.3),
-              width: 1,
-            ),
-            boxShadow:
-                isSelected
-                    ? [
-                      BoxShadow(
-                        color: colorScheme.primary.withOpacity(0.2),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                    : null,
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              fontSize: isMobile ? 13 : 14,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMoreFiltersButton(bool isMobile) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        _toggleFilters();
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: isMobile ? 12 : 16,
-          vertical: isMobile ? 6 : 8,
-        ),
-        decoration: BoxDecoration(
-          color:
-              _showFilters
-                  ? colorScheme.primary.withOpacity(0.1)
-                  : colorScheme.surface,
-          borderRadius: BorderRadius.circular(isMobile ? 18 : 20),
-          border: Border.all(
-            color:
-                _showFilters
-                    ? colorScheme.primary.withOpacity(0.5)
-                    : colorScheme.outline.withOpacity(0.3),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.tune_rounded,
-              size: isMobile ? 14 : 16,
-              color: colorScheme.primary,
-            ),
-            SizedBox(width: isMobile ? 3 : 4),
-            Text(
-              'More',
-              style: TextStyle(
-                color: colorScheme.primary,
-                fontWeight: FontWeight.w500,
-                fontSize: isMobile ? 13 : 14,
-              ),
+                        )
+                    : []),
+              ],
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickFilter(String label, bool isSelected, VoidCallback onTap) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      backgroundColor: colorScheme.surface,
+      selectedColor: colorScheme.primaryContainer,
+      checkmarkColor: colorScheme.primary,
+      labelStyle: TextStyle(
+        color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color:
+              isSelected
+                  ? colorScheme.primary
+                  : colorScheme.outline.withOpacity(0.3),
         ),
       ),
     );
   }
 
-  Widget _buildMobileFiltersPanel() {
+  Widget _buildFiltersPanel() {
     final colorScheme = Theme.of(context).colorScheme;
-    final isMobile = MediaQuery.of(context).size.width <= 600;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth <= 600;
 
     return Container(
       margin: EdgeInsets.fromLTRB(
-        isMobile ? 12 : 16,
+        isMobile ? 16 : 32,
         0,
-        isMobile ? 12 : 16,
-        isMobile ? 12 : 16,
+        isMobile ? 16 : 32,
+        16,
       ),
-      padding: EdgeInsets.all(isMobile ? 16 : 20),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(isMobile ? 16 : 20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Filters & Sort',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: isMobile ? 18 : 20,
-                ),
-              ),
-              Row(
-                children: [
-                  TextButton.icon(
-                    onPressed: _clearFilters,
-                    icon: Icon(
-                      Icons.clear_all_rounded,
-                      size: isMobile ? 16 : 18,
-                    ),
-                    label: Text(
-                      'Clear',
-                      style: TextStyle(fontSize: isMobile ? 13 : 14),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: colorScheme.outline,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isMobile ? 8 : 12,
-                        vertical: isMobile ? 4 : 8,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: isMobile ? 4 : 8),
-                  FilledButton.icon(
-                    onPressed: _applyFilters,
-                    icon: Icon(Icons.check_rounded, size: isMobile ? 16 : 18),
-                    label: Text(
-                      'Apply',
-                      style: TextStyle(fontSize: isMobile ? 13 : 14),
-                    ),
-                    style: FilledButton.styleFrom(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isMobile ? 12 : 16,
-                        vertical: isMobile ? 4 : 8,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: isMobile ? 16 : 24),
-
-          // Location and Activity in a row on mobile
-          if (isMobile) ...[
+      child: ModernCard(
+        padding: EdgeInsets.all(isMobile ? 20 : 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: _buildMobileFilterSection(
+                Text(
+                  'Filter Your Search',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                Row(
+                  children: [
+                    TextButton.icon(
+                      onPressed: _clearFilters,
+                      icon: const Icon(Icons.clear_all_rounded),
+                      label: const Text('Clear All'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: colorScheme.outline,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton.icon(
+                      onPressed: _applyFilters,
+                      icon: const Icon(Icons.check_rounded),
+                      label: const Text('Apply'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Filter content in grid for desktop/tablet
+            if (!isMobile)
+              GridView.count(
+                crossAxisCount: screenWidth > 1200 ? 4 : 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                childAspectRatio: 2.5,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                children: [
+                  _buildFilterDropdown(
                     'Location',
-                    DropdownButton<String>(
-                      value: _selectedLocation,
-                      hint: const Text('Any location'),
-                      isExpanded: true,
-                      underline: const SizedBox(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colorScheme.onSurface,
-                      ),
-                      items: [
-                        const DropdownMenuItem<String>(
-                          value: null,
-                          child: Text('Any location'),
-                        ),
-                        ..._locations.map(
-                          (location) => DropdownMenuItem<String>(
-                            value: location,
-                            child: Text(location),
-                          ),
-                        ),
-                      ],
-                      onChanged:
-                          (value) => setState(() => _selectedLocation = value),
+                    _selectedLocation,
+                    ['Any Location', ..._locations],
+                    (value) => setState(
+                      () =>
+                          _selectedLocation =
+                              value == 'Any Location' ? null : value,
                     ),
-                    isMobile,
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildMobileFilterSection(
-                    'Activity',
-                    DropdownButton<String>(
-                      value: _selectedActivityType,
-                      hint: const Text('Any activity'),
-                      isExpanded: true,
-                      underline: const SizedBox(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colorScheme.onSurface,
-                      ),
-                      items: [
-                        const DropdownMenuItem<String>(
-                          value: null,
-                          child: Text('Any activity'),
-                        ),
-                        ...['Indoor', 'Outdoor', 'Mixed'].map(
-                          (type) => DropdownMenuItem<String>(
-                            value: type,
-                            child: Text(type),
-                          ),
-                        ),
-                      ],
-                      onChanged:
-                          (value) =>
-                              setState(() => _selectedActivityType = value),
+                  _buildFilterDropdown(
+                    'Activity Type',
+                    _selectedActivityType,
+                    ['Any Activity', 'Indoor', 'Outdoor', 'Mixed'],
+                    (value) => setState(
+                      () =>
+                          _selectedActivityType =
+                              value == 'Any Activity' ? null : value,
                     ),
-                    isMobile,
                   ),
-                ),
-              ],
-            ),
-          ] else ...[
-            // Desktop/tablet layout
-            _buildFilterSection(
-              'Location',
-              DropdownButton<String>(
-                value: _selectedLocation,
-                hint: const Text('Any location'),
-                isExpanded: true,
-                underline: const SizedBox(),
-                items: [
-                  const DropdownMenuItem<String>(
-                    value: null,
-                    child: Text('Any location'),
-                  ),
-                  ..._locations.map(
-                    (location) => DropdownMenuItem<String>(
-                      value: location,
-                      child: Text(location),
+                  _buildFilterDropdown(
+                    'Difficulty',
+                    _selectedDifficulty,
+                    ['Any Difficulty', 'Easy', 'Moderate', 'Challenging'],
+                    (value) => setState(
+                      () =>
+                          _selectedDifficulty =
+                              value == 'Any Difficulty' ? null : value,
                     ),
+                  ),
+                  _buildFilterDropdown('Sort By', _sortBy, [
+                    'created',
+                    'name',
+                    'price',
+                    'rating',
+                    'duration',
+                  ], (value) => setState(() => _sortBy = value!)),
+                ],
+              )
+            else
+              // Mobile filter layout
+              Column(
+                children: [
+                  _buildMobileFilterSection(
+                    'Location',
+                    _selectedLocation,
+                    ['Any Location', ..._locations],
+                    (value) {
+                      setState(
+                        () =>
+                            _selectedLocation =
+                                value == 'Any Location' ? null : value,
+                      );
+                    },
+                  ),
+                  _buildMobileFilterSection(
+                    'Activity Type',
+                    _selectedActivityType,
+                    ['Any Activity', 'Indoor', 'Outdoor', 'Mixed'],
+                    (value) {
+                      setState(
+                        () =>
+                            _selectedActivityType =
+                                value == 'Any Activity' ? null : value,
+                      );
+                    },
+                  ),
+                  _buildMobileFilterSection(
+                    'Difficulty',
+                    _selectedDifficulty,
+                    ['Any Difficulty', 'Easy', 'Moderate', 'Challenging'],
+                    (value) {
+                      setState(
+                        () =>
+                            _selectedDifficulty =
+                                value == 'Any Difficulty' ? null : value,
+                      );
+                    },
                   ),
                 ],
-                onChanged: (value) => setState(() => _selectedLocation = value),
               ),
-              isMobile,
-            ),
-
-            _buildFilterSection(
-              'Activity Type',
-              DropdownButton<String>(
-                value: _selectedActivityType,
-                hint: const Text('Any activity'),
-                isExpanded: true,
-                underline: const SizedBox(),
-                items: [
-                  const DropdownMenuItem<String>(
-                    value: null,
-                    child: Text('Any activity'),
-                  ),
-                  ...['Indoor', 'Outdoor', 'Mixed'].map(
-                    (type) => DropdownMenuItem<String>(
-                      value: type,
-                      child: Text(type),
-                    ),
-                  ),
-                ],
-                onChanged:
-                    (value) => setState(() => _selectedActivityType = value),
-              ),
-              isMobile,
-            ),
           ],
-
-          // Difficulty
-          _buildFilterSection(
-            'Difficulty',
-            DropdownButton<String>(
-              value: _selectedDifficulty,
-              hint: const Text('Any difficulty'),
-              isExpanded: true,
-              underline: const SizedBox(),
-              style: TextStyle(
-                fontSize: isMobile ? 14 : 16,
-                color: colorScheme.onSurface,
-              ),
-              items: [
-                const DropdownMenuItem<String>(
-                  value: null,
-                  child: Text('Any difficulty'),
-                ),
-                ...['Easy', 'Moderate', 'Challenging'].map(
-                  (level) => DropdownMenuItem<String>(
-                    value: level,
-                    child: Text(level),
-                  ),
-                ),
-              ],
-              onChanged: (value) => setState(() => _selectedDifficulty = value),
-            ),
-            isMobile,
-          ),
-
-          // Price Range
-          _buildFilterSection(
-            'Price Range (\$)',
-            Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildMobileNumberField(
-                        'Min',
-                        _minPrice?.toStringAsFixed(0) ?? '',
-                        (value) => _minPrice = double.tryParse(value),
-                        isMobile,
-                      ),
-                    ),
-                    SizedBox(width: isMobile ? 8 : 16),
-                    Expanded(
-                      child: _buildMobileNumberField(
-                        'Max',
-                        _maxPrice?.toStringAsFixed(0) ?? '',
-                        (value) => _maxPrice = double.tryParse(value),
-                        isMobile,
-                      ),
-                    ),
-                  ],
-                ),
-                if (isMobile && (_minPrice != null || _maxPrice != null)) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    'Range: ${_minPrice?.toStringAsFixed(0) ?? '0'} - ${_maxPrice?.toStringAsFixed(0) ?? '∞'}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            isMobile,
-          ),
-
-          // Duration
-          _buildFilterSection(
-            'Duration (Days)',
-            Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildMobileNumberField(
-                        'Min',
-                        _minDuration?.toString() ?? '',
-                        (value) => _minDuration = int.tryParse(value),
-                        isMobile,
-                        isInt: true,
-                      ),
-                    ),
-                    SizedBox(width: isMobile ? 8 : 16),
-                    Expanded(
-                      child: _buildMobileNumberField(
-                        'Max',
-                        _maxDuration?.toString() ?? '',
-                        (value) => _maxDuration = int.tryParse(value),
-                        isMobile,
-                        isInt: true,
-                      ),
-                    ),
-                  ],
-                ),
-                if (isMobile &&
-                    (_minDuration != null || _maxDuration != null)) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    'Range: ${_minDuration ?? 'Any'} - ${_maxDuration ?? 'Any'} days',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            isMobile,
-          ),
-
-          // Sort
-          _buildFilterSection(
-            'Sort By',
-            Column(
-              children: [
-                DropdownButton<String>(
-                  value: _sortBy,
-                  isExpanded: true,
-                  underline: const SizedBox(),
-                  style: TextStyle(
-                    fontSize: isMobile ? 14 : 16,
-                    color: colorScheme.onSurface,
-                  ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'created',
-                      child: Text('Newest First'),
-                    ),
-                    DropdownMenuItem(value: 'name', child: Text('Name')),
-                    DropdownMenuItem(value: 'price', child: Text('Price')),
-                    DropdownMenuItem(value: 'rating', child: Text('Rating')),
-                    DropdownMenuItem(
-                      value: 'duration',
-                      child: Text('Duration'),
-                    ),
-                  ],
-                  onChanged: (value) => setState(() => _sortBy = value!),
-                ),
-                SizedBox(height: isMobile ? 6 : 8),
-                InkWell(
-                  onTap: () => setState(() => _sortAscending = !_sortAscending),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      children: [
-                        Checkbox(
-                          value: _sortAscending,
-                          onChanged:
-                              (value) =>
-                                  setState(() => _sortAscending = value!),
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        Text(
-                          'Ascending order',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(fontSize: isMobile ? 14 : 16),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            isMobile,
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildFilterSection(String title, Widget child, bool isMobile) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: isMobile ? 16 : 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface.withOpacity(0.8),
-              fontSize: isMobile ? 14 : 16,
-            ),
-          ),
-          SizedBox(height: isMobile ? 6 : 8),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 10 : 12,
-              vertical: isMobile ? 2 : 4,
-            ),
-            decoration: BoxDecoration(
-              border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
-              borderRadius: BorderRadius.circular(isMobile ? 10 : 12),
-            ),
-            child: child,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMobileFilterSection(String title, Widget child, bool isMobile) {
+  Widget _buildFilterDropdown(
+    String title,
+    String? currentValue,
+    List<String> options,
+    Function(String?) onChanged,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
@@ -1148,46 +775,157 @@ class _TourListScreenState extends State<TourListScreen>
       children: [
         Text(
           title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
             color: colorScheme.onSurface.withOpacity(0.8),
-            fontSize: 13,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
             border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(8),
           ),
-          child: child,
+          child: DropdownButton<String>(
+            value: currentValue ?? options.first,
+            isExpanded: true,
+            underline: const SizedBox(),
+            items:
+                options.map((option) {
+                  return DropdownMenuItem(value: option, child: Text(option));
+                }).toList(),
+            onChanged: onChanged,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildMobileNumberField(
-    String hint,
-    String value,
-    Function(String) onChanged,
-    bool isMobile, {
-    bool isInt = false,
-  }) {
-    return TextField(
-      controller: TextEditingController(text: value),
-      keyboardType:
-          isInt
-              ? TextInputType.number
-              : const TextInputType.numberWithOptions(decimal: true),
-      style: TextStyle(fontSize: isMobile ? 14 : 16),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(fontSize: isMobile ? 14 : 16),
-        border: InputBorder.none,
-        contentPadding: EdgeInsets.symmetric(vertical: isMobile ? 6 : 8),
+  Widget _buildMobileFilterSection(
+    String title,
+    String? currentValue,
+    List<String> options,
+    Function(String?) onChanged,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            decoration: BoxDecoration(
+              border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: DropdownButton<String>(
+              value: currentValue ?? options.first,
+              isExpanded: true,
+              underline: const SizedBox(),
+              items:
+                  options.map((option) {
+                    return DropdownMenuItem(value: option, child: Text(option));
+                  }).toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        ],
       ),
-      onChanged: onChanged,
+    );
+  }
+
+  Widget _buildToursList(bool isDesktop, bool isTablet, bool isMobile) {
+    return SliverToBoxAdapter(
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: isDesktop ? 1400 : double.infinity,
+        ),
+        margin: EdgeInsets.symmetric(
+          horizontal: isDesktop ? 32 : (isTablet ? 24 : 16),
+        ),
+        child: Column(
+          children: [
+            // Tours grid/list
+            if (isDesktop)
+              // Desktop: Single column list
+              Column(
+                children:
+                    _tours.map((tour) {
+                      return ResponsiveTourCard(
+                        tour: tour,
+                        isDesktop: true,
+                        onFavoriteToggle: () => _toggleFavorite(tour),
+                        isFavorite: _isFavorite(tour),
+                      );
+                    }).toList(),
+              )
+            else if (isTablet)
+              // Tablet: Two column grid
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.75,
+                ),
+                itemCount: _tours.length,
+                itemBuilder: (context, index) {
+                  final tour = _tours[index];
+                  return ResponsiveTourCard(
+                    tour: tour,
+                    isTablet: true,
+                    onFavoriteToggle: () => _toggleFavorite(tour),
+                    isFavorite: _isFavorite(tour),
+                  );
+                },
+              )
+            else
+              // Mobile: Single column
+              Column(
+                children:
+                    _tours.map((tour) {
+                      return ResponsiveTourCard(
+                        tour: tour,
+                        onFavoriteToggle: () => _toggleFavorite(tour),
+                        isFavorite: _isFavorite(tour),
+                      );
+                    }).toList(),
+              ),
+
+            // Loading more indicator
+            if (_isLoadingMore)
+              Container(
+                margin: const EdgeInsets.all(24),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(width: 16),
+                    Text(
+                      'Loading more tours...',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ],
+                ),
+              ),
+
+            // Bottom spacing
+            SizedBox(height: isMobile ? 80 : 40),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1200,8 +938,8 @@ class _TourListScreenState extends State<TourListScreen>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: isMobile ? 60 : 80,
-            height: isMobile ? 60 : 80,
+            width: isMobile ? 80 : 100,
+            height: isMobile ? 80 : 100,
             decoration: BoxDecoration(
               color: colorScheme.primary.withOpacity(0.1),
               shape: BoxShape.circle,
@@ -1209,24 +947,23 @@ class _TourListScreenState extends State<TourListScreen>
             child: Center(
               child: CircularProgressIndicator(
                 color: colorScheme.primary,
-                strokeWidth: 3,
+                strokeWidth: 4,
               ),
             ),
           ),
-          SizedBox(height: isMobile ? 20 : 24),
+          SizedBox(height: isMobile ? 24 : 32),
           Text(
-            'Finding amazing experiences...',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSurface.withOpacity(0.7),
-              fontSize: isMobile ? 16 : 18,
+            'Discovering amazing tours...',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: colorScheme.onSurface.withOpacity(0.8),
+              fontWeight: FontWeight.w600,
             ),
           ),
           SizedBox(height: isMobile ? 8 : 12),
           Text(
             'This won\'t take long',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurface.withOpacity(0.5),
-              fontSize: isMobile ? 13 : 14,
+              color: colorScheme.onSurface.withOpacity(0.6),
             ),
           ),
         ],
@@ -1241,51 +978,52 @@ class _TourListScreenState extends State<TourListScreen>
     return Center(
       child: Padding(
         padding: EdgeInsets.all(isMobile ? 24 : 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(isMobile ? 20 : 24),
-              decoration: BoxDecoration(
-                color: colorScheme.errorContainer,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.error_outline_rounded,
-                size: isMobile ? 48 : 64,
-                color: colorScheme.error,
-              ),
-            ),
-            SizedBox(height: isMobile ? 20 : 24),
-            Text(
-              'Oops! Something went wrong',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: isMobile ? 18 : 20,
-              ),
-            ),
-            SizedBox(height: isMobile ? 10 : 12),
-            Text(
-              _errorMessage ?? 'Failed to load experiences',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.7),
-                fontSize: isMobile ? 14 : 16,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: isMobile ? 24 : 32),
-            FilledButton.icon(
-              onPressed: () => _loadTours(isRefresh: true),
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Try Again'),
-              style: FilledButton.styleFrom(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isMobile ? 20 : 24,
-                  vertical: isMobile ? 12 : 16,
+        child: ModernCard(
+          padding: EdgeInsets.all(isMobile ? 24 : 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: EdgeInsets.all(isMobile ? 20 : 24),
+                decoration: BoxDecoration(
+                  color: colorScheme.errorContainer,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.error_outline_rounded,
+                  size: isMobile ? 48 : 64,
+                  color: colorScheme.error,
                 ),
               ),
-            ),
-          ],
+              SizedBox(height: isMobile ? 20 : 24),
+              Text(
+                'Something went wrong',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: isMobile ? 10 : 12),
+              Text(
+                _errorMessage ?? 'Failed to load tours',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: isMobile ? 24 : 32),
+              FilledButton.icon(
+                onPressed: () => _loadTours(isRefresh: true),
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Try Again'),
+                style: FilledButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 20 : 24,
+                    vertical: isMobile ? 12 : 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1298,527 +1036,53 @@ class _TourListScreenState extends State<TourListScreen>
     return Center(
       child: Padding(
         padding: EdgeInsets.all(isMobile ? 24 : 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(isMobile ? 20 : 24),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(isMobile ? 16 : 20),
-              ),
-              child: Icon(
-                Icons.explore_off_rounded,
-                size: isMobile ? 48 : 64,
-                color: colorScheme.outline,
-              ),
-            ),
-            SizedBox(height: isMobile ? 20 : 24),
-            Text(
-              'No experiences found',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: isMobile ? 18 : 20,
-              ),
-            ),
-            SizedBox(height: isMobile ? 10 : 12),
-            Text(
-              'Try adjusting your search criteria or explore different categories',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.7),
-                fontSize: isMobile ? 14 : 16,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: isMobile ? 24 : 32),
-            OutlinedButton.icon(
-              onPressed: _clearFilters,
-              icon: const Icon(Icons.clear_all_rounded),
-              label: const Text('Clear Filters'),
-              style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isMobile ? 20 : 24,
-                  vertical: isMobile ? 12 : 16,
+        child: ModernCard(
+          padding: EdgeInsets.all(isMobile ? 24 : 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: EdgeInsets.all(isMobile ? 20 : 24),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  Icons.explore_off_rounded,
+                  size: isMobile ? 48 : 64,
+                  color: colorScheme.outline,
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingMoreCard(bool isMobile) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Container(
-        padding: EdgeInsets.all(isMobile ? 24 : 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              color: colorScheme.primary,
-              strokeWidth: 2,
-            ),
-            SizedBox(height: isMobile ? 12 : 16),
-            Text(
-              'Loading more...',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.7),
-                fontSize: isMobile ? 13 : 14,
+              SizedBox(height: isMobile ? 20 : 24),
+              Text(
+                'No tours found',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMobileTourCard(Tour tour, bool isMobile) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Hero(
-      tag: 'tour_${tour.id}',
-      child: Card(
-        margin: EdgeInsets.zero,
-        clipBehavior: Clip.antiAlias,
-        elevation: isMobile ? 3 : 4,
-        shadowColor: Colors.black.withOpacity(0.1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(isMobile ? 14 : 16),
-        ),
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            Navigator.of(context).push(
-              PageRouteBuilder(
-                pageBuilder:
-                    (context, animation, secondaryAnimation) =>
-                        TourDetailsScreen(tourId: tour.id),
-                transitionsBuilder: (
-                  context,
-                  animation,
-                  secondaryAnimation,
-                  child,
-                ) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: animation.drive(
-                        Tween(
-                          begin: const Offset(0.03, 0.03),
-                          end: Offset.zero,
-                        ).chain(CurveTween(curve: Curves.easeOut)),
-                      ),
-                      child: child,
-                    ),
-                  );
-                },
-                transitionDuration: const Duration(milliseconds: 300),
+              SizedBox(height: isMobile ? 10 : 12),
+              Text(
+                'Try adjusting your search or filters to find more options',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                ),
+                textAlign: TextAlign.center,
               ),
-            );
-          },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image section
-              Stack(
-                children: [
-                  Container(
-                    height: isMobile ? 180 : 200,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainer,
-                    ),
-                    child:
-                        tour.mainImageUrl != null &&
-                                tour.mainImageUrl!.isNotEmpty
-                            ? Image.network(
-                              tour.mainImageUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder:
-                                  (context, error, stackTrace) =>
-                                      _buildImagePlaceholder(isMobile),
-                              loadingBuilder: (
-                                context,
-                                child,
-                                loadingProgress,
-                              ) {
-                                if (loadingProgress == null) return child;
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        colorScheme.surfaceContainer,
-                                        colorScheme.surfaceContainer
-                                            .withOpacity(0.7),
-                                      ],
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: CircularProgressIndicator(
-                                      value:
-                                          loadingProgress.expectedTotalBytes !=
-                                                  null
-                                              ? loadingProgress
-                                                      .cumulativeBytesLoaded /
-                                                  loadingProgress
-                                                      .expectedTotalBytes!
-                                              : null,
-                                      strokeWidth: 2,
-                                      color: colorScheme.primary,
-                                    ),
-                                  ),
-                                );
-                              },
-                            )
-                            : _buildImagePlaceholder(isMobile),
-                  ),
-
-                  // Gradient overlay
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.3),
-                          ],
-                          stops: const [0.6, 1.0],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Discount badge
-                  if (tour.hasDiscount)
-                    Positioned(
-                      top: isMobile ? 10 : 12,
-                      right: isMobile ? 10 : 12,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isMobile ? 6 : 8,
-                          vertical: isMobile ? 3 : 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(
-                            isMobile ? 10 : 12,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          '${tour.discountPercentage}% OFF',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: isMobile ? 10 : 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  // Rating badge
-                  if (tour.averageRating != null)
-                    Positioned(
-                      bottom: isMobile ? 10 : 12,
-                      left: isMobile ? 10 : 12,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isMobile ? 6 : 8,
-                          vertical: isMobile ? 3 : 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.75),
-                          borderRadius: BorderRadius.circular(
-                            isMobile ? 10 : 12,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.star_rounded,
-                              color: Colors.amber,
-                              size: isMobile ? 12 : 14,
-                            ),
-                            SizedBox(width: isMobile ? 2 : 4),
-                            Text(
-                              tour.averageRating!.toStringAsFixed(1),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: isMobile ? 10 : 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Text(
-                              ' (${tour.reviewCount})',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
-                                fontSize: isMobile ? 9 : 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-
-              // Content section
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.all(isMobile ? 12 : 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Tour name
-                      Text(
-                        tour.name,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          height: 1.2,
-                          fontSize: isMobile ? 15 : 16,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: isMobile ? 6 : 8),
-
-                      // Location
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.location_on_rounded,
-                            size: isMobile ? 14 : 16,
-                            color: colorScheme.primary,
-                          ),
-                          SizedBox(width: isMobile ? 3 : 4),
-                          Expanded(
-                            child: Text(
-                              tour.location,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurface.withOpacity(0.7),
-                                fontSize: isMobile ? 12 : 13,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: isMobile ? 8 : 12),
-
-                      // Details chips
-                      Wrap(
-                        spacing: isMobile ? 4 : 6,
-                        runSpacing: isMobile ? 4 : 6,
-                        children: [
-                          _buildDetailChip(
-                            icon: Icons.schedule_rounded,
-                            label: tour.durationText,
-                            backgroundColor: colorScheme.primaryContainer,
-                            textColor: colorScheme.onPrimaryContainer,
-                            isMobile: isMobile,
-                          ),
-                          _buildDetailChip(
-                            icon: tour.activityIcon,
-                            label: tour.activityType,
-                            backgroundColor: colorScheme.secondaryContainer,
-                            textColor: colorScheme.onSecondaryContainer,
-                            isMobile: isMobile,
-                          ),
-                          _buildDetailChip(
-                            icon: Icons.speed_rounded,
-                            label: tour.difficultyLevel,
-                            backgroundColor: tour.difficultyColor.withOpacity(
-                              0.1,
-                            ),
-                            textColor: tour.difficultyColor,
-                            isMobile: isMobile,
-                          ),
-                        ],
-                      ),
-
-                      const Spacer(),
-
-                      // Price and book button
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (tour.hasDiscount)
-                                  Text(
-                                    tour.originalPrice,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall?.copyWith(
-                                      decoration: TextDecoration.lineThrough,
-                                      color: colorScheme.onSurface.withOpacity(
-                                        0.6,
-                                      ),
-                                      fontSize: isMobile ? 11 : 12,
-                                    ),
-                                  ),
-                                Text(
-                                  tour.displayPrice,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleLarge?.copyWith(
-                                    color: colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: isMobile ? 18 : 20,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(width: isMobile ? 8 : 12),
-                          FilledButton(
-                            onPressed: () {
-                              HapticFeedback.lightImpact();
-                              Navigator.of(context).push(
-                                PageRouteBuilder(
-                                  pageBuilder:
-                                      (
-                                        context,
-                                        animation,
-                                        secondaryAnimation,
-                                      ) => TourDetailsScreen(tourId: tour.id),
-                                  transitionsBuilder: (
-                                    context,
-                                    animation,
-                                    secondaryAnimation,
-                                    child,
-                                  ) {
-                                    return FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    );
-                                  },
-                                  transitionDuration: const Duration(
-                                    milliseconds: 300,
-                                  ),
-                                ),
-                              );
-                            },
-                            style: FilledButton.styleFrom(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isMobile ? 14 : 16,
-                                vertical: isMobile ? 6 : 8,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  isMobile ? 10 : 12,
-                                ),
-                              ),
-                            ),
-                            child: Text(
-                              'Book Now',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: isMobile ? 13 : 14,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+              SizedBox(height: isMobile ? 24 : 32),
+              OutlinedButton.icon(
+                onPressed: _clearFilters,
+                icon: const Icon(Icons.clear_all_rounded),
+                label: const Text('Clear Filters'),
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 20 : 24,
+                    vertical: isMobile ? 12 : 16,
                   ),
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildImagePlaceholder(bool isMobile) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colorScheme.primary.withOpacity(0.1),
-            colorScheme.secondary.withOpacity(0.1),
-          ],
-        ),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.landscape_rounded,
-              size: isMobile ? 40 : 48,
-              color: colorScheme.outline,
-            ),
-            SizedBox(height: isMobile ? 6 : 8),
-            Text(
-              'Image not available',
-              style: TextStyle(
-                color: colorScheme.outline,
-                fontSize: isMobile ? 11 : 12,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailChip({
-    required IconData icon,
-    required String label,
-    required Color backgroundColor,
-    required Color textColor,
-    required bool isMobile,
-  }) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 6 : 8,
-        vertical: isMobile ? 2 : 4,
-      ),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(isMobile ? 6 : 8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: isMobile ? 10 : 12, color: textColor),
-          SizedBox(width: isMobile ? 2 : 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: isMobile ? 10 : 11,
-              fontWeight: FontWeight.w500,
-              color: textColor,
-            ),
-          ),
-        ],
       ),
     );
   }

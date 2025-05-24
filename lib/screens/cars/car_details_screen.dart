@@ -369,52 +369,48 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
       }
 
       // Verify we have payment info before proceeding
-      if (paymentInfo != null) {
-        log(
-          'Payment info retrieved successfully, proceeding to payment screen',
-        );
+      log(
+        'Payment info retrieved successfully, proceeding to payment screen',
+      );
 
-        // Navigate to payment screen
-        final result = await Navigator.of(context).push(
-          PageRouteBuilder(
-            pageBuilder:
-                (context, animation, secondaryAnimation) =>
-                    CarPaymentScreen(paymentInfo: paymentInfo!),
-            transitionsBuilder: (
-              context,
-              animation,
-              secondaryAnimation,
-              child,
-            ) {
-              return SlideTransition(
-                position: animation.drive(
-                  Tween(
-                    begin: const Offset(1.0, 0.0),
-                    end: Offset.zero,
-                  ).chain(CurveTween(curve: Curves.easeOutCubic)),
-                ),
-                child: child,
-              );
-            },
-          ),
-        );
+      // Navigate to payment screen
+      final result = await Navigator.of(context).push(
+        PageRouteBuilder(
+          pageBuilder:
+              (context, animation, secondaryAnimation) =>
+                  CarPaymentScreen(paymentInfo: paymentInfo!),
+          transitionsBuilder: (
+            context,
+            animation,
+            secondaryAnimation,
+            child,
+          ) {
+            return SlideTransition(
+              position: animation.drive(
+                Tween(
+                  begin: const Offset(1.0, 0.0),
+                  end: Offset.zero,
+                ).chain(CurveTween(curve: Curves.easeOutCubic)),
+              ),
+              child: child,
+            );
+          },
+        ),
+      );
 
-        // Handle payment result
-        if (result == true) {
-          setState(() {
-            _showBookingPanel = false;
-            _isBooking = false;
-          });
-          _showSuccessAnimation();
-        } else {
-          setState(() {
-            _isBooking = false;
-          });
-        }
+      // Handle payment result
+      if (result == true) {
+        setState(() {
+          _showBookingPanel = false;
+          _isBooking = false;
+        });
+        _showSuccessAnimation();
       } else {
-        throw Exception('Payment information not available. Please try again.');
+        setState(() {
+          _isBooking = false;
+        });
       }
-    } catch (e) {
+        } catch (e) {
       setState(() {
         _isBooking = false;
       });
