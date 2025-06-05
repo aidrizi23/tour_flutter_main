@@ -286,8 +286,9 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
         // Navigate to payment screen
         final result = await Navigator.of(context).push(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                PaymentScreen(paymentInfo: booking.paymentInfo!),
+            pageBuilder:
+                (context, animation, secondaryAnimation) =>
+                    PaymentScreen(paymentInfo: booking.paymentInfo!),
             transitionsBuilder: (
               context,
               animation,
@@ -389,9 +390,9 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                 child: Text(
                   'Loading amazing tour details...',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(0.7),
-                        fontWeight: FontWeight.w500,
-                      ),
+                    color: colorScheme.onSurface.withOpacity(0.7),
+                    fontWeight: FontWeight.w500,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -432,15 +433,15 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                 Text(
                   'Tour Not Found',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   _errorMessage ?? 'The requested tour could not be found.',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(0.7),
-                      ),
+                    color: colorScheme.onSurface.withOpacity(0.7),
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
@@ -665,9 +666,10 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
   }
 
   Widget _buildEnhancedImageGallery() {
-    final images = _tour!.images.isEmpty
-        ? [TourImage(id: 0, imageUrl: '', displayOrder: 0)]
-        : _tour!.images;
+    final images =
+        _tour!.images.isEmpty
+            ? [TourImage(id: 0, imageUrl: '', displayOrder: 0)]
+            : _tour!.images;
 
     return Stack(
       children: [
@@ -683,14 +685,15 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
             final image = images[index];
             return Container(
               decoration: BoxDecoration(
-                image: image.imageUrl.isNotEmpty
-                    ? DecorationImage(
-                        image: NetworkImage(image.imageUrl),
-                        fit: BoxFit.cover,
-                        onError: (error, stackTrace) =>
-                            _buildImagePlaceholder(),
-                      )
-                    : null,
+                image:
+                    image.imageUrl.isNotEmpty
+                        ? DecorationImage(
+                          image: NetworkImage(image.imageUrl),
+                          fit: BoxFit.cover,
+                          onError:
+                              (error, stackTrace) => _buildImagePlaceholder(),
+                        )
+                        : null,
               ),
               child: image.imageUrl.isEmpty ? _buildImagePlaceholder() : null,
             );
@@ -724,9 +727,10 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                       height: 8,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(4),
-                        color: _currentImageIndex == index
-                            ? Colors.white
-                            : Colors.white.withOpacity(0.5),
+                        color:
+                            _currentImageIndex == index
+                                ? Colors.white
+                                : Colors.white.withOpacity(0.5),
                       ),
                     ),
                   ),
@@ -825,9 +829,9 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                 child: Text(
                   _tour!.name,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        height: 1.2,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    height: 1.2,
+                  ),
                 ),
               ),
               if (!isMobile) ...[
@@ -841,18 +845,18 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                         style: Theme.of(
                           context,
                         ).textTheme.titleMedium?.copyWith(
-                              decoration: TextDecoration.lineThrough,
-                              color: colorScheme.onSurface.withOpacity(0.6),
-                            ),
+                          decoration: TextDecoration.lineThrough,
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                        ),
                       ),
                     Text(
                       _tour!.displayPrice,
                       style: Theme.of(
                         context,
                       ).textTheme.headlineMedium?.copyWith(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -872,9 +876,9 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                 child: Text(
                   _tour!.location,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(0.8),
-                        fontWeight: FontWeight.w500,
-                      ),
+                    color: colorScheme.onSurface.withOpacity(0.8),
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
@@ -893,18 +897,18 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                         style: Theme.of(
                           context,
                         ).textTheme.titleMedium?.copyWith(
-                              decoration: TextDecoration.lineThrough,
-                              color: colorScheme.onSurface.withOpacity(0.6),
-                            ),
+                          decoration: TextDecoration.lineThrough,
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                        ),
                       ),
                       Text(
                         _tour!.displayPrice,
                         style: Theme.of(
                           context,
                         ).textTheme.headlineSmall?.copyWith(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   )
@@ -912,9 +916,9 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                   Text(
                     _tour!.displayPrice,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
               ],
             ),
@@ -1188,8 +1192,8 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                   Text(
                     item.title,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   if (item.location != null) ...[
                     const SizedBox(height: 8),
@@ -1207,9 +1211,9 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                             style: Theme.of(
                               context,
                             ).textTheme.bodyMedium?.copyWith(
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ],
@@ -1358,9 +1362,9 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
             Text(
               feature.description!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.7),
-                    height: 1.4,
-                  ),
+                color: colorScheme.onSurface.withOpacity(0.7),
+                height: 1.4,
+              ),
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -1453,9 +1457,9 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                         style: Theme.of(
                           context,
                         ).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: colorScheme.onSurface.withOpacity(0.7),
-                            ),
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurface.withOpacity(0.7),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Container(
@@ -1472,9 +1476,9 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                           style: Theme.of(
                             context,
                           ).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: colorScheme.primary,
-                              ),
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.primary,
+                          ),
                         ),
                       ),
                     ],
@@ -1529,8 +1533,8 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                   Text(
                     'Reviews',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -1595,15 +1599,15 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                     Text(
                       'No reviews yet',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.7),
-                          ),
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Be the first to share your experience!',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.5),
-                          ),
+                        color: colorScheme.onSurface.withOpacity(0.5),
+                      ),
                     ),
                   ],
                 ),
@@ -1611,10 +1615,11 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
             )
           else
             Column(
-              children: _reviews
-                  .take(3)
-                  .map((review) => _buildModernReviewItem(review))
-                  .toList(),
+              children:
+                  _reviews
+                      .take(3)
+                      .map((review) => _buildModernReviewItem(review))
+                      .toList(),
             ),
 
           if (_reviews.length > 3) ...[
@@ -1690,9 +1695,10 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                         index < _selectedRating
                             ? Icons.star_rounded
                             : Icons.star_border_rounded,
-                        color: index < _selectedRating
-                            ? Colors.amber
-                            : colorScheme.outline,
+                        color:
+                            index < _selectedRating
+                                ? Colors.amber
+                                : colorScheme.outline,
                         size: 32,
                       ),
                     ),
@@ -1776,8 +1782,8 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                     Text(
                       review.userName,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -1787,9 +1793,10 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                             index < review.rating
                                 ? Icons.star_rounded
                                 : Icons.star_border_rounded,
-                            color: index < review.rating
-                                ? Colors.amber
-                                : colorScheme.outline,
+                            color:
+                                index < review.rating
+                                    ? Colors.amber
+                                    : colorScheme.outline,
                             size: 16,
                           );
                         }),
@@ -1799,8 +1806,8 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                           style: Theme.of(
                             context,
                           ).textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurface.withOpacity(0.6),
-                              ),
+                            color: colorScheme.onSurface.withOpacity(0.6),
+                          ),
                         ),
                       ],
                     ),
@@ -1843,8 +1850,8 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                   Text(
                     'Book Your Adventure',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   IconButton(
                     onPressed: _isBooking ? null : _toggleBookingPanel,
@@ -1893,9 +1900,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                         Expanded(
                           child: Text(
                             _tour!.name,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
+                            style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.bold),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -1915,15 +1920,12 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                               style: Theme.of(
                                 context,
                               ).textTheme.bodySmall?.copyWith(
-                                    color:
-                                        colorScheme.onSurface.withOpacity(0.6),
-                                  ),
+                                color: colorScheme.onSurface.withOpacity(0.6),
+                              ),
                             ),
                             Text(
                               _tour!.durationText,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
+                              style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
                           ],
@@ -1936,18 +1938,17 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                               style: Theme.of(
                                 context,
                               ).textTheme.bodySmall?.copyWith(
-                                    color:
-                                        colorScheme.onSurface.withOpacity(0.6),
-                                  ),
+                                color: colorScheme.onSurface.withOpacity(0.6),
+                              ),
                             ),
                             Text(
                               _tour!.displayPrice,
                               style: Theme.of(
                                 context,
                               ).textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -1968,46 +1969,47 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                       children: [
                         Text(
                           'Select Date',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 8),
                         InkWell(
-                          onTap: _isBooking
-                              ? null
-                              : () async {
-                                  final date = await showDatePicker(
-                                    context: context,
-                                    initialDate: DateTime.now().add(
-                                      const Duration(days: 1),
-                                    ),
-                                    firstDate: DateTime.now().add(
-                                      const Duration(days: 1),
-                                    ),
-                                    lastDate: DateTime.now().add(
-                                      const Duration(days: 365),
-                                    ),
-                                  );
-                                  if (date != null) {
-                                    setState(() {
-                                      _selectedDate = date;
-                                      _availability = null;
-                                    });
-                                  }
-                                },
+                          onTap:
+                              _isBooking
+                                  ? null
+                                  : () async {
+                                    final date = await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now().add(
+                                        const Duration(days: 1),
+                                      ),
+                                      firstDate: DateTime.now().add(
+                                        const Duration(days: 1),
+                                      ),
+                                      lastDate: DateTime.now().add(
+                                        const Duration(days: 365),
+                                      ),
+                                    );
+                                    if (date != null) {
+                                      setState(() {
+                                        _selectedDate = date;
+                                        _availability = null;
+                                      });
+                                    }
+                                  },
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: _selectedDate != null
-                                  ? colorScheme.primaryContainer
-                                      .withOpacity(0.3)
-                                  : colorScheme.surfaceContainerLow,
+                              color:
+                                  _selectedDate != null
+                                      ? colorScheme.primaryContainer
+                                          .withOpacity(0.3)
+                                      : colorScheme.surfaceContainerLow,
                               border: Border.all(
-                                color: _selectedDate != null
-                                    ? colorScheme.primary.withOpacity(0.5)
-                                    : colorScheme.outline.withOpacity(0.3),
+                                color:
+                                    _selectedDate != null
+                                        ? colorScheme.primary.withOpacity(0.5)
+                                        : colorScheme.outline.withOpacity(0.3),
                               ),
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -2015,9 +2017,10 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                               children: [
                                 Icon(
                                   Icons.calendar_today_rounded,
-                                  color: _selectedDate != null
-                                      ? colorScheme.primary
-                                      : colorScheme.outline,
+                                  color:
+                                      _selectedDate != null
+                                          ? colorScheme.primary
+                                          : colorScheme.outline,
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
@@ -2028,14 +2031,16 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                                     style: Theme.of(
                                       context,
                                     ).textTheme.bodyLarge?.copyWith(
-                                          color: _selectedDate != null
+                                      color:
+                                          _selectedDate != null
                                               ? colorScheme.onSurface
                                               : colorScheme.onSurface
                                                   .withOpacity(0.6),
-                                          fontWeight: _selectedDate != null
+                                      fontWeight:
+                                          _selectedDate != null
                                               ? FontWeight.w600
                                               : FontWeight.normal,
-                                        ),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -2054,9 +2059,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                       children: [
                         Text(
                           'People',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 8),
@@ -2071,20 +2074,22 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                           child: Row(
                             children: [
                               IconButton(
-                                onPressed: _isBooking || _numberOfPeople <= 1
-                                    ? null
-                                    : () {
-                                        setState(() {
-                                          _numberOfPeople--;
-                                          _availability = null;
-                                        });
-                                        HapticFeedback.lightImpact();
-                                      },
+                                onPressed:
+                                    _isBooking || _numberOfPeople <= 1
+                                        ? null
+                                        : () {
+                                          setState(() {
+                                            _numberOfPeople--;
+                                            _availability = null;
+                                          });
+                                          HapticFeedback.lightImpact();
+                                        },
                                 icon: Icon(
                                   Icons.remove_rounded,
-                                  color: _numberOfPeople > 1
-                                      ? colorScheme.primary
-                                      : colorScheme.outline,
+                                  color:
+                                      _numberOfPeople > 1
+                                          ? colorScheme.primary
+                                          : colorScheme.outline,
                                 ),
                               ),
                               Expanded(
@@ -2094,29 +2099,31 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                                   style: Theme.of(
                                     context,
                                   ).textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.primary,
-                                      ),
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
+                                  ),
                                 ),
                               ),
                               IconButton(
-                                onPressed: _isBooking ||
-                                        _numberOfPeople >=
-                                            (_tour?.maxGroupSize ?? 10)
-                                    ? null
-                                    : () {
-                                        setState(() {
-                                          _numberOfPeople++;
-                                          _availability = null;
-                                        });
-                                        HapticFeedback.lightImpact();
-                                      },
+                                onPressed:
+                                    _isBooking ||
+                                            _numberOfPeople >=
+                                                (_tour?.maxGroupSize ?? 10)
+                                        ? null
+                                        : () {
+                                          setState(() {
+                                            _numberOfPeople++;
+                                            _availability = null;
+                                          });
+                                          HapticFeedback.lightImpact();
+                                        },
                                 icon: Icon(
                                   Icons.add_rounded,
-                                  color: _numberOfPeople <
-                                          (_tour?.maxGroupSize ?? 10)
-                                      ? colorScheme.primary
-                                      : colorScheme.outline,
+                                  color:
+                                      _numberOfPeople <
+                                              (_tour?.maxGroupSize ?? 10)
+                                          ? colorScheme.primary
+                                          : colorScheme.outline,
                                 ),
                               ),
                             ],
@@ -2127,9 +2134,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(
                               'Maximum group size reached',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: colorScheme.error),
                             ),
                           ),
@@ -2145,16 +2150,18 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: _isBooking || _isCheckingAvailability
-                        ? null
-                        : _checkAvailability,
-                    icon: _isCheckingAvailability
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.search_rounded),
+                    onPressed:
+                        _isBooking || _isCheckingAvailability
+                            ? null
+                            : _checkAvailability,
+                    icon:
+                        _isCheckingAvailability
+                            ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                            : const Icon(Icons.search_rounded),
                     label: Text(
                       _isCheckingAvailability
                           ? 'Checking...'
@@ -2176,9 +2183,10 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                   duration: const Duration(milliseconds: 500),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: _availability!.isAvailable
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.red.withOpacity(0.1),
+                    color:
+                        _availability!.isAvailable
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: _availability!.statusColor.withOpacity(0.3),
@@ -2205,9 +2213,9 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                               style: Theme.of(
                                 context,
                               ).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: _availability!.statusColor,
-                                  ),
+                                fontWeight: FontWeight.bold,
+                                color: _availability!.statusColor,
+                              ),
                             ),
                           ),
                         ],
@@ -2226,9 +2234,9 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                               style: Theme.of(
                                 context,
                               ).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary,
-                                  ),
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                              ),
                             ),
                           ],
                         ),
@@ -2241,15 +2249,12 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                               style: Theme.of(
                                 context,
                               ).textTheme.bodyMedium?.copyWith(
-                                    color:
-                                        colorScheme.onSurface.withOpacity(0.7),
-                                  ),
+                                color: colorScheme.onSurface.withOpacity(0.7),
+                              ),
                             ),
                             Text(
                               _availability!.formattedDuration,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
+                              style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
                           ],
@@ -2271,9 +2276,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                       children: [
                         Text(
                           'Discount Code',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(width: 8),
@@ -2291,9 +2294,9 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                             style: Theme.of(
                               context,
                             ).textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ],
@@ -2323,8 +2326,8 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                     Text(
                       'Special Requests',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     TextField(
@@ -2351,26 +2354,28 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                   children: [
                     Checkbox(
                       value: _agreedToTerms,
-                      onChanged: _isBooking
-                          ? null
-                          : (value) {
-                              setState(() {
-                                _agreedToTerms = value ?? false;
-                              });
-                              HapticFeedback.lightImpact();
-                            },
+                      onChanged:
+                          _isBooking
+                              ? null
+                              : (value) {
+                                setState(() {
+                                  _agreedToTerms = value ?? false;
+                                });
+                                HapticFeedback.lightImpact();
+                              },
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: GestureDetector(
-                        onTap: _isBooking
-                            ? null
-                            : () {
-                                setState(() {
-                                  _agreedToTerms = !_agreedToTerms;
-                                });
-                                HapticFeedback.lightImpact();
-                              },
+                        onTap:
+                            _isBooking
+                                ? null
+                                : () {
+                                  setState(() {
+                                    _agreedToTerms = !_agreedToTerms;
+                                  });
+                                  HapticFeedback.lightImpact();
+                                },
                         child: Text(
                           'I agree to the terms and conditions and privacy policy',
                           style: Theme.of(
@@ -2391,15 +2396,17 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     child: CustomButton(
-                      onPressed: _isBooking || !_agreedToTerms
-                          ? null
-                          : _proceedWithBooking,
+                      onPressed:
+                          _isBooking || !_agreedToTerms
+                              ? null
+                              : _proceedWithBooking,
                       isLoading: _isBooking,
                       minimumSize: const Size(double.infinity, 56),
                       borderRadius: 16,
-                      backgroundColor: _agreedToTerms
-                          ? colorScheme.primary
-                          : colorScheme.outline.withOpacity(0.5),
+                      backgroundColor:
+                          _agreedToTerms
+                              ? colorScheme.primary
+                              : colorScheme.outline.withOpacity(0.5),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -2416,8 +2423,8 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                             _isBooking
                                 ? 'Creating Booking...'
                                 : _agreedToTerms
-                                    ? 'Proceed to Payment'
-                                    : 'Please agree to terms',
+                                ? 'Proceed to Payment'
+                                : 'Please agree to terms',
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -2634,16 +2641,16 @@ class _BookingSuccessDialogState extends State<BookingSuccessDialog>
                       style: Theme.of(
                         context,
                       ).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface,
-                          ),
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Your payment is being processed...',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.7),
-                          ),
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -2666,11 +2673,12 @@ class CheckPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (animationValue == 0) return;
 
-    final paint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 4
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+    final paint =
+        Paint()
+          ..color = Colors.white
+          ..strokeWidth = 4
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round;
 
     final center = Offset(size.width / 2, size.height / 2);
 
