@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/tour_models.dart';
@@ -15,6 +16,8 @@ class _TourListScreenState extends State<TourListScreen> {
   final TourService _tourService = TourService();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  Timer? _searchDebounceTimer;
+  final ValueNotifier<bool> _isSearching = ValueNotifier(false);
 
   List<Tour> _tours = [];
   List<Tour> _favoriteToursLocal = [];
@@ -51,6 +54,8 @@ class _TourListScreenState extends State<TourListScreen> {
   void dispose() {
     _searchController.dispose();
     _scrollController.dispose();
+    _searchDebounceTimer?.cancel();
+    _isSearching.dispose();
     super.dispose();
   }
 
@@ -95,21 +100,38 @@ class _TourListScreenState extends State<TourListScreen> {
 
       final result = await _tourService.getTours(filter: filter);
 
-      setState(() {
-        if (isRefresh || _currentPage == 1) {
-          _tours = result.items;
-        } else {
-          _tours.addAll(result.items);
-        }
-        _hasMorePages = result.hasNextPage;
-        _totalCount = result.totalCount;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          if (isRefresh || _currentPage == 1) {
+            _tours = result.items;
+          } else {
+            _tours.addAll(result.items);
+          }
+          _hasMorePages = result.hasNextPage;
+          _totalCount = result.totalCount;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Failed to load tours: ${e.toString()}';
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = _getErrorMessage(e);
+        });
+      }
+    }
+  }
+
+  String _getErrorMessage(dynamic error) {
+    final errorString = error.toString().toLowerCase();
+    if (errorString.contains('network') || errorString.contains('connection')) {
+      return 'Please check your internet connection and try again';
+    } else if (errorString.contains('timeout')) {
+      return 'Request timed out. Please try again';
+    } else if (errorString.contains('server')) {
+      return 'Server error. Please try again later';
+    } else {
+      return 'Something went wrong. Please try again';
     }
   }
 
@@ -139,17 +161,44 @@ class _TourListScreenState extends State<TourListScreen> {
 
       final result = await _tourService.getTours(filter: filter);
 
-      setState(() {
-        _tours.addAll(result.items);
-        _hasMorePages = result.hasNextPage;
-        _isLoadingMore = false;
-      });
+      if (mounted) {
+        setState(() {
+          _tours.addAll(result.items);
+          _hasMorePages = result.hasNextPage;
+          _isLoadingMore = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isLoadingMore = false;
-        _currentPage--;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+          _currentPage--;
+        });
+        _showErrorSnackBar(_getErrorMessage(e));
+      }
     }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        action: SnackBarAction(
+          label: 'Retry',
+          textColor: Colors.white,
+          onPressed: () => _loadTours(isRefresh: true),
+        ),
+      ),
+    );
   }
 
   Future<void> _loadFilterOptions() async {
@@ -172,7 +221,23 @@ class _TourListScreenState extends State<TourListScreen> {
     });
   }
 
+  void _onSearchChanged(String value) {
+    _searchDebounceTimer?.cancel();
+    _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        _performSearch();
+      }
+    });
+    _isSearching.value = true;
+  }
+
+  void _performSearch() {
+    _isSearching.value = false;
+    _loadTours(isRefresh: true);
+  }
+
   void _clearFilters() {
+    _searchDebounceTimer?.cancel();
     setState(() {
       _selectedCategory = null;
       _selectedLocation = null;
@@ -184,6 +249,7 @@ class _TourListScreenState extends State<TourListScreen> {
       _sortAscending = false;
       _searchController.clear();
     });
+    _isSearching.value = false;
     _loadTours(isRefresh: true);
   }
 
@@ -240,51 +306,56 @@ class _TourListScreenState extends State<TourListScreen> {
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            // App Bar
-            SliverAppBar(
-              expandedHeight: 120,
-              floating: false,
-              pinned: true,
-              backgroundColor: colorScheme.primary,
-              foregroundColor: Colors.white,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [colorScheme.primary, colorScheme.secondary],
-                    ),
-                  ),
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            'Discover Tours',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.headlineMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+            // Header Section
+            SliverToBoxAdapter(
+              child: Container(
+                color: colorScheme.surface,
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Discover Tours',
+                                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _totalCount > 0
+                                        ? '$_totalCount amazing experiences await you'
+                                        : 'Find your perfect adventure',
+                                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _totalCount > 0
-                                ? '$_totalCount experiences'
-                                : 'Find your adventure',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white.withOpacity(0.9),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Icon(
+                                Icons.explore_rounded,
+                                color: colorScheme.primary,
+                                size: 32,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -307,73 +378,99 @@ class _TourListScreenState extends State<TourListScreen> {
                             color: colorScheme.surfaceContainerLow,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: colorScheme.outline.withOpacity(0.2),
+                              color: colorScheme.outline.withValues(alpha: 0.2),
                             ),
                           ),
-                          child: TextField(
-                            controller: _searchController,
-                            decoration: InputDecoration(
-                              hintText: 'Where would you like to go?',
-                              prefixIcon: Icon(
-                                Icons.search,
-                                color: colorScheme.primary,
-                              ),
-                              suffixIcon: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (_searchController.text.isNotEmpty)
-                                    IconButton(
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        _loadTours(isRefresh: true);
-                                      },
-                                      icon: Icon(
-                                        Icons.clear,
-                                        color: colorScheme.outline,
-                                      ),
-                                    ),
-                                  Container(
-                                    margin: const EdgeInsets.only(right: 8),
-                                    child: FilledButton.icon(
-                                      onPressed: _toggleFilters,
-                                      icon: Icon(
-                                        _showFilters
-                                            ? Icons.filter_alt
-                                            : Icons.filter_alt_outlined,
-                                        size: 18,
-                                      ),
-                                      label: const Text('Filters'),
-                                      style: FilledButton.styleFrom(
-                                        backgroundColor:
-                                            _showFilters
-                                                ? colorScheme.primary
-                                                : colorScheme
-                                                    .surfaceContainerHigh,
-                                        foregroundColor:
-                                            _showFilters
-                                                ? Colors.white
-                                                : colorScheme.onSurface,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 8,
-                                        ),
-                                      ),
+                          child: ValueListenableBuilder<bool>(
+                            valueListenable: _isSearching,
+                            builder: (context, isSearching, _) {
+                              return TextField(
+                                controller: _searchController,
+                                onChanged: _onSearchChanged,
+                                decoration: InputDecoration(
+                                  hintText: 'Where would you like to go?',
+                                  hintStyle: TextStyle(
+                                    color: colorScheme.onSurface.withValues(
+                                      alpha: 0.6,
                                     ),
                                   ),
-                                ],
-                              ),
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                            ),
-                            onSubmitted: (_) => _loadTours(isRefresh: true),
+                                  prefixIcon:
+                                      isSearching
+                                          ? Padding(
+                                            padding: const EdgeInsets.all(14.0),
+                                            child: SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: colorScheme.primary,
+                                              ),
+                                            ),
+                                          )
+                                          : Icon(
+                                            Icons.search_rounded,
+                                            color: colorScheme.primary,
+                                          ),
+                                  suffixIcon: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (_searchController.text.isNotEmpty)
+                                        IconButton(
+                                          onPressed: () {
+                                            _searchController.clear();
+                                            _onSearchChanged('');
+                                          },
+                                          icon: Icon(
+                                            Icons.clear_rounded,
+                                            color: colorScheme.outline,
+                                          ),
+                                          tooltip: 'Clear search',
+                                        ),
+                                      Container(
+                                        margin: const EdgeInsets.only(right: 8),
+                                        child: FilledButton.icon(
+                                          onPressed: _toggleFilters,
+                                          icon: Icon(
+                                            _showFilters
+                                                ? Icons.filter_alt_rounded
+                                                : Icons.filter_alt_outlined,
+                                            size: 18,
+                                          ),
+                                          label: const Text('Filters'),
+                                          style: FilledButton.styleFrom(
+                                            backgroundColor:
+                                                _showFilters
+                                                    ? colorScheme.primary
+                                                    : colorScheme
+                                                        .surfaceContainerHigh,
+                                            foregroundColor:
+                                                _showFilters
+                                                    ? Colors.white
+                                                    : colorScheme.onSurface,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 8,
+                                            ),
+                                            elevation: _showFilters ? 2 : 0,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                ),
+                                onSubmitted: (_) => _performSearch(),
+                              );
+                            },
                           ),
                         ),
 
                         // Quick Filters
-                        if (!isMobile) ...[
+                        if (!isMobile) ...[ 
                           const SizedBox(height: 16),
                           Wrap(
                             spacing: 8,
@@ -505,8 +602,33 @@ class _TourListScreenState extends State<TourListScreen> {
                         // Load More Indicator
                         if (_isLoadingMore)
                           Container(
-                            margin: const EdgeInsets.all(20),
-                            child: const CircularProgressIndicator(),
+                            margin: const EdgeInsets.all(24),
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Text(
+                                  'Loading more tours...',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurface.withValues(alpha: 0.7),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
 
                         const SizedBox(height: 20),
@@ -544,7 +666,7 @@ class _TourListScreenState extends State<TourListScreen> {
           color:
               isSelected
                   ? colorScheme.primary
-                  : colorScheme.outline.withOpacity(0.3),
+                  : colorScheme.outline.withValues(alpha: 0.3),
         ),
       ),
     );
@@ -673,10 +795,44 @@ class _TourListScreenState extends State<TourListScreen> {
   }
 
   Widget _buildLoadingState() {
-    return const Center(
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(40),
-        child: CircularProgressIndicator(),
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                color: colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Finding amazing tours for you...',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'This might take a moment',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -690,22 +846,66 @@ class _TourListScreenState extends State<TourListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-            const SizedBox(height: 16),
-            Text(
-              'Something went wrong',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _errorMessage ?? 'Failed to load tours',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: colorScheme.errorContainer,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                Icons.wifi_off_rounded,
+                size: 48,
+                color: colorScheme.error,
+              ),
             ),
             const SizedBox(height: 24),
-            FilledButton(
-              onPressed: () => _loadTours(isRefresh: true),
-              child: const Text('Try Again'),
+            Text(
+              'Unable to load tours',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                _errorMessage ?? 'Failed to load tours',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.7),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: _clearFilters,
+                  icon: const Icon(Icons.clear_all_rounded),
+                  label: const Text('Clear Filters'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                FilledButton.icon(
+                  onPressed: () => _loadTours(isRefresh: true),
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('Try Again'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -715,6 +915,11 @@ class _TourListScreenState extends State<TourListScreen> {
 
   Widget _buildEmptyState() {
     final colorScheme = Theme.of(context).colorScheme;
+    final hasActiveFilters = _selectedCategory != null || 
+        _selectedLocation != null || 
+        _selectedDifficulty != null || 
+        _selectedActivityType != null ||
+        _searchController.text.isNotEmpty;
 
     return Center(
       child: Padding(
@@ -722,23 +927,80 @@ class _TourListScreenState extends State<TourListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.explore_off, size: 64, color: colorScheme.outline),
-            const SizedBox(height: 16),
-            Text(
-              'No tours found',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Try adjusting your search or filters',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                hasActiveFilters ? Icons.search_off_rounded : Icons.explore_off_rounded,
+                size: 48,
+                color: colorScheme.outline,
+              ),
             ),
             const SizedBox(height: 24),
-            OutlinedButton(
-              onPressed: _clearFilters,
-              child: const Text('Clear Filters'),
+            Text(
+              hasActiveFilters ? 'No matching tours found' : 'No tours available',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
+            const SizedBox(height: 12),
+            Text(
+              hasActiveFilters 
+                  ? 'Try adjusting your search criteria or filters to find more options'
+                  : 'Check back later for new tour experiences',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            if (hasActiveFilters) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _clearFilters,
+                    icon: const Icon(Icons.clear_all_rounded),
+                    label: const Text('Clear All Filters'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  FilledButton.icon(
+                    onPressed: _toggleFilters,
+                    icon: const Icon(Icons.tune_rounded),
+                    label: const Text('Adjust Filters'),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ] else ...[
+              FilledButton.icon(
+                onPressed: () => _loadTours(isRefresh: true),
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Refresh'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

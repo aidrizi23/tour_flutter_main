@@ -5,11 +5,13 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/tours/tour_list_screen.dart';
 import 'screens/cars/car_list_screen.dart';
+import 'screens/houses/house_list_screen.dart';
 import 'screens/admin/admin_tour_create_screen.dart';
 import 'screens/admin/admin_panel_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/booking/booking_screen.dart';
 import 'screens/recommendation/recommendation_screen.dart';
+import 'widgets/responsive_layout.dart';
 import 'services/auth_service.dart';
 import 'services/stripe_service.dart';
 
@@ -397,6 +399,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const TourListScreen(),
     const RecommendationScreen(),
     const CarListScreen(),
+    const HouseListScreen(),
     const BookingScreen(),
     const ProfileScreen(),
   ];
@@ -405,6 +408,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const TourListScreen(),
     const RecommendationScreen(),
     const CarListScreen(),
+    const HouseListScreen(),
     const BookingScreen(),
     const AdminPanelScreen(),
     const ProfileScreen(),
@@ -428,77 +432,19 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final screens = _isAdmin ? _adminScreens : _userScreens;
-    final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: screens),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: NavigationBar(
-            selectedIndex: _currentIndex,
-            onDestinationSelected: (index) {
-              if (index != _currentIndex) {
-                setState(() {
-                  _currentIndex = index;
-                });
-                HapticFeedback.selectionClick();
-              }
-            },
-            backgroundColor: colorScheme.surface,
-            surfaceTintColor: colorScheme.surface,
-            indicatorColor: colorScheme.primary.withOpacity(0.1),
-            destinations: [
-              NavigationDestination(
-                icon: const Icon(Icons.explore_outlined),
-                selectedIcon: Icon(Icons.explore, color: colorScheme.primary),
-                label: 'Discover',
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.recommend_outlined),
-                selectedIcon: Icon(Icons.recommend, color: colorScheme.primary),
-                label: 'For You',
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.directions_car_outlined),
-                selectedIcon: Icon(
-                  Icons.directions_car,
-                  color: colorScheme.primary,
-                ),
-                label: 'Cars',
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.bookmark_border_outlined),
-                selectedIcon: Icon(Icons.bookmark, color: colorScheme.primary),
-                label: 'Bookings',
-              ),
-              if (_isAdmin)
-                NavigationDestination(
-                  icon: const Icon(Icons.admin_panel_settings_outlined),
-                  selectedIcon: Icon(
-                    Icons.admin_panel_settings,
-                    color: colorScheme.primary,
-                  ),
-                  label: 'Admin',
-                ),
-              NavigationDestination(
-                icon: const Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person, color: colorScheme.primary),
-                label: 'Profile',
-              ),
-            ],
-          ),
-        ),
-      ),
+    return ResponsiveLayout(
+      currentIndex: _currentIndex,
+      onDestinationSelected: (index) {
+        if (index != _currentIndex) {
+          setState(() {
+            _currentIndex = index;
+          });
+          HapticFeedback.selectionClick();
+        }
+      },
+      isAdmin: _isAdmin,
+      child: IndexedStack(index: _currentIndex, children: screens),
     );
   }
 }
