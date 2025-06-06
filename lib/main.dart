@@ -94,7 +94,7 @@ class MyApp extends StatelessWidget {
         ),
         iconTheme: IconThemeData(color: Color(0xFF1A1A1A)),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         shadowColor: Colors.black.withOpacity(0.08),
         color: cardColor,
@@ -188,7 +188,7 @@ class MyApp extends StatelessWidget {
         ),
         iconTheme: const IconThemeData(color: Color(0xFFE8EAED)),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 4,
         shadowColor: Colors.black.withOpacity(0.3),
         color: cardColor,
