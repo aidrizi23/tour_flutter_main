@@ -11,6 +11,7 @@ import 'screens/admin/admin_panel_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/booking/booking_screen.dart';
 import 'screens/recommendation/recommendation_screen.dart';
+import 'screens/settings/settings_screen.dart';
 import 'widgets/responsive_layout.dart';
 import 'services/auth_service.dart';
 import 'services/stripe_service.dart';
@@ -49,6 +50,7 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => const ProfileScreen(),
         '/bookings': (context) => const BookingScreen(),
         '/recommendations': (context) => const RecommendationScreen(),
+        '/settings': (context) => const SettingsScreen(),
       },
     );
   }
@@ -143,6 +145,31 @@ class MyApp extends StatelessWidget {
         ),
         hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
       ),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFFF7F9FA),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: primaryColor, width: 2),
+          ),
+        ),
+        menuStyle: MenuStyle(
+          backgroundColor: WidgetStateProperty.all(surfaceColor),
+          elevation: WidgetStateProperty.all(8),
+          shape: WidgetStateProperty.all(
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ),
       scaffoldBackgroundColor: backgroundColor,
     );
   }
@@ -236,6 +263,31 @@ class MyApp extends StatelessWidget {
           vertical: 12,
         ),
         hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+      ),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFF2A3142),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Color(0xFF3F4650)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Color(0xFF3F4650)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: primaryColor, width: 2),
+          ),
+        ),
+        menuStyle: MenuStyle(
+          backgroundColor: WidgetStateProperty.all(surfaceColor),
+          elevation: WidgetStateProperty.all(8),
+          shape: WidgetStateProperty.all(
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
       ),
       scaffoldBackgroundColor: backgroundColor,
     );

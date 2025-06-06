@@ -286,17 +286,17 @@ class _TourListScreenState extends State<TourListScreen> {
     double childAspectRatio;
 
     if (isDesktop) {
-      maxContentWidth = 1200;
-      crossAxisCount = 3;
+      maxContentWidth = 1400;
+      crossAxisCount = screenWidth > 1600 ? 4 : 3;
       childAspectRatio = 0.75;
     } else if (isTablet) {
-      maxContentWidth = 800;
+      maxContentWidth = 1000;
       crossAxisCount = 2;
       childAspectRatio = 0.8;
     } else {
       maxContentWidth = double.infinity;
       crossAxisCount = 1;
-      childAspectRatio = 1.2;
+      childAspectRatio = 1.15;
     }
 
     return Scaffold(
@@ -324,7 +324,9 @@ class _TourListScreenState extends State<TourListScreen> {
                                 children: [
                                   Text(
                                     'Discover Tours',
-                                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.headlineLarge?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: colorScheme.onSurface,
                                     ),
@@ -334,8 +336,12 @@ class _TourListScreenState extends State<TourListScreen> {
                                     _totalCount > 0
                                         ? '$_totalCount amazing experiences await you'
                                         : 'Find your perfect adventure',
-                                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge?.copyWith(
+                                      color: colorScheme.onSurface.withValues(
+                                        alpha: 0.7,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -470,7 +476,7 @@ class _TourListScreenState extends State<TourListScreen> {
                         ),
 
                         // Quick Filters
-                        if (!isMobile) ...[ 
+                        if (!isMobile) ...[
                           const SizedBox(height: 16),
                           Wrap(
                             spacing: 8,
@@ -622,8 +628,12 @@ class _TourListScreenState extends State<TourListScreen> {
                                 const SizedBox(width: 16),
                                 Text(
                                   'Loading more tours...',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurface.withValues(alpha: 0.7),
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurface.withValues(
+                                      alpha: 0.7,
+                                    ),
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -796,7 +806,7 @@ class _TourListScreenState extends State<TourListScreen> {
 
   Widget _buildLoadingState() {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -861,9 +871,9 @@ class _TourListScreenState extends State<TourListScreen> {
             const SizedBox(height: 24),
             Text(
               'Unable to load tours',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
@@ -915,9 +925,10 @@ class _TourListScreenState extends State<TourListScreen> {
 
   Widget _buildEmptyState() {
     final colorScheme = Theme.of(context).colorScheme;
-    final hasActiveFilters = _selectedCategory != null || 
-        _selectedLocation != null || 
-        _selectedDifficulty != null || 
+    final hasActiveFilters =
+        _selectedCategory != null ||
+        _selectedLocation != null ||
+        _selectedDifficulty != null ||
         _selectedActivityType != null ||
         _searchController.text.isNotEmpty;
 
@@ -934,22 +945,26 @@ class _TourListScreenState extends State<TourListScreen> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
-                hasActiveFilters ? Icons.search_off_rounded : Icons.explore_off_rounded,
+                hasActiveFilters
+                    ? Icons.search_off_rounded
+                    : Icons.explore_off_rounded,
                 size: 48,
                 color: colorScheme.outline,
               ),
             ),
             const SizedBox(height: 24),
             Text(
-              hasActiveFilters ? 'No matching tours found' : 'No tours available',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              hasActiveFilters
+                  ? 'No matching tours found'
+                  : 'No tours available',
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(
-              hasActiveFilters 
+              hasActiveFilters
                   ? 'Try adjusting your search criteria or filters to find more options'
                   : 'Check back later for new tour experiences',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(

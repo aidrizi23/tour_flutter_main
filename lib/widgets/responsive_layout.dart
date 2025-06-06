@@ -70,7 +70,7 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
 
   Widget _buildMobileLayout() {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Scaffold(
       body: widget.child,
       bottomNavigationBar: Container(
@@ -110,10 +110,9 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
           AnimatedBuilder(
             animation: _sidebarAnimation,
             builder: (context, child) {
-              final currentWidth = _isSidebarCollapsed
-                  ? collapsedSidebarWidth
-                  : sidebarWidth;
-              
+              final currentWidth =
+                  _isSidebarCollapsed ? collapsedSidebarWidth : sidebarWidth;
+
               return Container(
                 width: currentWidth,
                 decoration: BoxDecoration(
@@ -136,14 +135,11 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
               );
             },
           ),
-          
+
           // Main content
           Expanded(
             child: Column(
-              children: [
-                _buildTopBar(),
-                Expanded(child: widget.child),
-              ],
+              children: [_buildTopBar(), Expanded(child: widget.child)],
             ),
           ),
         ],
@@ -154,7 +150,7 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
   Widget _buildSidebar(double width) {
     final colorScheme = Theme.of(context).colorScheme;
     final isCollapsed = width <= 80;
-    
+
     return SafeArea(
       child: Column(
         children: [
@@ -174,10 +170,7 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                        colorScheme.primary,
-                        colorScheme.secondary,
-                      ],
+                      colors: [colorScheme.primary, colorScheme.secondary],
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -219,9 +212,10 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
             padding: EdgeInsets.all(isCollapsed ? 8 : 16),
             child: _buildSidebarItem(
               context: context,
-              icon: _isSidebarCollapsed 
-                  ? Icons.menu_open_rounded 
-                  : Icons.menu_rounded,
+              icon:
+                  _isSidebarCollapsed
+                      ? Icons.menu_open_rounded
+                      : Icons.menu_rounded,
               label: 'Collapse',
               isSelected: false,
               onTap: _toggleSidebar,
@@ -236,7 +230,7 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
 
   Widget _buildTopBar() {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Container(
       height: 80,
       decoration: BoxDecoration(
@@ -252,39 +246,39 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Row(
           children: [
-            // Search bar
+            // App Title
             Expanded(
-              child: Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: colorScheme.outline.withValues(alpha: 0.2),
-                  ),
-                ),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Search tours, cars, or destinations...',
-                    hintStyle: TextStyle(
-                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [colorScheme.primary, colorScheme.secondary],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    prefixIcon: Icon(
-                      Icons.search_rounded,
+                    child: const Icon(
+                      Icons.travel_explore_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'AlbTour',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
                       color: colorScheme.primary,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
+                      letterSpacing: -0.5,
                     ),
                   ),
-                ),
+                ],
               ),
             ),
-            
-            const SizedBox(width: 16),
-            
+
             // Profile section
             _buildProfileSection(),
           ],
@@ -295,7 +289,7 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
 
   Widget _buildProfileSection() {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Row(
       children: [
         // Notifications
@@ -306,10 +300,7 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
           },
           icon: Stack(
             children: [
-              Icon(
-                Icons.notifications_outlined,
-                color: colorScheme.onSurface,
-              ),
+              Icon(Icons.notifications_outlined, color: colorScheme.onSurface),
               Positioned(
                 right: 0,
                 top: 0,
@@ -326,9 +317,9 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
           ),
           tooltip: 'Notifications',
         ),
-        
+
         const SizedBox(width: 8),
-        
+
         // Profile avatar and dropdown
         PopupMenuButton<String>(
           offset: const Offset(0, 50),
@@ -358,9 +349,9 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
                 const SizedBox(width: 8),
                 Text(
                   'Profile',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(width: 4),
                 Icon(
@@ -371,42 +362,53 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
               ],
             ),
           ),
-          itemBuilder: (context) => <PopupMenuEntry<String>>[
-            PopupMenuItem<String>(
-              value: 'profile',
-              child: const Row(
-                children: [
-                  Icon(Icons.person_outlined),
-                  SizedBox(width: 12),
-                  Text('My Profile'),
-                ],
-              ),
-            ),
-            PopupMenuItem<String>(
-              value: 'bookings',
-              child: const Row(
-                children: [
-                  Icon(Icons.bookmark_outlined),
-                  SizedBox(width: 12),
-                  Text('My Bookings'),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
-            PopupMenuItem<String>(
-              value: 'logout',
-              child: Row(
-                children: [
-                  Icon(Icons.logout_rounded, color: colorScheme.error),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Sign Out',
-                    style: TextStyle(color: colorScheme.error),
+          itemBuilder:
+              (context) => <PopupMenuEntry<String>>[
+                PopupMenuItem<String>(
+                  value: 'profile',
+                  child: const Row(
+                    children: [
+                      Icon(Icons.person_outlined),
+                      SizedBox(width: 12),
+                      Text('My Profile'),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ],
+                ),
+                PopupMenuItem<String>(
+                  value: 'bookings',
+                  child: const Row(
+                    children: [
+                      Icon(Icons.bookmark_outlined),
+                      SizedBox(width: 12),
+                      Text('My Bookings'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem<String>(
+                  value: 'settings',
+                  child: const Row(
+                    children: [
+                      Icon(Icons.settings_outlined),
+                      SizedBox(width: 12),
+                      Text('Settings'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem<String>(
+                  value: 'logout',
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout_rounded, color: colorScheme.error),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Sign Out',
+                        style: TextStyle(color: colorScheme.error),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
           onSelected: (value) {
             switch (value) {
               case 'profile':
@@ -414,6 +416,9 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
                 break;
               case 'bookings':
                 widget.onDestinationSelected(_getBookingsIndex());
+                break;
+              case 'settings':
+                Navigator.of(context).pushNamed('/settings');
                 break;
               case 'logout':
                 // TODO: Handle logout
@@ -427,22 +432,24 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
 
   List<Widget> _getSidebarItems(BuildContext context, bool isCollapsed) {
     final destinations = _getNavigationDestinations(context, false);
-    
+
     return destinations.asMap().entries.map((entry) {
       final index = entry.key;
       final destination = entry.value;
       final isSelected = index == widget.currentIndex;
-      
+
       return Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: _buildSidebarItem(
           context: context,
-          icon: destination.icon is Icon 
-              ? (destination.icon as Icon).icon!
-              : Icons.help_outline,
-          selectedIcon: destination.selectedIcon is Icon
-              ? (destination.selectedIcon as Icon).icon
-              : null,
+          icon:
+              destination.icon is Icon
+                  ? (destination.icon as Icon).icon!
+                  : Icons.help_outline,
+          selectedIcon:
+              destination.selectedIcon is Icon
+                  ? (destination.selectedIcon as Icon).icon
+                  : null,
           label: destination.label,
           isSelected: isSelected,
           onTap: () => widget.onDestinationSelected(index),
@@ -463,7 +470,7 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
     bool showLabel = true,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -476,16 +483,18 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
             vertical: 8,
           ),
           decoration: BoxDecoration(
-            color: isSelected
-                ? colorScheme.primary.withValues(alpha: 0.1)
-                : Colors.transparent,
+            color:
+                isSelected
+                    ? colorScheme.primary.withValues(alpha: 0.1)
+                    : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
-            border: isSelected
-                ? Border.all(
-                    color: colorScheme.primary.withValues(alpha: 0.3),
-                    width: 1,
-                  )
-                : null,
+            border:
+                isSelected
+                    ? Border.all(
+                      color: colorScheme.primary.withValues(alpha: 0.3),
+                      width: 1,
+                    )
+                    : null,
           ),
           child: Row(
             children: [
@@ -493,18 +502,20 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
                 Expanded(
                   child: Icon(
                     isSelected && selectedIcon != null ? selectedIcon : icon,
-                    color: isSelected
-                        ? colorScheme.primary
-                        : colorScheme.onSurface.withValues(alpha: 0.7),
+                    color:
+                        isSelected
+                            ? colorScheme.primary
+                            : colorScheme.onSurface.withValues(alpha: 0.7),
                     size: 24,
                   ),
                 )
               else ...[
                 Icon(
                   isSelected && selectedIcon != null ? selectedIcon : icon,
-                  color: isSelected
-                      ? colorScheme.primary
-                      : colorScheme.onSurface.withValues(alpha: 0.7),
+                  color:
+                      isSelected
+                          ? colorScheme.primary
+                          : colorScheme.onSurface.withValues(alpha: 0.7),
                   size: 24,
                 ),
                 if (showLabel) ...[
@@ -513,12 +524,12 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
                     child: Text(
                       label,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isSelected
-                            ? colorScheme.primary
-                            : colorScheme.onSurface,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.normal,
+                        color:
+                            isSelected
+                                ? colorScheme.primary
+                                : colorScheme.onSurface,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.normal,
                       ),
                     ),
                   ),
@@ -536,7 +547,7 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
     bool isMobile,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return [
       NavigationDestination(
         icon: const Icon(Icons.explore_outlined),

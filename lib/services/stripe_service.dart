@@ -30,10 +30,14 @@ class StripeService {
     try {
       if (kIsWeb) {
         log('Payment intents not supported on web');
-        throw Exception('Payment processing not available on web');
+        throw Exception(
+          'Payment processing is not available on web platforms. Please use a mobile device.',
+        );
       }
 
-      log('Creating payment intent');
+      log(
+        'Creating payment intent with client secret: ${clientSecret.substring(0, 20)}...',
+      );
 
       await Stripe.instance.confirmPayment(
         paymentIntentClientSecret: clientSecret,
@@ -42,11 +46,47 @@ class StripeService {
         ),
       );
 
-      return await Stripe.instance.retrievePaymentIntent(clientSecret);
+      final paymentIntent = await Stripe.instance.retrievePaymentIntent(
+        clientSecret,
+      );
+      log('Payment intent retrieved successfully');
+
+      return paymentIntent;
+    } on StripeException catch (e) {
+      log('Stripe error: ${e.error.message}');
+      final errorMessage = _getLocalizedErrorMessage(e.error.code.toString());
+      throw Exception(errorMessage);
     } catch (e) {
-      log('Error creating payment intent: $e');
-      rethrow;
+      log('Unexpected error creating payment intent: $e');
+      throw Exception(
+        'An unexpected error occurred during payment processing. Please try again.',
+      );
     }
+  }
+
+  static String _getLocalizedErrorMessage(String? errorCode) {
+    switch (errorCode) {
+      case 'payment_intent_authentication_failure':
+        return 'Payment authentication failed. Please check your payment details and try again.';
+      case 'card_declined':
+        return 'Your card was declined. Please try a different payment method.';
+      case 'insufficient_funds':
+        return 'Insufficient funds. Please check your account balance.';
+      case 'incorrect_cvc':
+        return 'Your card\'s security code is incorrect.';
+      case 'expired_card':
+        return 'Your card has expired. Please use a different card.';
+      case 'processing_error':
+        return 'An error occurred while processing your payment. Please try again.';
+      case 'incorrect_number':
+        return 'Your card number is incorrect.';
+      default:
+        return 'Payment failed. Please check your payment details and try again.';
+    }
+  }
+
+  static Future<bool> isPlatformSupported() async {
+    return !kIsWeb;
   }
 
   static Future<PaymentMethod> createPaymentMethod({
