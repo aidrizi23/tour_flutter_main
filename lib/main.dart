@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:tour_flutter_main/models/auth_models.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
@@ -12,6 +13,7 @@ import 'screens/booking/booking_screen.dart';
 import 'screens/recommendation/recommendation_screen.dart';
 import 'services/auth_service.dart';
 import 'services/stripe_service.dart';
+import 'widgets/resizable_navigation_rail.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,6 +64,7 @@ class MyApp extends StatelessWidget {
 
     return ThemeData(
       useMaterial3: true,
+      textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
         brightness: Brightness.light,
@@ -157,6 +160,7 @@ class MyApp extends StatelessWidget {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
       colorScheme: ColorScheme.dark(
         primary: primaryColor,
         secondary: secondaryColor,
@@ -473,7 +477,7 @@ class _HomeScreenState extends State<HomeScreen> {
           isDesktop
               ? Row(
                 children: [
-                  NavigationRail(
+                  ResizableNavigationRail(
                     selectedIndex: _currentIndex,
                     onDestinationSelected: (index) {
                       if (index != _currentIndex) {
