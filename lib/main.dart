@@ -14,6 +14,7 @@ import 'screens/recommendation/recommendation_screen.dart';
 import 'services/auth_service.dart';
 import 'services/stripe_service.dart';
 import 'widgets/resizable_navigation_rail.dart';
+import 'widgets/app_layout.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +39,7 @@ class MyApp extends StatelessWidget {
       theme: _buildLightTheme(),
       darkTheme: _buildDarkTheme(),
       themeMode: ThemeMode.system,
+      builder: (context, child) => AppLayout(child: child ?? const SizedBox()),
       home: const AuthWrapper(),
       routes: {
         '/login': (context) => const LoginScreen(),
@@ -473,76 +475,68 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
-      body:
-          isDesktop
-              ? Row(
-                children: [
-                  ResizableNavigationRail(
-                    selectedIndex: _currentIndex,
-                    onDestinationSelected: (index) {
-                      if (index != _currentIndex) {
-                        setState(() => _currentIndex = index);
-                        HapticFeedback.selectionClick();
-                      }
-                    },
-                    backgroundColor: colorScheme.surface,
-                    selectedIconTheme: IconThemeData(
-                      color: colorScheme.primary,
-                    ),
-                    indicatorColor: colorScheme.primary.withOpacity(0.1),
-                    destinations:
-                        navigationDestinations
-                            .map(
-                              (e) => NavigationRailDestination(
-                                icon: e.icon,
-                                selectedIcon: e.selectedIcon!,
-                                label: Text(e.label),
-                              ),
-                            )
-                            .toList(),
-                  ),
-                  const VerticalDivider(width: 1),
-                  Expanded(
-                    child: IndexedStack(
-                      index: _currentIndex,
-                      children: screens,
-                    ),
+      body: isDesktop
+          ? Row(
+              children: [
+                ResizableNavigationRail(
+                  selectedIndex: _currentIndex,
+                  onDestinationSelected: (index) {
+                    if (index != _currentIndex) {
+                      setState(() => _currentIndex = index);
+                      HapticFeedback.selectionClick();
+                    }
+                  },
+                  backgroundColor: colorScheme.surface,
+                  selectedIconTheme: IconThemeData(color: colorScheme.primary),
+                  indicatorColor: colorScheme.primary.withOpacity(0.1),
+                  destinations: navigationDestinations
+                      .map(
+                        (e) => NavigationRailDestination(
+                          icon: e.icon,
+                          selectedIcon: e.selectedIcon!,
+                          label: Text(e.label),
+                        ),
+                      )
+                      .toList(),
+                ),
+                const VerticalDivider(width: 1),
+                Expanded(
+                  child: IndexedStack(index: _currentIndex, children: screens),
+                ),
+              ],
+            )
+          : IndexedStack(index: _currentIndex, children: screens),
+      bottomNavigationBar: isDesktop
+          ? null
+          : Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, -2),
                   ),
                 ],
-              )
-              : IndexedStack(index: _currentIndex, children: screens),
-      bottomNavigationBar:
-          isDesktop
-              ? null
-              : Container(
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, -2),
-                    ),
-                  ],
-                ),
-                child: SafeArea(
-                  child: NavigationBar(
-                    selectedIndex: _currentIndex,
-                    onDestinationSelected: (index) {
-                      if (index != _currentIndex) {
-                        setState(() {
-                          _currentIndex = index;
-                        });
-                        HapticFeedback.selectionClick();
-                      }
-                    },
-                    backgroundColor: colorScheme.surface,
-                    surfaceTintColor: colorScheme.surface,
-                    indicatorColor: colorScheme.primary.withOpacity(0.1),
-                    destinations: navigationDestinations,
-                  ),
+              ),
+              child: SafeArea(
+                child: NavigationBar(
+                  selectedIndex: _currentIndex,
+                  onDestinationSelected: (index) {
+                    if (index != _currentIndex) {
+                      setState(() {
+                        _currentIndex = index;
+                      });
+                      HapticFeedback.selectionClick();
+                    }
+                  },
+                  backgroundColor: colorScheme.surface,
+                  surfaceTintColor: colorScheme.surface,
+                  indicatorColor: colorScheme.primary.withOpacity(0.1),
+                  destinations: navigationDestinations,
                 ),
               ),
+            ),
     );
   }
 }
