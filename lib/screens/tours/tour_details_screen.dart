@@ -683,19 +683,19 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
           itemCount: images.length,
           itemBuilder: (context, index) {
             final image = images[index];
-            return Container(
-              decoration: BoxDecoration(
-                image:
-                    image.imageUrl.isNotEmpty
-                        ? DecorationImage(
-                          image: NetworkImage(image.imageUrl),
-                          fit: BoxFit.cover,
-                          onError:
-                              (error, stackTrace) => _buildImagePlaceholder(),
-                        )
-                        : null,
+            if (image.imageUrl.isEmpty) {
+              return _buildImagePlaceholder();
+            }
+            return Hero(
+              tag: 'tour_${_tour!.id}_image_$index',
+              child: InteractiveViewer(
+                child: Image.network(
+                  image.imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder:
+                      (context, error, stackTrace) => _buildImagePlaceholder(),
+                ),
               ),
-              child: image.imageUrl.isEmpty ? _buildImagePlaceholder() : null,
             );
           },
         ),

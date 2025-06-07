@@ -429,76 +429,116 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final screens = _isAdmin ? _adminScreens : _userScreens;
     final colorScheme = Theme.of(context).colorScheme;
+    final bool isDesktop = MediaQuery.of(context).size.width >= 800;
+
+    final navigationDestinations = <NavigationDestination>[
+      NavigationDestination(
+        icon: const Icon(Icons.explore_outlined),
+        selectedIcon: Icon(Icons.explore, color: colorScheme.primary),
+        label: 'Discover',
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.recommend_outlined),
+        selectedIcon: Icon(Icons.recommend, color: colorScheme.primary),
+        label: 'For You',
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.directions_car_outlined),
+        selectedIcon: Icon(Icons.directions_car, color: colorScheme.primary),
+        label: 'Cars',
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.bookmark_border_outlined),
+        selectedIcon: Icon(Icons.bookmark, color: colorScheme.primary),
+        label: 'Bookings',
+      ),
+      if (_isAdmin)
+        NavigationDestination(
+          icon: const Icon(Icons.admin_panel_settings_outlined),
+          selectedIcon: Icon(
+            Icons.admin_panel_settings,
+            color: colorScheme.primary,
+          ),
+          label: 'Admin',
+        ),
+      NavigationDestination(
+        icon: const Icon(Icons.person_outline),
+        selectedIcon: Icon(Icons.person, color: colorScheme.primary),
+        label: 'Profile',
+      ),
+    ];
 
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: screens),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: NavigationBar(
-            selectedIndex: _currentIndex,
-            onDestinationSelected: (index) {
-              if (index != _currentIndex) {
-                setState(() {
-                  _currentIndex = index;
-                });
-                HapticFeedback.selectionClick();
-              }
-            },
-            backgroundColor: colorScheme.surface,
-            surfaceTintColor: colorScheme.surface,
-            indicatorColor: colorScheme.primary.withOpacity(0.1),
-            destinations: [
-              NavigationDestination(
-                icon: const Icon(Icons.explore_outlined),
-                selectedIcon: Icon(Icons.explore, color: colorScheme.primary),
-                label: 'Discover',
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.recommend_outlined),
-                selectedIcon: Icon(Icons.recommend, color: colorScheme.primary),
-                label: 'For You',
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.directions_car_outlined),
-                selectedIcon: Icon(
-                  Icons.directions_car,
-                  color: colorScheme.primary,
-                ),
-                label: 'Cars',
-              ),
-              NavigationDestination(
-                icon: const Icon(Icons.bookmark_border_outlined),
-                selectedIcon: Icon(Icons.bookmark, color: colorScheme.primary),
-                label: 'Bookings',
-              ),
-              if (_isAdmin)
-                NavigationDestination(
-                  icon: const Icon(Icons.admin_panel_settings_outlined),
-                  selectedIcon: Icon(
-                    Icons.admin_panel_settings,
-                    color: colorScheme.primary,
+      body:
+          isDesktop
+              ? Row(
+                children: [
+                  NavigationRail(
+                    selectedIndex: _currentIndex,
+                    onDestinationSelected: (index) {
+                      if (index != _currentIndex) {
+                        setState(() => _currentIndex = index);
+                        HapticFeedback.selectionClick();
+                      }
+                    },
+                    backgroundColor: colorScheme.surface,
+                    selectedIconTheme: IconThemeData(
+                      color: colorScheme.primary,
+                    ),
+                    indicatorColor: colorScheme.primary.withOpacity(0.1),
+                    destinations:
+                        navigationDestinations
+                            .map(
+                              (e) => NavigationRailDestination(
+                                icon: e.icon,
+                                selectedIcon: e.selectedIcon!,
+                                label: Text(e.label),
+                              ),
+                            )
+                            .toList(),
                   ),
-                  label: 'Admin',
+                  const VerticalDivider(width: 1),
+                  Expanded(
+                    child: IndexedStack(
+                      index: _currentIndex,
+                      children: screens,
+                    ),
+                  ),
+                ],
+              )
+              : IndexedStack(index: _currentIndex, children: screens),
+      bottomNavigationBar:
+          isDesktop
+              ? null
+              : Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
                 ),
-              NavigationDestination(
-                icon: const Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person, color: colorScheme.primary),
-                label: 'Profile',
+                child: SafeArea(
+                  child: NavigationBar(
+                    selectedIndex: _currentIndex,
+                    onDestinationSelected: (index) {
+                      if (index != _currentIndex) {
+                        setState(() {
+                          _currentIndex = index;
+                        });
+                        HapticFeedback.selectionClick();
+                      }
+                    },
+                    backgroundColor: colorScheme.surface,
+                    surfaceTintColor: colorScheme.surface,
+                    indicatorColor: colorScheme.primary.withOpacity(0.1),
+                    destinations: navigationDestinations,
+                  ),
+                ),
               ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
