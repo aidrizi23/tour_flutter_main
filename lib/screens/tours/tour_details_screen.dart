@@ -6,6 +6,7 @@ import '../../services/tour_service.dart';
 import '../../services/booking_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../widgets/responsive_layout.dart';
 import '../booking/payment_screen.dart';
 
 class TourDetailsScreen extends StatefulWidget {
@@ -160,37 +161,55 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     final isDesktop = screenWidth >= 1200;
 
     if (_isLoadingTour) {
-      return _buildLoadingScreen(colorScheme);
+      return ResponsiveLayout(
+        currentIndex: 0,
+        onDestinationSelected: (index) {},
+        isAdmin: false,
+        child: _buildLoadingScreen(colorScheme),
+      );
     }
 
     if (_errorMessage != null || _tour == null) {
-      return _buildErrorScreen(colorScheme);
+      return ResponsiveLayout(
+        currentIndex: 0,
+        onDestinationSelected: (index) {},
+        isAdmin: false,
+        child: _buildErrorScreen(colorScheme),
+      );
     }
 
-    return Scaffold(
-      backgroundColor: colorScheme.surfaceContainerLowest,
-      body: Stack(
-        children: [
-          // Main Content
-          if (isDesktop)
-            _buildDesktopLayout(colorScheme, screenWidth, screenHeight)
-          else if (isTablet)
-            _buildTabletLayout(colorScheme, screenWidth, screenHeight)
-          else
-            _buildMobileLayout(colorScheme, screenWidth, screenHeight),
+    return ResponsiveLayout(
+      currentIndex: 0,
+      onDestinationSelected: (index) {
+        // Handle navigation
+        Navigator.of(context).pop();
+      },
+      isAdmin: false,
+      child: Scaffold(
+        backgroundColor: colorScheme.surfaceContainerLowest,
+        body: Stack(
+          children: [
+            // Main Content
+            if (isDesktop)
+              _buildModernDesktopLayout(colorScheme, screenWidth, screenHeight)
+            else if (isTablet)
+              _buildModernTabletLayout(colorScheme, screenWidth, screenHeight)
+            else
+              _buildModernMobileLayout(colorScheme, screenWidth, screenHeight),
 
-          // Floating Action Button - Responsive positioning
-          Positioned(
-            bottom: isMobile ? 24 : 32,
-            left: isMobile ? 24 : (isDesktop ? screenWidth * 0.25 + 32 : 32),
-            right: isMobile ? 24 : (isDesktop ? 32 : 32),
-            child: _buildBookingFAB(colorScheme, isMobile),
-          ),
+            // Floating Action Button - Responsive positioning
+            Positioned(
+              bottom: isMobile ? 24 : 32,
+              left: isMobile ? 24 : 32,
+              right: isMobile ? 24 : 32,
+              child: _buildModernBookingFAB(colorScheme, isMobile),
+            ),
 
-          // Booking Panel Overlay
-          if (_showBookingPanel)
-            _buildBookingPanelOverlay(colorScheme, isMobile, isTablet),
-        ],
+            // Booking Panel Overlay
+            if (_showBookingPanel)
+              _buildModernBookingPanelOverlay(colorScheme, isMobile, isTablet),
+          ],
+        ),
       ),
     );
   }
@@ -283,53 +302,66 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     );
   }
 
-  Widget _buildDesktopLayout(
+  Widget _buildModernDesktopLayout(
     ColorScheme colorScheme,
     double width,
     double height,
   ) {
     return Row(
       children: [
-        // Left side - Image gallery
-        SizedBox(width: width * 0.6, child: _buildEnhancedImageGallery(true)),
-        // Right side - Content
+        // Left side - Interactive Image Gallery
         Expanded(
+          flex: 5,
           child: Container(
             height: height,
             decoration: BoxDecoration(
               color: colorScheme.surface,
               boxShadow: [
                 BoxShadow(
-                  color: colorScheme.shadow.withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  offset: const Offset(-4, 0),
+                  color: colorScheme.shadow.withValues(alpha: 0.05),
+                  blurRadius: 30,
+                  offset: const Offset(0, 0),
                 ),
               ],
             ),
             child: Column(
               children: [
-                _buildDesktopHeader(colorScheme),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(32),
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: Column(
-                        children: [
-                          _buildTourHeader(colorScheme, false),
-                          const SizedBox(height: 32),
-                          _buildTourInfo(colorScheme),
-                          const SizedBox(height: 32),
-                          _buildItinerary(colorScheme),
-                          const SizedBox(height: 32),
-                          _buildFeatures(colorScheme, false),
-                          const SizedBox(height: 32),
-                          _buildLocationSection(colorScheme),
-                          const SizedBox(height: 32),
-                          _buildReviewsSection(colorScheme),
-                          const SizedBox(height: 120), // Space for FAB
-                        ],
-                      ),
+                _buildModernDesktopHeader(colorScheme),
+                Expanded(child: _buildInteractiveImageGallery(true)),
+              ],
+            ),
+          ),
+        ),
+
+        // Right side - Content Panel
+        Expanded(
+          flex: 4,
+          child: Container(
+            height: height,
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLowest,
+              border: Border(
+                left: BorderSide(
+                  color: colorScheme.outline.withValues(alpha: 0.1),
+                  width: 1,
+                ),
+              ),
+            ),
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Column(
+                      children: [
+                        _buildModernTourHeader(colorScheme, false),
+                        _buildModernTourInfo(colorScheme),
+                        _buildModernItinerary(colorScheme),
+                        _buildModernFeatures(colorScheme, false),
+                        _buildModernLocationSection(colorScheme),
+                        _buildModernReviewsSection(colorScheme),
+                        const SizedBox(height: 120), // Space for FAB
+                      ],
                     ),
                   ),
                 ),
@@ -341,7 +373,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     );
   }
 
-  Widget _buildTabletLayout(
+  Widget _buildModernTabletLayout(
     ColorScheme colorScheme,
     double width,
     double height,
@@ -350,48 +382,72 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
       controller: _scrollController,
       slivers: [
         SliverAppBar(
-          expandedHeight: 400,
+          expandedHeight: 500,
           pinned: true,
           stretch: true,
           backgroundColor: colorScheme.surface,
           foregroundColor: colorScheme.onSurface,
+          elevation: 0,
+          scrolledUnderElevation: 8,
+          surfaceTintColor: colorScheme.surface,
           flexibleSpace: FlexibleSpaceBar(
-            background: _buildEnhancedImageGallery(false),
+            background: Stack(
+              fit: StackFit.expand,
+              children: [
+                _buildInteractiveImageGallery(false),
+                // Modern gradient overlay
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        colorScheme.surface.withValues(alpha: 0.9),
+                      ],
+                      stops: const [0.7, 1.0],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          actions: _buildAppBarActions(colorScheme),
+          actions: _buildModernAppBarActions(colorScheme),
         ),
         SliverToBoxAdapter(
           child: FadeTransition(
             opacity: _fadeAnimation,
             child: Container(
-              constraints: BoxConstraints(maxWidth: width * 0.8),
-              margin: EdgeInsets.symmetric(horizontal: width * 0.1),
+              constraints: BoxConstraints(maxWidth: width * 0.9),
+              margin: EdgeInsets.symmetric(horizontal: width * 0.05),
               child: Column(
                 children: [
-                  _buildTourHeader(colorScheme, true),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+                  _buildModernTourHeader(colorScheme, true),
+                  const SizedBox(height: 40),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        flex: 2,
+                        flex: 3,
                         child: Column(
                           children: [
-                            _buildTourInfo(colorScheme),
+                            _buildModernTourInfo(colorScheme),
                             const SizedBox(height: 32),
-                            _buildItinerary(colorScheme),
+                            _buildModernItinerary(colorScheme),
                             const SizedBox(height: 32),
-                            _buildLocationSection(colorScheme),
+                            _buildModernLocationSection(colorScheme),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 32),
+                      const SizedBox(width: 40),
                       Expanded(
+                        flex: 2,
                         child: Column(
                           children: [
-                            _buildFeatures(colorScheme, true),
+                            _buildModernFeatures(colorScheme, true),
                             const SizedBox(height: 32),
-                            _buildReviewsSection(colorScheme),
+                            _buildModernReviewsSection(colorScheme),
                           ],
                         ),
                       ),
@@ -407,7 +463,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     );
   }
 
-  Widget _buildMobileLayout(
+  Widget _buildModernMobileLayout(
     ColorScheme colorScheme,
     double width,
     double height,
@@ -416,17 +472,20 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
       controller: _scrollController,
       slivers: [
         SliverAppBar(
-          expandedHeight: 320,
+          expandedHeight: 400,
           pinned: true,
           stretch: true,
           backgroundColor: colorScheme.surface,
           foregroundColor: colorScheme.onSurface,
+          elevation: 0,
+          scrolledUnderElevation: 8,
+          surfaceTintColor: colorScheme.surface,
           flexibleSpace: FlexibleSpaceBar(
             background: Stack(
               fit: StackFit.expand,
               children: [
-                _buildEnhancedImageGallery(false),
-                // Gradient overlay for better text visibility
+                _buildInteractiveImageGallery(false),
+                // Modern gradient overlay
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -434,7 +493,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withValues(alpha: 0.7),
+                        colorScheme.surface.withValues(alpha: 0.95),
                       ],
                       stops: const [0.6, 1.0],
                     ),
@@ -443,7 +502,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
               ],
             ),
           ),
-          actions: _buildAppBarActions(colorScheme),
+          actions: _buildModernAppBarActions(colorScheme),
         ),
         SliverToBoxAdapter(
           child: FadeTransition(
@@ -454,12 +513,13 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                 scale: _scaleAnimation,
                 child: Column(
                   children: [
-                    _buildTourHeader(colorScheme, true),
-                    _buildTourInfo(colorScheme),
-                    _buildItinerary(colorScheme),
-                    _buildFeatures(colorScheme, true),
-                    _buildLocationSection(colorScheme),
-                    _buildReviewsSection(colorScheme),
+                    const SizedBox(height: 16),
+                    _buildModernTourHeader(colorScheme, true),
+                    _buildModernTourInfo(colorScheme),
+                    _buildModernItinerary(colorScheme),
+                    _buildModernFeatures(colorScheme, true),
+                    _buildModernLocationSection(colorScheme),
+                    _buildModernReviewsSection(colorScheme),
                     const SizedBox(height: 120), // Space for FAB
                   ],
                 ),
@@ -471,172 +531,199 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     );
   }
 
-  Widget _buildDesktopHeader(ColorScheme colorScheme) {
+  Widget _buildModernDesktopHeader(ColorScheme colorScheme) {
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
           bottom: BorderSide(
-            color: colorScheme.outline.withValues(alpha: 0.2),
+            color: colorScheme.outline.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
       ),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.arrow_back_rounded),
-            style: IconButton.styleFrom(
-              backgroundColor: colorScheme.surfaceContainerLow,
-              padding: const EdgeInsets.all(12),
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.arrow_back_rounded),
+              style: IconButton.styleFrom(padding: const EdgeInsets.all(12)),
             ),
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: Text(
-              'Tour Details',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tour Experience',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                Text(
+                  'Discover amazing destinations',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
             ),
           ),
-          ..._buildAppBarActions(colorScheme).map(
-            (action) =>
-                Padding(padding: const EdgeInsets.only(left: 8), child: action),
-          ),
+          ..._buildModernAppBarActions(colorScheme),
         ],
       ),
     );
   }
 
-  List<Widget> _buildAppBarActions(ColorScheme colorScheme) {
+  List<Widget> _buildModernAppBarActions(ColorScheme colorScheme) {
     return [
-      CircleAvatar(
-        backgroundColor: Colors.black.withValues(alpha: 0.3),
+      Container(
+        margin: const EdgeInsets.only(right: 8),
+        decoration: BoxDecoration(
+          color: colorScheme.surface.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
+        ),
         child: IconButton(
           icon: const Icon(Icons.share_rounded),
           onPressed: _shareTotal,
-          color: Colors.white,
+          style: IconButton.styleFrom(padding: const EdgeInsets.all(12)),
         ),
       ),
-      const SizedBox(width: 8),
-      CircleAvatar(
-        backgroundColor: Colors.black.withValues(alpha: 0.3),
+      Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
+        ),
         child: IconButton(
           icon: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, animation) {
+              return ScaleTransition(scale: animation, child: child);
+            },
             child: Icon(
               _isFavorite ? Icons.favorite : Icons.favorite_border,
               key: ValueKey(_isFavorite),
-              color: _isFavorite ? Colors.red : Colors.white,
+              color: _isFavorite ? Colors.red : colorScheme.onSurface,
             ),
           ),
           onPressed: _toggleFavorite,
+          style: IconButton.styleFrom(padding: const EdgeInsets.all(12)),
         ),
       ),
-      const SizedBox(width: 16),
     ];
   }
 
-  Widget _buildEnhancedImageGallery(bool isDesktop) {
+  Widget _buildInteractiveImageGallery(bool isDesktop) {
     final images =
         _tour!.images.isEmpty
             ? [TourImage(id: 0, imageUrl: '', displayOrder: 0)]
             : _tour!.images;
+    final colorScheme = Theme.of(context).colorScheme;
 
-    return Stack(
-      children: [
-        PageView.builder(
-          controller: _imageController,
-          onPageChanged: (index) {
-            setState(() {
-              _currentImageIndex = index;
-            });
-          },
-          itemCount: images.length,
-          itemBuilder: (context, index) {
-            final image = images[index];
-            return Container(
-              decoration: BoxDecoration(
-                image:
-                    image.imageUrl.isNotEmpty
-                        ? DecorationImage(
-                          image: NetworkImage(image.imageUrl),
-                          fit: BoxFit.cover,
-                          onError:
-                              (error, stackTrace) => _buildImagePlaceholder(),
-                        )
-                        : null,
-              ),
-              child: image.imageUrl.isEmpty ? _buildImagePlaceholder() : null,
-            );
-          },
-        ),
-
-        // Enhanced image indicators
-        if (images.length > 1)
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: Center(
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: isDesktop ? null : BorderRadius.circular(0),
+      ),
+      child: Stack(
+        children: [
+          // Main Image Display
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            switchInCurve: Curves.easeInOut,
+            switchOutCurve: Curves.easeInOut,
+            child: GestureDetector(
+              key: ValueKey(_currentImageIndex),
+              onTap: () => _openImageViewer(images, _currentImageIndex),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
+                width: double.infinity,
+                height: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(20),
+                  image:
+                      images[_currentImageIndex].imageUrl.isNotEmpty
+                          ? DecorationImage(
+                            image: NetworkImage(
+                              images[_currentImageIndex].imageUrl,
+                            ),
+                            fit: BoxFit.cover,
+                            onError: (error, stackTrace) {},
+                          )
+                          : null,
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: List.generate(
-                    images.length,
-                    (index) => AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: const EdgeInsets.symmetric(horizontal: 3),
-                      width: _currentImageIndex == index ? 24 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4),
-                        color:
-                            _currentImageIndex == index
-                                ? Colors.white
-                                : Colors.white.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ),
-                ),
+                child:
+                    images[_currentImageIndex].imageUrl.isEmpty
+                        ? _buildImagePlaceholder()
+                        : Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.2),
+                              ],
+                              stops: const [0.7, 1.0],
+                            ),
+                          ),
+                        ),
               ),
             ),
           ),
 
-        // Image counter
-        if (images.length > 1)
+          // Navigation Arrows (Desktop)
+          if (isDesktop && images.length > 1)
+            ..._buildImageNavigationArrows(colorScheme),
+
+          // Thumbnail Strip (Desktop)
+          if (isDesktop && images.length > 1)
+            Positioned(
+              bottom: 24,
+              left: 24,
+              right: 24,
+              child: _buildImageThumbnailStrip(images, colorScheme),
+            ),
+
+          // Dot Indicators (Mobile/Tablet)
+          if (!isDesktop && images.length > 1)
+            Positioned(
+              bottom: 20,
+              left: 0,
+              right: 0,
+              child: _buildImageDotIndicators(images.length, colorScheme),
+            ),
+
+          // Image Counter and Actions
           Positioned(
-            top: 20,
-            right: 20,
+            top: isDesktop ? 24 : 20,
+            right: isDesktop ? 24 : 20,
+            child: _buildImageActions(images.length, colorScheme),
+          ),
+
+          // Zoom Icon
+          Positioned(
+            top: isDesktop ? 24 : 20,
+            left: isDesktop ? 24 : 20,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(
-                '${_currentImageIndex + 1}/${images.length}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              child: Icon(Icons.zoom_in_rounded, color: Colors.white, size: 20),
             ),
           ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -677,7 +764,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     );
   }
 
-  Widget _buildTourHeader(ColorScheme colorScheme, bool isMobile) {
+  Widget _buildModernTourHeader(ColorScheme colorScheme, bool isMobile) {
     return Container(
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(24),
@@ -870,7 +957,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     );
   }
 
-  Widget _buildTourInfo(ColorScheme colorScheme) {
+  Widget _buildModernTourInfo(ColorScheme colorScheme) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(24),
@@ -923,7 +1010,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     );
   }
 
-  Widget _buildItinerary(ColorScheme colorScheme) {
+  Widget _buildModernItinerary(ColorScheme colorScheme) {
     if (_tour!.itineraryItems.isEmpty) return const SizedBox.shrink();
 
     return Container(
@@ -1126,7 +1213,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     );
   }
 
-  Widget _buildFeatures(ColorScheme colorScheme, bool isMobile) {
+  Widget _buildModernFeatures(ColorScheme colorScheme, bool isMobile) {
     if (_tour!.features.isEmpty) return const SizedBox.shrink();
 
     return Container(
@@ -1239,7 +1326,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     );
   }
 
-  Widget _buildLocationSection(ColorScheme colorScheme) {
+  Widget _buildModernLocationSection(ColorScheme colorScheme) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(24),
@@ -1356,7 +1443,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     );
   }
 
-  Widget _buildReviewsSection(ColorScheme colorScheme) {
+  Widget _buildModernReviewsSection(ColorScheme colorScheme) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(24),
@@ -1688,7 +1775,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     );
   }
 
-  Widget _buildBookingFAB(ColorScheme colorScheme, bool isMobile) {
+  Widget _buildModernBookingFAB(ColorScheme colorScheme, bool isMobile) {
     return RotationTransition(
       turns: _rotateAnimation,
       child: ScaleTransition(
@@ -1752,7 +1839,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     );
   }
 
-  Widget _buildBookingPanelOverlay(
+  Widget _buildModernBookingPanelOverlay(
     ColorScheme colorScheme,
     bool isMobile,
     bool isTablet,
@@ -2659,6 +2746,238 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     }
   }
 
+  void _openImageViewer(List<TourImage> images, int initialIndex) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder:
+            (context, animation, _) =>
+                _ImageViewer(images: images, initialIndex: initialIndex),
+        transitionsBuilder: (context, animation, _, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        opaque: false,
+      ),
+    );
+  }
+
+  List<Widget> _buildImageNavigationArrows(ColorScheme colorScheme) {
+    return [
+      // Previous Arrow
+      Positioned(
+        left: 24,
+        top: 0,
+        bottom: 0,
+        child: Center(
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _previousImage,
+              borderRadius: BorderRadius.circular(24),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Icon(
+                  Icons.chevron_left_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      // Next Arrow
+      Positioned(
+        right: 24,
+        top: 0,
+        bottom: 0,
+        child: Center(
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _nextImage,
+              borderRadius: BorderRadius.circular(24),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  Widget _buildImageThumbnailStrip(
+    List<TourImage> images,
+    ColorScheme colorScheme,
+  ) {
+    return Container(
+      height: 80,
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: images.length,
+        padding: const EdgeInsets.all(8),
+        itemBuilder: (context, index) {
+          final isSelected = index == _currentImageIndex;
+          return GestureDetector(
+            onTap: () => _selectImage(index),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.only(right: 8),
+              width: isSelected ? 80 : 64,
+              height: isSelected ? 64 : 48,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isSelected ? Colors.white : Colors.transparent,
+                  width: 2,
+                ),
+                image:
+                    images[index].imageUrl.isNotEmpty
+                        ? DecorationImage(
+                          image: NetworkImage(images[index].imageUrl),
+                          fit: BoxFit.cover,
+                        )
+                        : null,
+              ),
+              child:
+                  images[index].imageUrl.isEmpty
+                      ? Icon(
+                        Icons.image_not_supported,
+                        color: Colors.white.withValues(alpha: 0.7),
+                      )
+                      : null,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildImageDotIndicators(int length, ColorScheme colorScheme) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(
+            length,
+            (index) => GestureDetector(
+              onTap: () => _selectImage(index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                width: _currentImageIndex == index ? 24 : 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  color:
+                      _currentImageIndex == index
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.5),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageActions(int length, ColorScheme colorScheme) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            '${_currentImageIndex + 1}/$length',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: IconButton(
+            onPressed:
+                () => _openImageViewer(
+                  _tour!.images.isEmpty
+                      ? [TourImage(id: 0, imageUrl: '', displayOrder: 0)]
+                      : _tour!.images,
+                  _currentImageIndex,
+                ),
+            icon: const Icon(
+              Icons.fullscreen_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _selectImage(int index) {
+    setState(() {
+      _currentImageIndex = index;
+    });
+    HapticFeedback.lightImpact();
+  }
+
+  void _previousImage() {
+    final images =
+        _tour!.images.isEmpty
+            ? [TourImage(id: 0, imageUrl: '', displayOrder: 0)]
+            : _tour!.images;
+    if (_currentImageIndex > 0) {
+      _selectImage(_currentImageIndex - 1);
+    } else {
+      _selectImage(images.length - 1);
+    }
+  }
+
+  void _nextImage() {
+    final images =
+        _tour!.images.isEmpty
+            ? [TourImage(id: 0, imageUrl: '', displayOrder: 0)]
+            : _tour!.images;
+    if (_currentImageIndex < images.length - 1) {
+      _selectImage(_currentImageIndex + 1);
+    } else {
+      _selectImage(0);
+    }
+  }
+
   void _shareTotal() {
     HapticFeedback.lightImpact();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -2887,5 +3206,227 @@ class CheckPainter extends CustomPainter {
   @override
   bool shouldRepaint(CheckPainter oldDelegate) {
     return oldDelegate.animationValue != animationValue;
+  }
+}
+
+class _ImageViewer extends StatefulWidget {
+  final List<TourImage> images;
+  final int initialIndex;
+
+  const _ImageViewer({required this.images, required this.initialIndex});
+
+  @override
+  State<_ImageViewer> createState() => _ImageViewerState();
+}
+
+class _ImageViewerState extends State<_ImageViewer>
+    with TickerProviderStateMixin {
+  late PageController _pageController;
+  late int _currentIndex;
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
+  bool _isControlsVisible = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fadeAnimation = _fadeController.drive(CurveTween(curve: Curves.easeInOut));
+    _fadeController.forward();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _fadeController.dispose();
+    super.dispose();
+  }
+
+  void _toggleControls() {
+    setState(() {
+      _isControlsVisible = !_isControlsVisible;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: GestureDetector(
+        onTap: _toggleControls,
+        child: Stack(
+          children: [
+            // Image Display
+            PageView.builder(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              itemCount: widget.images.length,
+              itemBuilder: (context, index) {
+                final image = widget.images[index];
+                return InteractiveViewer(
+                  child: Center(
+                    child:
+                        image.imageUrl.isNotEmpty
+                            ? Image.network(
+                              image.imageUrl,
+                              fit: BoxFit.contain,
+                              loadingBuilder: (
+                                context,
+                                child,
+                                loadingProgress,
+                              ) {
+                                if (loadingProgress == null) return child;
+                                return const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Center(
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    color: Colors.white54,
+                                    size: 64,
+                                  ),
+                                );
+                              },
+                            )
+                            : const Center(
+                              child: Icon(
+                                Icons.image_not_supported,
+                                color: Colors.white54,
+                                size: 64,
+                              ),
+                            ),
+                  ),
+                );
+              },
+            ),
+
+            // Controls Overlay
+            AnimatedOpacity(
+              opacity: _isControlsVisible ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 300),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.7),
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.7),
+                    ],
+                    stops: const [0.0, 0.5, 1.0],
+                  ),
+                ),
+                child: SafeArea(
+                  child: Column(
+                    children: [
+                      // Top Bar
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${_currentIndex + 1} / ${widget.images.length}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.share,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      // Bottom Thumbnail Strip
+                      if (widget.images.length > 1)
+                        Container(
+                          height: 80,
+                          margin: const EdgeInsets.all(16),
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: widget.images.length,
+                            itemBuilder: (context, index) {
+                              final isSelected = index == _currentIndex;
+                              return GestureDetector(
+                                onTap: () {
+                                  _pageController.animateToPage(
+                                    index,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                },
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  margin: const EdgeInsets.only(right: 8),
+                                  width: isSelected ? 80 : 60,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color:
+                                          isSelected
+                                              ? Colors.white
+                                              : Colors.transparent,
+                                      width: 2,
+                                    ),
+                                    image:
+                                        widget.images[index].imageUrl.isNotEmpty
+                                            ? DecorationImage(
+                                              image: NetworkImage(
+                                                widget.images[index].imageUrl,
+                                              ),
+                                              fit: BoxFit.cover,
+                                            )
+                                            : null,
+                                  ),
+                                  child:
+                                      widget.images[index].imageUrl.isEmpty
+                                          ? const Icon(
+                                            Icons.image_not_supported,
+                                            color: Colors.white54,
+                                          )
+                                          : null,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

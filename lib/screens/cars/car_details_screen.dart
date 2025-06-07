@@ -369,9 +369,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
       }
 
       // Verify we have payment info before proceeding
-      log(
-        'Payment info retrieved successfully, proceeding to payment screen',
-      );
+      log('Payment info retrieved successfully, proceeding to payment screen');
 
       // Navigate to payment screen
       final result = await Navigator.of(context).push(
@@ -379,12 +377,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
           pageBuilder:
               (context, animation, secondaryAnimation) =>
                   CarPaymentScreen(paymentInfo: paymentInfo!),
-          transitionsBuilder: (
-            context,
-            animation,
-            secondaryAnimation,
-            child,
-          ) {
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(
               position: animation.drive(
                 Tween(
@@ -410,7 +403,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
           _isBooking = false;
         });
       }
-        } catch (e) {
+    } catch (e) {
       setState(() {
         _isBooking = false;
       });
@@ -1074,7 +1067,6 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
   }
 
   Widget _buildEnhancedCarHeader(ColorScheme colorScheme, bool isMobile) {
-
     return Container(
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(24),
@@ -1245,7 +1237,6 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
   }
 
   Widget _buildModernCarInfo(ColorScheme colorScheme) {
-
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(24),
@@ -1414,7 +1405,6 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
   }
 
   Widget _buildEnhancedLocationSection(ColorScheme colorScheme) {
-
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(24),
@@ -1530,7 +1520,6 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
   }
 
   Widget _buildModernReviewsSection(ColorScheme colorScheme) {
-
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(24),
@@ -1865,7 +1854,6 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
   }
 
   Widget _buildEnhancedBookingPanel(ColorScheme colorScheme) {
-
     return Material(
       borderRadius: BorderRadius.circular(24),
       elevation: 8,
