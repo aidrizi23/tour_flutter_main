@@ -54,11 +54,11 @@ class MyApp extends StatelessWidget {
   }
 
   ThemeData _buildLightTheme() {
-    // Modern, smooth color palette inspired by Booking.com
-    const primaryColor = Color(0xFF003B95); // Deep blue
-    const secondaryColor = Color(0xFF0071C2); // Lighter blue
-    const accentColor = Color(0xFF00A651); // Success green
-    const backgroundColor = Color(0xFFFAFBFC);
+    // Subtle palette with a modern web feel
+    const primaryColor = Color(0xFF0D6EFD); // Bootstrap blue
+    const secondaryColor = Color(0xFF6610F2); // Accent purple
+    const accentColor = Color(0xFF198754); // Success green
+    const backgroundColor = Color(0xFFF8F9FA);
     const surfaceColor = Color(0xFFFFFFFF);
     const cardColor = Color(0xFFFFFFFF);
 
@@ -149,13 +149,13 @@ class MyApp extends StatelessWidget {
   }
 
   ThemeData _buildDarkTheme() {
-    // Dark theme with smooth, professional colors
-    const primaryColor = Color(0xFF4A90E2); // Softer blue for dark mode
-    const secondaryColor = Color(0xFF5BA3F5);
-    const accentColor = Color(0xFF2ECC71);
-    const backgroundColor = Color(0xFF0F1419);
-    const surfaceColor = Color(0xFF1A1F2E);
-    const cardColor = Color(0xFF252B3A);
+    // Complementary dark palette
+    const primaryColor = Color(0xFF0D6EFD); // Same base blue
+    const secondaryColor = Color(0xFF7C4DFF);
+    const accentColor = Color(0xFF20C997);
+    const backgroundColor = Color(0xFF121212);
+    const surfaceColor = Color(0xFF1E1E1E);
+    const cardColor = Color(0xFF2C2C2C);
 
     return ThemeData(
       useMaterial3: true,
