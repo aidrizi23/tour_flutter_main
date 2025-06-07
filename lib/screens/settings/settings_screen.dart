@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../../providers/theme_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -12,8 +14,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
-
-  ThemeMode _selectedThemeMode = ThemeMode.system;
 
   @override
   void initState() {
@@ -36,30 +36,31 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   void _onThemeChanged(ThemeMode? themeMode) {
-    if (themeMode != null && themeMode != _selectedThemeMode) {
-      setState(() {
-        _selectedThemeMode = themeMode;
-      });
-      HapticFeedback.lightImpact();
+    if (themeMode != null) {
+      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+      if (themeMode != themeProvider.themeMode) {
+        themeProvider.setThemeMode(themeMode);
+        HapticFeedback.lightImpact();
 
-      // Show feedback
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.palette_rounded, color: Colors.white, size: 20),
-              const SizedBox(width: 12),
-              Text('Theme changed to ${_getThemeDisplayName(themeMode)}'),
-            ],
+        // Show feedback
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.palette_rounded, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Text('Theme changed to ${_getThemeDisplayName(themeMode)}'),
+              ],
+            ),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            duration: const Duration(seconds: 2),
           ),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -348,7 +349,8 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Widget _buildThemeOption(ThemeMode themeMode) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isSelected = _selectedThemeMode == themeMode;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isSelected = themeProvider.themeMode == themeMode;
 
     return Material(
       color: Colors.transparent,

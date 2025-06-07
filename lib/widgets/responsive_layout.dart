@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'responsive_sidebar.dart';
 
 class ResponsiveLayout extends StatefulWidget {
   final Widget child;
@@ -62,171 +63,39 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
     final isMobile = screenWidth < 768;
 
     if (isMobile) {
-      return _buildMobileLayout();
+      return Scaffold(
+        body: widget.child,
+        bottomNavigationBar: ResponsiveSidebar(
+          currentIndex: widget.currentIndex,
+          onDestinationSelected: widget.onDestinationSelected,
+          isAdmin: widget.isAdmin,
+        ),
+      );
     } else {
-      return _buildDesktopLayout();
-    }
-  }
-
-  Widget _buildMobileLayout() {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Scaffold(
-      body: widget.child,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, -2),
+      return Scaffold(
+        body: Row(
+          children: [
+            ResponsiveSidebar(
+              currentIndex: widget.currentIndex,
+              onDestinationSelected: widget.onDestinationSelected,
+              isAdmin: widget.isAdmin,
+              isExtended: !_isSidebarCollapsed,
+            ),
+            Expanded(
+              child: Column(
+                children: [
+                  _buildTopBar(),
+                  Expanded(child: widget.child),
+                ],
+              ),
             ),
           ],
         ),
-        child: SafeArea(
-          child: NavigationBar(
-            selectedIndex: widget.currentIndex,
-            onDestinationSelected: widget.onDestinationSelected,
-            backgroundColor: colorScheme.surface,
-            surfaceTintColor: colorScheme.surface,
-            indicatorColor: colorScheme.primary.withValues(alpha: 0.1),
-            destinations: _getNavigationDestinations(context, true),
-          ),
-        ),
-      ),
-    );
+      );
+    }
   }
 
-  Widget _buildDesktopLayout() {
-    final colorScheme = Theme.of(context).colorScheme;
-    const sidebarWidth = 280.0;
-    const collapsedSidebarWidth = 80.0;
 
-    return Scaffold(
-      body: Row(
-        children: [
-          // Sidebar
-          AnimatedBuilder(
-            animation: _sidebarAnimation,
-            builder: (context, child) {
-              final currentWidth =
-                  _isSidebarCollapsed ? collapsedSidebarWidth : sidebarWidth;
-
-              return Container(
-                width: currentWidth,
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  border: Border(
-                    right: BorderSide(
-                      color: colorScheme.outline.withValues(alpha: 0.2),
-                      width: 1,
-                    ),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 8,
-                      offset: const Offset(2, 0),
-                    ),
-                  ],
-                ),
-                child: _buildSidebar(currentWidth),
-              );
-            },
-          ),
-
-          // Main content
-          Expanded(
-            child: Column(
-              children: [_buildTopBar(), Expanded(child: widget.child)],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSidebar(double width) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isCollapsed = width <= 80;
-
-    return SafeArea(
-      child: Column(
-        children: [
-          // Logo/Brand section
-          Container(
-            height: 80,
-            padding: EdgeInsets.symmetric(
-              horizontal: isCollapsed ? 16 : 24,
-              vertical: 16,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [colorScheme.primary, colorScheme.secondary],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.travel_explore_rounded,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-                if (!isCollapsed) ...[
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'TourApp',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-
-          // Navigation items
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.symmetric(
-                horizontal: isCollapsed ? 8 : 16,
-                vertical: 8,
-              ),
-              children: _getSidebarItems(context, isCollapsed),
-            ),
-          ),
-
-          // Collapse/Expand button
-          Container(
-            padding: EdgeInsets.all(isCollapsed ? 8 : 16),
-            child: _buildSidebarItem(
-              context: context,
-              icon:
-                  _isSidebarCollapsed
-                      ? Icons.menu_open_rounded
-                      : Icons.menu_rounded,
-              label: 'Collapse',
-              isSelected: false,
-              onTap: _toggleSidebar,
-              isCollapsed: isCollapsed,
-              showLabel: false,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildTopBar() {
     final colorScheme = Theme.of(context).colorScheme;
@@ -246,6 +115,19 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Row(
           children: [
+            // Sidebar toggle button
+            IconButton(
+              onPressed: _toggleSidebar,
+              icon: Icon(
+                _isSidebarCollapsed 
+                    ? Icons.menu_open_rounded
+                    : Icons.menu_rounded,
+              ),
+              tooltip: _isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar',
+            ),
+            
+            const SizedBox(width: 16),
+            
             // App Title
             Expanded(
               child: Row(

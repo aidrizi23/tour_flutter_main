@@ -18,20 +18,15 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
   late AnimationController _staggerController;
   late Animation<double> _fadeAnimation;
 
-  // Sample data for dashboard
-  final Map<String, dynamic> _dashboardStats = {
-    'totalTours': 47,
-    'activeTours': 23,
-    'totalBookings': 156,
-    'monthlyRevenue': 12450.50,
-    'todayBookings': 8,
-    'pendingReviews': 12,
-  };
+  // Real-time dashboard stats
+  Map<String, dynamic> _dashboardStats = {};
+  bool _isLoadingStats = true;
 
   @override
   void initState() {
     super.initState();
     _setupAnimations();
+    _loadDashboardStats();
   }
 
   void _setupAnimations() {
@@ -49,6 +44,41 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
     );
     _fadeController.forward();
     _staggerController.forward();
+  }
+
+  Future<void> _loadDashboardStats() async {
+    try {
+      // Note: In a real app, you would fetch these from your API
+      // For now, we'll simulate an API call and provide fallback values
+      await Future.delayed(const Duration(seconds: 1)); // Simulate API delay
+      
+      // You would replace this with actual API calls like:
+      // final stats = await AdminService.getDashboardStats();
+      
+      setState(() {
+        _dashboardStats = {
+          'totalTours': 0,
+          'activeTours': 0,
+          'totalBookings': 0,
+          'monthlyRevenue': 0.0,
+          'todayBookings': 0,
+          'pendingReviews': 0,
+        };
+        _isLoadingStats = false;
+      });
+    } catch (e) {
+      setState(() {
+        _dashboardStats = {
+          'totalTours': 0,
+          'activeTours': 0,
+          'totalBookings': 0,
+          'monthlyRevenue': 0.0,
+          'todayBookings': 0,
+          'pendingReviews': 0,
+        };
+        _isLoadingStats = false;
+      });
+    }
   }
 
   @override
@@ -307,50 +337,50 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
           children: [
             _buildStatCard(
               'Total Tours',
-              '${_dashboardStats['totalTours']}',
+              _isLoadingStats ? '...' : '${_dashboardStats['totalTours'] ?? 0}',
               Icons.map_rounded,
               colorScheme.primary,
-              '+12% from last month',
-              true,
+              _isLoadingStats ? 'Loading...' : 'Connect your API for real data',
+              false,
             ),
             _buildStatCard(
               'Monthly Revenue',
-              '\$${_dashboardStats['monthlyRevenue'].toStringAsFixed(0)}',
+              _isLoadingStats ? '...' : '\$${(_dashboardStats['monthlyRevenue'] ?? 0.0).toStringAsFixed(0)}',
               Icons.trending_up_rounded,
               Colors.green,
-              '+8.3% from last month',
-              true,
+              _isLoadingStats ? 'Loading...' : 'Connect your API for real data',
+              false,
             ),
             _buildStatCard(
               'Total Bookings',
-              '${_dashboardStats['totalBookings']}',
+              _isLoadingStats ? '...' : '${_dashboardStats['totalBookings'] ?? 0}',
               Icons.calendar_month_rounded,
               colorScheme.secondary,
-              '+15 today',
-              true,
+              _isLoadingStats ? 'Loading...' : 'Connect your API for real data',
+              false,
             ),
             _buildStatCard(
               'Active Tours',
-              '${_dashboardStats['activeTours']}',
+              _isLoadingStats ? '...' : '${_dashboardStats['activeTours'] ?? 0}',
               Icons.explore_rounded,
               Colors.orange,
-              'Out of ${_dashboardStats['totalTours']} total',
+              _isLoadingStats ? 'Loading...' : 'Out of ${_dashboardStats['totalTours'] ?? 0} total',
               false,
             ),
             _buildStatCard(
               'Today\'s Bookings',
-              '${_dashboardStats['todayBookings']}',
+              _isLoadingStats ? '...' : '${_dashboardStats['todayBookings'] ?? 0}',
               Icons.today_rounded,
               Colors.purple,
-              '2 pending confirmation',
+              _isLoadingStats ? 'Loading...' : 'No pending confirmations',
               false,
             ),
             _buildStatCard(
               'Pending Reviews',
-              '${_dashboardStats['pendingReviews']}',
+              _isLoadingStats ? '...' : '${_dashboardStats['pendingReviews'] ?? 0}',
               Icons.rate_review_rounded,
               Colors.amber,
-              'Awaiting moderation',
+              _isLoadingStats ? 'Loading...' : 'No pending reviews',
               false,
             ),
           ],
@@ -746,33 +776,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
   Widget _buildRecentActivity(bool isMobile) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final recentActivities = [
-      {
-        'title': 'New booking for "Alpine Adventure"',
-        'subtitle': '2 hours ago',
-        'icon': Icons.calendar_month_rounded,
-        'color': Colors.green,
-      },
-      {
-        'title': 'Tour "City Explorer" was updated',
-        'subtitle': '4 hours ago',
-        'icon': Icons.edit_rounded,
-        'color': Colors.blue,
-      },
-      {
-        'title': 'New user registration',
-        'subtitle': '6 hours ago',
-        'icon': Icons.person_add_rounded,
-        'color': Colors.purple,
-      },
-      {
-        'title': 'Payment received for booking #1234',
-        'subtitle': '8 hours ago',
-        'icon': Icons.payment_rounded,
-        'color': Colors.orange,
-      },
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -814,57 +817,37 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
             ],
           ),
           child: Column(
-            children:
-                recentActivities.map((activity) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: (activity['color'] as Color).withValues(
-                              alpha: 0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            activity['icon'] as IconData,
-                            color: activity['color'] as Color,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                activity['title'] as String,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ),
-                              Text(
-                                activity['subtitle'] as String,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurface.withValues(
-                                    alpha: 0.6,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+            children: [
+              // Empty state for activities
+              Container(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.history_rounded,
+                      size: 48,
+                      color: colorScheme.onSurface.withValues(alpha: 0.3),
                     ),
-                  );
-                }).toList(),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No Recent Activity',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onSurface.withValues(alpha: 0.6),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Connect your API to see real-time activity updates',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:tour_flutter_main/models/auth_models.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
@@ -15,6 +16,7 @@ import 'screens/settings/settings_screen.dart';
 import 'widgets/responsive_layout.dart';
 import 'services/auth_service.dart';
 import 'services/stripe_service.dart';
+import 'providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +27,12 @@ void main() async {
     debugPrint("Stripe initialization failed: $e");
   }
 
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -33,24 +40,28 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TourApp',
-      debugShowCheckedModeBanner: false,
-      theme: _buildLightTheme(),
-      darkTheme: _buildDarkTheme(),
-      themeMode: ThemeMode.system,
-      home: const AuthWrapper(),
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegisterScreen(),
-        '/tours': (context) => const TourListScreen(),
-        '/cars': (context) => const CarListScreen(),
-        '/admin-panel': (context) => const AdminPanelScreen(),
-        '/admin/create-tour': (context) => const AdminTourCreateScreen(),
-        '/profile': (context) => const ProfileScreen(),
-        '/bookings': (context) => const BookingScreen(),
-        '/recommendations': (context) => const RecommendationScreen(),
-        '/settings': (context) => const SettingsScreen(),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'TourApp',
+          debugShowCheckedModeBanner: false,
+          theme: _buildLightTheme(),
+          darkTheme: _buildDarkTheme(),
+          themeMode: themeProvider.themeMode,
+          home: const AuthWrapper(),
+          routes: {
+            '/login': (context) => const LoginScreen(),
+            '/register': (context) => const RegisterScreen(),
+            '/tours': (context) => const TourListScreen(),
+            '/cars': (context) => const CarListScreen(),
+            '/admin-panel': (context) => const AdminPanelScreen(),
+            '/admin/create-tour': (context) => const AdminTourCreateScreen(),
+            '/profile': (context) => const ProfileScreen(),
+            '/bookings': (context) => const BookingScreen(),
+            '/recommendations': (context) => const RecommendationScreen(),
+            '/settings': (context) => const SettingsScreen(),
+          },
+        );
       },
     );
   }
