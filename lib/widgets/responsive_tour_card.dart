@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/tour_models.dart';
 import '../screens/tours/tour_details_screen.dart';
+import './seamless_page_route.dart';
 
 class ResponsiveTourCard extends StatefulWidget {
   final Tour tour;
@@ -60,10 +61,9 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
 
   void _navigateToDetails() {
     HapticFeedback.lightImpact();
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => TourDetailsScreen(tourId: widget.tour.id),
-      ),
+    showSeamlessPage(
+      context,
+      (context) => TourDetailsScreen(tourId: widget.tour.id),
     );
   }
 
@@ -117,39 +117,36 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
             ),
             child:
                 widget.tour.mainImageUrl != null &&
-                        widget.tour.mainImageUrl!.isNotEmpty
-                    ? ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12),
+                    widget.tour.mainImageUrl!.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
+                    child: Hero(
+                      tag: 'tour_${widget.tour.id}',
+                      child: Image.network(
+                        widget.tour.mainImageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildImagePlaceholder(),
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                  : null,
+                              strokeWidth: 2,
+                              color: colorScheme.primary,
+                            ),
+                          );
+                        },
                       ),
-                      child: Hero(
-                        tag: 'tour_${widget.tour.id}',
-                        child: Image.network(
-                          widget.tour.mainImageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (context, error, stackTrace) =>
-                                  _buildImagePlaceholder(),
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Center(
-                              child: CircularProgressIndicator(
-                                value:
-                                    loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress
-                                                .cumulativeBytesLoaded /
-                                            loadingProgress.expectedTotalBytes!
-                                        : null,
-                                strokeWidth: 2,
-                                color: colorScheme.primary,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    )
-                    : _buildImagePlaceholder(),
+                    ),
+                  )
+                : _buildImagePlaceholder(),
           ),
         ),
 
