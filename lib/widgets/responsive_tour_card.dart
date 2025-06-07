@@ -123,26 +123,30 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
                         topLeft: Radius.circular(12),
                         topRight: Radius.circular(12),
                       ),
-                      child: Image.network(
-                        widget.tour.mainImageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder:
-                            (context, error, stackTrace) =>
-                                _buildImagePlaceholder(),
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value:
-                                  loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                              strokeWidth: 2,
-                              color: colorScheme.primary,
-                            ),
-                          );
-                        },
+                      child: Hero(
+                        tag: 'tour_${widget.tour.id}',
+                        child: Image.network(
+                          widget.tour.mainImageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder:
+                              (context, error, stackTrace) =>
+                                  _buildImagePlaceholder(),
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value:
+                                    loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                strokeWidth: 2,
+                                color: colorScheme.primary,
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     )
                     : _buildImagePlaceholder(),
