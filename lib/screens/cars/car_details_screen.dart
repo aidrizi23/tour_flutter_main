@@ -66,31 +66,32 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
     super.initState();
 
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
     _fabController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
     _staggerController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
     _bookingPanelController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.5),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutBack,
+          ),
+        );
     _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
@@ -369,22 +370,14 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
       }
 
       // Verify we have payment info before proceeding
-      log(
-        'Payment info retrieved successfully, proceeding to payment screen',
-      );
+      log('Payment info retrieved successfully, proceeding to payment screen');
 
       // Navigate to payment screen
       final result = await Navigator.of(context).push(
         PageRouteBuilder(
-          pageBuilder:
-              (context, animation, secondaryAnimation) =>
-                  CarPaymentScreen(paymentInfo: paymentInfo!),
-          transitionsBuilder: (
-            context,
-            animation,
-            secondaryAnimation,
-            child,
-          ) {
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              CarPaymentScreen(paymentInfo: paymentInfo!),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(
               position: animation.drive(
                 Tween(
@@ -410,7 +403,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
           _isBooking = false;
         });
       }
-        } catch (e) {
+    } catch (e) {
       setState(() {
         _isBooking = false;
       });
@@ -741,10 +734,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
   }
 
   Widget _buildEnhancedImageGallery() {
-    final images =
-        _car!.images.isEmpty
-            ? [CarImage(id: 0, imageUrl: '', displayOrder: 0)]
-            : _car!.images;
+    final images = _car!.images.isEmpty
+        ? [CarImage(id: 0, imageUrl: '', displayOrder: 0)]
+        : _car!.images;
 
     return Stack(
       children: [
@@ -760,15 +752,14 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
             final image = images[index];
             return Container(
               decoration: BoxDecoration(
-                image:
-                    image.imageUrl.isNotEmpty
-                        ? DecorationImage(
-                          image: NetworkImage(image.imageUrl),
-                          fit: BoxFit.cover,
-                          onError:
-                              (error, stackTrace) => _buildImagePlaceholder(),
-                        )
-                        : null,
+                image: image.imageUrl.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(image.imageUrl),
+                        fit: BoxFit.cover,
+                        onError: (error, stackTrace) =>
+                            _buildImagePlaceholder(),
+                      )
+                    : null,
               ),
               child: image.imageUrl.isEmpty ? _buildImagePlaceholder() : null,
             );
@@ -802,10 +793,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                       height: 8,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(4),
-                        color:
-                            _currentImageIndex == index
-                                ? Colors.white
-                                : Colors.white.withOpacity(0.5),
+                        color: _currentImageIndex == index
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.5),
                       ),
                     ),
                   ),
@@ -923,12 +913,11 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                     ),
                     Text(
                       _car!.displayPrice,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.headlineMedium?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ],
                 ),
@@ -972,12 +961,11 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                     ),
                     Text(
                       _car!.displayPrice,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.headlineSmall?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ],
                 ),
@@ -1304,12 +1292,11 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                       const SizedBox(height: 12),
                       Text(
                         'Interactive Map',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurface.withOpacity(0.7),
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurface.withOpacity(0.7),
+                            ),
                       ),
                       const SizedBox(height: 8),
                       Container(
@@ -1323,12 +1310,11 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                         ),
                         child: Text(
                           _car!.location,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.primary,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.primary,
+                              ),
                         ),
                       ),
                     ],
@@ -1465,11 +1451,10 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
             )
           else
             Column(
-              children:
-                  _reviews
-                      .take(3)
-                      .map((review) => _buildModernReviewItem(review))
-                      .toList(),
+              children: _reviews
+                  .take(3)
+                  .map((review) => _buildModernReviewItem(review))
+                  .toList(),
             ),
 
           if (_reviews.length > 3) ...[
@@ -1545,10 +1530,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                         index < _selectedRating
                             ? Icons.star_rounded
                             : Icons.star_border_rounded,
-                        color:
-                            index < _selectedRating
-                                ? Colors.amber
-                                : colorScheme.outline,
+                        color: index < _selectedRating
+                            ? Colors.amber
+                            : colorScheme.outline,
                         size: 32,
                       ),
                     ),
@@ -1643,21 +1627,19 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                             index < review.rating
                                 ? Icons.star_rounded
                                 : Icons.star_border_rounded,
-                            color:
-                                index < review.rating
-                                    ? Colors.amber
-                                    : colorScheme.outline,
+                            color: index < review.rating
+                                ? Colors.amber
+                                : colorScheme.outline,
                             size: 16,
                           );
                         }),
                         const SizedBox(width: 8),
                         Text(
                           '${review.createdAt.day}/${review.createdAt.month}/${review.createdAt.year}',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.6),
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: colorScheme.onSurface.withOpacity(0.6),
+                              ),
                         ),
                       ],
                     ),
@@ -1767,11 +1749,12 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                           children: [
                             Text(
                               'Seats',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurface.withOpacity(0.6),
-                              ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurface.withOpacity(
+                                      0.6,
+                                    ),
+                                  ),
                             ),
                             Text(
                               '${_car!.seats} people',
@@ -1785,20 +1768,20 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                           children: [
                             Text(
                               'Daily rate',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurface.withOpacity(0.6),
-                              ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurface.withOpacity(
+                                      0.6,
+                                    ),
+                                  ),
                             ),
                             Text(
                               _car!.displayPrice,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ],
                         ),
@@ -1822,59 +1805,55 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                   // Start Date
                   Expanded(
                     child: InkWell(
-                      onTap:
-                          _isBooking
-                              ? null
-                              : () async {
-                                final now = DateTime.now();
-                                final tomorrow = DateTime(
-                                  now.year,
-                                  now.month,
-                                  now.day + 1,
-                                );
+                      onTap: _isBooking
+                          ? null
+                          : () async {
+                              final now = DateTime.now();
+                              final tomorrow = DateTime(
+                                now.year,
+                                now.month,
+                                now.day + 1,
+                              );
 
-                                final date = await showDatePicker(
-                                  context: context,
-                                  initialDate: _selectedStartDate ?? tomorrow,
-                                  firstDate: tomorrow,
-                                  lastDate: DateTime.now().add(
-                                    const Duration(days: 365),
-                                  ),
-                                );
-                                if (date != null) {
-                                  setState(() {
-                                    _selectedStartDate = date;
+                              final date = await showDatePicker(
+                                context: context,
+                                initialDate: _selectedStartDate ?? tomorrow,
+                                firstDate: tomorrow,
+                                lastDate: DateTime.now().add(
+                                  const Duration(days: 365),
+                                ),
+                              );
+                              if (date != null) {
+                                setState(() {
+                                  _selectedStartDate = date;
 
-                                    // If end date exists but is now before or same as start date,
-                                    // set it to start date + 1 day
-                                    if (_selectedEndDate == null ||
-                                        !_selectedEndDate!.isAfter(
-                                          _selectedStartDate!,
-                                        )) {
-                                      _selectedEndDate = _selectedStartDate!
-                                          .add(const Duration(days: 1));
-                                    }
+                                  // If end date exists but is now before or same as start date,
+                                  // set it to start date + 1 day
+                                  if (_selectedEndDate == null ||
+                                      !_selectedEndDate!.isAfter(
+                                        _selectedStartDate!,
+                                      )) {
+                                    _selectedEndDate = _selectedStartDate!.add(
+                                      const Duration(days: 1),
+                                    );
+                                  }
 
-                                    // Reset availability info when dates change
-                                    _availability = null;
-                                    _availabilityErrorMessage = null;
-                                  });
-                                }
-                              },
+                                  // Reset availability info when dates change
+                                  _availability = null;
+                                  _availabilityErrorMessage = null;
+                                });
+                              }
+                            },
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color:
-                              _selectedStartDate != null
-                                  ? colorScheme.primaryContainer.withOpacity(
-                                    0.3,
-                                  )
-                                  : colorScheme.surfaceContainerLow,
+                          color: _selectedStartDate != null
+                              ? colorScheme.primaryContainer.withOpacity(0.3)
+                              : colorScheme.surfaceContainerLow,
                           border: Border.all(
-                            color:
-                                _selectedStartDate != null
-                                    ? colorScheme.primary.withOpacity(0.5)
-                                    : colorScheme.outline.withOpacity(0.3),
+                            color: _selectedStartDate != null
+                                ? colorScheme.primary.withOpacity(0.5)
+                                : colorScheme.outline.withOpacity(0.3),
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -1882,33 +1861,29 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                           children: [
                             Icon(
                               Icons.calendar_today_rounded,
-                              color:
-                                  _selectedStartDate != null
-                                      ? colorScheme.primary
-                                      : colorScheme.outline,
+                              color: _selectedStartDate != null
+                                  ? colorScheme.primary
+                                  : colorScheme.outline,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 _selectedStartDate != null
                                     ? DateFormat(
-                                      'MMM d, yyyy',
-                                    ).format(_selectedStartDate!)
+                                        'MMM d, yyyy',
+                                      ).format(_selectedStartDate!)
                                     : 'Start date',
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodyLarge?.copyWith(
-                                  color:
-                                      _selectedStartDate != null
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(
+                                      color: _selectedStartDate != null
                                           ? colorScheme.onSurface
                                           : colorScheme.onSurface.withOpacity(
-                                            0.6,
-                                          ),
-                                  fontWeight:
-                                      _selectedStartDate != null
+                                              0.6,
+                                            ),
+                                      fontWeight: _selectedStartDate != null
                                           ? FontWeight.w600
                                           : FontWeight.normal,
-                                ),
+                                    ),
                               ),
                             ),
                           ],
@@ -1921,54 +1896,49 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                   // End Date
                   Expanded(
                     child: InkWell(
-                      onTap:
-                          _isBooking || _selectedStartDate == null
-                              ? null
-                              : () async {
-                                // Set the mininum end date to start date + 1 day
-                                final minimumEndDate = _selectedStartDate!.add(
-                                  const Duration(days: 1),
-                                );
+                      onTap: _isBooking || _selectedStartDate == null
+                          ? null
+                          : () async {
+                              // Set the mininum end date to start date + 1 day
+                              final minimumEndDate = _selectedStartDate!.add(
+                                const Duration(days: 1),
+                              );
 
-                                final date = await showDatePicker(
-                                  context: context,
-                                  initialDate:
-                                      _selectedEndDate != null &&
-                                              _selectedEndDate!.isAfter(
-                                                minimumEndDate,
-                                              )
-                                          ? _selectedEndDate!
-                                          : minimumEndDate,
-                                  firstDate: minimumEndDate,
-                                  lastDate: _selectedStartDate!.add(
-                                    const Duration(
-                                      days: 30,
-                                    ), // Maximum 30-day booking
-                                  ),
-                                );
-                                if (date != null) {
-                                  setState(() {
-                                    _selectedEndDate = date;
-                                    // Reset availability info when dates change
-                                    _availability = null;
-                                    _availabilityErrorMessage = null;
-                                  });
-                                }
-                              },
+                              final date = await showDatePicker(
+                                context: context,
+                                initialDate:
+                                    _selectedEndDate != null &&
+                                        _selectedEndDate!.isAfter(
+                                          minimumEndDate,
+                                        )
+                                    ? _selectedEndDate!
+                                    : minimumEndDate,
+                                firstDate: minimumEndDate,
+                                lastDate: _selectedStartDate!.add(
+                                  const Duration(
+                                    days: 30,
+                                  ), // Maximum 30-day booking
+                                ),
+                              );
+                              if (date != null) {
+                                setState(() {
+                                  _selectedEndDate = date;
+                                  // Reset availability info when dates change
+                                  _availability = null;
+                                  _availabilityErrorMessage = null;
+                                });
+                              }
+                            },
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color:
-                              _selectedEndDate != null
-                                  ? colorScheme.primaryContainer.withOpacity(
-                                    0.3,
-                                  )
-                                  : colorScheme.surfaceContainerLow,
+                          color: _selectedEndDate != null
+                              ? colorScheme.primaryContainer.withOpacity(0.3)
+                              : colorScheme.surfaceContainerLow,
                           border: Border.all(
-                            color:
-                                _selectedEndDate != null
-                                    ? colorScheme.primary.withOpacity(0.5)
-                                    : colorScheme.outline.withOpacity(0.3),
+                            color: _selectedEndDate != null
+                                ? colorScheme.primary.withOpacity(0.5)
+                                : colorScheme.outline.withOpacity(0.3),
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -1976,33 +1946,29 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                           children: [
                             Icon(
                               Icons.calendar_today_rounded,
-                              color:
-                                  _selectedEndDate != null
-                                      ? colorScheme.primary
-                                      : colorScheme.outline,
+                              color: _selectedEndDate != null
+                                  ? colorScheme.primary
+                                  : colorScheme.outline,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 _selectedEndDate != null
                                     ? DateFormat(
-                                      'MMM d, yyyy',
-                                    ).format(_selectedEndDate!)
+                                        'MMM d, yyyy',
+                                      ).format(_selectedEndDate!)
                                     : 'End date',
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodyLarge?.copyWith(
-                                  color:
-                                      _selectedEndDate != null
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(
+                                      color: _selectedEndDate != null
                                           ? colorScheme.onSurface
                                           : colorScheme.onSurface.withOpacity(
-                                            0.6,
-                                          ),
-                                  fontWeight:
-                                      _selectedEndDate != null
+                                              0.6,
+                                            ),
+                                      fontWeight: _selectedEndDate != null
                                           ? FontWeight.w600
                                           : FontWeight.normal,
-                                ),
+                                    ),
                               ),
                             ),
                           ],
@@ -2055,18 +2021,16 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed:
-                        _isBooking || _isCheckingAvailability
-                            ? null
-                            : _checkAvailability,
-                    icon:
-                        _isCheckingAvailability
-                            ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                            : const Icon(Icons.search_rounded),
+                    onPressed: _isBooking || _isCheckingAvailability
+                        ? null
+                        : _checkAvailability,
+                    icon: _isCheckingAvailability
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.search_rounded),
                     label: Text(
                       _isCheckingAvailability
                           ? 'Checking...'
@@ -2088,10 +2052,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                   duration: const Duration(milliseconds: 500),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color:
-                        _availability!.isAvailable
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.red.withOpacity(0.1),
+                    color: _availability!.isAvailable
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: _availability!.statusColor.withOpacity(0.3),
@@ -2115,12 +2078,11 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                           Expanded(
                             child: Text(
                               _availability!.statusText,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: _availability!.statusColor,
-                              ),
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: _availability!.statusColor,
+                                  ),
                             ),
                           ),
                         ],
@@ -2136,12 +2098,11 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                             ),
                             Text(
                               _availability!.formattedPrice,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
-                              ),
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
+                                  ),
                             ),
                           ],
                         ),
@@ -2151,11 +2112,12 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                           children: [
                             Text(
                               'Duration:',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurface.withOpacity(0.7),
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: colorScheme.onSurface.withOpacity(
+                                      0.7,
+                                    ),
+                                  ),
                             ),
                             Text(
                               _availability!.formattedDuration,
@@ -2208,28 +2170,26 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                   children: [
                     Checkbox(
                       value: _agreedToTerms,
-                      onChanged:
-                          _isBooking
-                              ? null
-                              : (value) {
-                                setState(() {
-                                  _agreedToTerms = value ?? false;
-                                });
-                                HapticFeedback.lightImpact();
-                              },
+                      onChanged: _isBooking
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _agreedToTerms = value ?? false;
+                              });
+                              HapticFeedback.lightImpact();
+                            },
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: GestureDetector(
-                        onTap:
-                            _isBooking
-                                ? null
-                                : () {
-                                  setState(() {
-                                    _agreedToTerms = !_agreedToTerms;
-                                  });
-                                  HapticFeedback.lightImpact();
-                                },
+                        onTap: _isBooking
+                            ? null
+                            : () {
+                                setState(() {
+                                  _agreedToTerms = !_agreedToTerms;
+                                });
+                                HapticFeedback.lightImpact();
+                              },
                         child: Text(
                           'I agree to the terms and conditions and privacy policy',
                           style: Theme.of(
@@ -2250,17 +2210,15 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     child: CustomButton(
-                      onPressed:
-                          _isBooking || !_agreedToTerms
-                              ? null
-                              : _proceedWithBooking,
+                      onPressed: _isBooking || !_agreedToTerms
+                          ? null
+                          : _proceedWithBooking,
                       isLoading: _isBooking,
                       minimumSize: const Size(double.infinity, 56),
                       borderRadius: 16,
-                      backgroundColor:
-                          _agreedToTerms
-                              ? colorScheme.primary
-                              : colorScheme.outline.withOpacity(0.5),
+                      backgroundColor: _agreedToTerms
+                          ? colorScheme.primary
+                          : colorScheme.outline.withOpacity(0.5),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -2495,12 +2453,11 @@ class _BookingSuccessDialogState extends State<BookingSuccessDialog>
                   children: [
                     Text(
                       'Booking Confirmed!',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -2530,12 +2487,11 @@ class CheckPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (animationValue == 0) return;
 
-    final paint =
-        Paint()
-          ..color = Colors.white
-          ..strokeWidth = 4
-          ..style = PaintingStyle.stroke
-          ..strokeCap = StrokeCap.round;
+    final paint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 4
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
 
     final center = Offset(size.width / 2, size.height / 2);
 

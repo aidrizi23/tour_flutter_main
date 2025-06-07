@@ -4,6 +4,8 @@ import '../../models/car_models.dart';
 import '../../services/car_service.dart';
 import 'car_details_screen.dart';
 
+import "../../widgets/seamless_page_route.dart";
+
 class CarListScreen extends StatefulWidget {
   const CarListScreen({super.key});
 
@@ -119,8 +121,9 @@ class _CarListScreenState extends State<CarListScreen>
 
     try {
       final filter = CarFilterRequest(
-        searchTerm:
-            _searchController.text.isNotEmpty ? _searchController.text : null,
+        searchTerm: _searchController.text.isNotEmpty
+            ? _searchController.text
+            : null,
         make: _selectedMake,
         model: _selectedModel,
         category: _selectedCategory,
@@ -171,8 +174,9 @@ class _CarListScreenState extends State<CarListScreen>
 
     try {
       final filter = CarFilterRequest(
-        searchTerm:
-            _searchController.text.isNotEmpty ? _searchController.text : null,
+        searchTerm: _searchController.text.isNotEmpty
+            ? _searchController.text
+            : null,
         make: _selectedMake,
         model: _selectedModel,
         category: _selectedCategory,
@@ -479,22 +483,20 @@ class _CarListScreenState extends State<CarListScreen>
             color: colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color:
-                  _isSearchFocused
-                      ? colorScheme.primary
-                      : colorScheme.outline.withOpacity(0.2),
+              color: _isSearchFocused
+                  ? colorScheme.primary
+                  : colorScheme.outline.withOpacity(0.2),
               width: _isSearchFocused ? 2 : 1,
             ),
-            boxShadow:
-                _isSearchFocused
-                    ? [
-                      BoxShadow(
-                        color: colorScheme.primary.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                    : null,
+            boxShadow: _isSearchFocused
+                ? [
+                    BoxShadow(
+                      color: colorScheme.primary.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: Focus(
             onFocusChange: (hasFocus) {
@@ -511,27 +513,25 @@ class _CarListScreenState extends State<CarListScreen>
                 ),
                 prefixIcon: Icon(
                   Icons.search_rounded,
-                  color:
-                      _isSearchFocused
-                          ? colorScheme.primary
-                          : colorScheme.outline,
+                  color: _isSearchFocused
+                      ? colorScheme.primary
+                      : colorScheme.outline,
                 ),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 16,
                 ),
-                suffixIcon:
-                    _searchController.text.isNotEmpty
-                        ? IconButton(
-                          onPressed: () {
-                            _searchController.clear();
-                            _loadCars(isRefresh: true);
-                          },
-                          icon: const Icon(Icons.clear_rounded),
-                          color: colorScheme.outline,
-                        )
-                        : null,
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        onPressed: () {
+                          _searchController.clear();
+                          _loadCars(isRefresh: true);
+                        },
+                        icon: const Icon(Icons.clear_rounded),
+                        color: colorScheme.outline,
+                      )
+                    : null,
               ),
               onSubmitted: (_) => _loadCars(isRefresh: true),
               onChanged: (value) {
@@ -638,37 +638,33 @@ class _CarListScreenState extends State<CarListScreen>
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color:
-                selectedDate != null
-                    ? colorScheme.primary.withOpacity(0.1)
-                    : colorScheme.surfaceContainerLow,
+            color: selectedDate != null
+                ? colorScheme.primary.withOpacity(0.1)
+                : colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color:
-                  selectedDate != null
-                      ? colorScheme.primary.withOpacity(0.3)
-                      : colorScheme.outline.withOpacity(0.2),
+              color: selectedDate != null
+                  ? colorScheme.primary.withOpacity(0.3)
+                  : colorScheme.outline.withOpacity(0.2),
             ),
-            boxShadow:
-                selectedDate != null
-                    ? [
-                      BoxShadow(
-                        color: colorScheme.primary.withOpacity(0.05),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      ),
-                    ]
-                    : null,
+            boxShadow: selectedDate != null
+                ? [
+                    BoxShadow(
+                      color: colorScheme.primary.withOpacity(0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
           ),
           child: Row(
             children: [
               Icon(
                 icon,
                 size: 18,
-                color:
-                    selectedDate != null
-                        ? colorScheme.primary
-                        : colorScheme.outline,
+                color: selectedDate != null
+                    ? colorScheme.primary
+                    : colorScheme.outline,
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -687,10 +683,9 @@ class _CarListScreenState extends State<CarListScreen>
                           : 'Select date',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w500,
-                        color:
-                            selectedDate != null
-                                ? colorScheme.onSurface
-                                : colorScheme.onSurface.withOpacity(0.6),
+                        color: selectedDate != null
+                            ? colorScheme.onSurface
+                            : colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                   ],
@@ -722,33 +717,31 @@ class _CarListScreenState extends State<CarListScreen>
             color: isSelected ? colorScheme.primary : colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color:
-                  isSelected
-                      ? colorScheme.primary
-                      : colorScheme.outline.withOpacity(0.3),
+              color: isSelected
+                  ? colorScheme.primary
+                  : colorScheme.outline.withOpacity(0.3),
               width: isSelected ? 2 : 1,
             ),
-            boxShadow:
-                isSelected
-                    ? [
-                      BoxShadow(
-                        color: colorScheme.primary.withOpacity(0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                      BoxShadow(
-                        color: colorScheme.primary.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      ),
-                    ]
-                    : [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 2,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: colorScheme.primary.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                    BoxShadow(
+                      color: colorScheme.primary.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
           ),
           child: Text(
             label,
@@ -778,16 +771,14 @@ class _CarListScreenState extends State<CarListScreen>
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color:
-                _showFilters
-                    ? colorScheme.primary.withOpacity(0.1)
-                    : colorScheme.surface,
+            color: _showFilters
+                ? colorScheme.primary.withOpacity(0.1)
+                : colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color:
-                  _showFilters
-                      ? colorScheme.primary
-                      : colorScheme.outline.withOpacity(0.3),
+              color: _showFilters
+                  ? colorScheme.primary
+                  : colorScheme.outline.withOpacity(0.3),
               width: _showFilters ? 2 : 1,
             ),
             boxShadow: [
@@ -921,9 +912,8 @@ class _CarListScreenState extends State<CarListScreen>
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 8),
                     ),
-                    onChanged:
-                        (value) =>
-                            _selectedModel = value.isNotEmpty ? value : null,
+                    onChanged: (value) =>
+                        _selectedModel = value.isNotEmpty ? value : null,
                   ),
                 ),
               ),
@@ -953,9 +943,8 @@ class _CarListScreenState extends State<CarListScreen>
                         ),
                       ),
                     ],
-                    onChanged:
-                        (value) =>
-                            setState(() => _selectedTransmission = value),
+                    onChanged: (value) =>
+                        setState(() => _selectedTransmission = value),
                   ),
                 ),
               ),
@@ -980,8 +969,8 @@ class _CarListScreenState extends State<CarListScreen>
                         ),
                       ),
                     ],
-                    onChanged:
-                        (value) => setState(() => _selectedFuelType = value),
+                    onChanged: (value) =>
+                        setState(() => _selectedFuelType = value),
                   ),
                 ),
               ),
@@ -1097,17 +1086,16 @@ class _CarListScreenState extends State<CarListScreen>
                   value: _sortBy,
                   isExpanded: true,
                   underline: const SizedBox(),
-                  items:
-                      CarService.sortOptions
-                          .map(
-                            (option) => DropdownMenuItem<String>(
-                              value: option,
-                              child: Text(
-                                option.replaceAll('_', ' ').toUpperCase(),
-                              ),
-                            ),
-                          )
-                          .toList(),
+                  items: CarService.sortOptions
+                      .map(
+                        (option) => DropdownMenuItem<String>(
+                          value: option,
+                          child: Text(
+                            option.replaceAll('_', ' ').toUpperCase(),
+                          ),
+                        ),
+                      )
+                      .toList(),
                   onChanged: (value) => setState(() => _sortBy = value!),
                 ),
                 const SizedBox(height: 8),
@@ -1115,8 +1103,8 @@ class _CarListScreenState extends State<CarListScreen>
                   children: [
                     Checkbox(
                       value: _sortAscending,
-                      onChanged:
-                          (value) => setState(() => _sortAscending = value!),
+                      onChanged: (value) =>
+                          setState(() => _sortAscending = value!),
                     ),
                     Text(
                       'Ascending order',
@@ -1169,10 +1157,9 @@ class _CarListScreenState extends State<CarListScreen>
   }) {
     return TextField(
       controller: TextEditingController(text: value),
-      keyboardType:
-          isInt
-              ? TextInputType.number
-              : const TextInputType.numberWithOptions(decimal: true),
+      keyboardType: isInt
+          ? TextInputType.number
+          : const TextInputType.numberWithOptions(decimal: true),
       decoration: InputDecoration(
         hintText: hint,
         border: InputBorder.none,
@@ -1348,35 +1335,9 @@ class _CarListScreenState extends State<CarListScreen>
               child: InkWell(
                 onTap: () {
                   HapticFeedback.mediumImpact();
-                  Navigator.of(context).push(
-                    PageRouteBuilder(
-                      pageBuilder:
-                          (context, animation, secondaryAnimation) =>
-                              CarDetailsScreen(carId: car.id),
-                      transitionsBuilder: (
-                        context,
-                        animation,
-                        secondaryAnimation,
-                        child,
-                      ) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(1.0, 0.0),
-                            end: Offset.zero,
-                          ).animate(
-                            CurvedAnimation(
-                              parent: animation,
-                              curve: Curves.easeOutCubic,
-                            ),
-                          ),
-                          child: FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          ),
-                        );
-                      },
-                      transitionDuration: const Duration(milliseconds: 400),
-                    ),
+                  showSeamlessPage(
+                    context,
+                    (context) => CarDetailsScreen(carId: car.id),
                   );
                 },
                 borderRadius: BorderRadius.circular(isDesktop ? 24 : 20),
@@ -1403,77 +1364,72 @@ class _CarListScreenState extends State<CarListScreen>
                           ),
                           child:
                               car.mainImageUrl != null &&
-                                      car.mainImageUrl!.isNotEmpty
-                                  ? ClipRRect(
-                                    borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(
-                                        isDesktop ? 24 : 20,
-                                      ),
-                                      topRight: Radius.circular(
-                                        isDesktop ? 24 : 20,
-                                      ),
+                                  car.mainImageUrl!.isNotEmpty
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(
+                                      isDesktop ? 24 : 20,
                                     ),
-                                    child: Image.network(
-                                      car.mainImageUrl!,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      height: isDesktop ? 220 : 180,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                              _buildImagePlaceholder(),
-                                      loadingBuilder: (
-                                        context,
-                                        child,
-                                        loadingProgress,
-                                      ) {
-                                        if (loadingProgress == null)
-                                          return child;
-                                        return Container(
-                                          height: isDesktop ? 220 : 180,
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                colorScheme.surfaceContainer,
-                                                colorScheme.surfaceContainer
-                                                    .withOpacity(0.7),
-                                              ],
-                                            ),
-                                          ),
-                                          child: Center(
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                CircularProgressIndicator(
-                                                  value:
-                                                      loadingProgress
-                                                                  .expectedTotalBytes !=
-                                                              null
-                                                          ? loadingProgress
-                                                                  .cumulativeBytesLoaded /
-                                                              loadingProgress
-                                                                  .expectedTotalBytes!
-                                                          : null,
-                                                  strokeWidth: 2,
-                                                  color: colorScheme.primary,
-                                                ),
-                                                const SizedBox(height: 8),
-                                                Text(
-                                                  'Loading...',
-                                                  style: TextStyle(
-                                                    color: colorScheme.onSurface
-                                                        .withOpacity(0.6),
-                                                    fontSize: 12,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      },
+                                    topRight: Radius.circular(
+                                      isDesktop ? 24 : 20,
                                     ),
-                                  )
-                                  : _buildImagePlaceholder(),
+                                  ),
+                                  child: Image.network(
+                                    car.mainImageUrl!,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: isDesktop ? 220 : 180,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            _buildImagePlaceholder(),
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        height: isDesktop ? 220 : 180,
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              colorScheme.surfaceContainer,
+                                              colorScheme.surfaceContainer
+                                                  .withOpacity(0.7),
+                                            ],
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              CircularProgressIndicator(
+                                                value:
+                                                    loadingProgress
+                                                            .expectedTotalBytes !=
+                                                        null
+                                                    ? loadingProgress
+                                                              .cumulativeBytesLoaded /
+                                                          loadingProgress
+                                                              .expectedTotalBytes!
+                                                    : null,
+                                                strokeWidth: 2,
+                                                color: colorScheme.primary,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                'Loading...',
+                                                style: TextStyle(
+                                                  color: colorScheme.onSurface
+                                                      .withOpacity(0.6),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                )
+                              : _buildImagePlaceholder(),
                         ),
 
                         // Gradient overlay for better text readability
@@ -1537,8 +1493,9 @@ class _CarListScreenState extends State<CarListScreen>
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color:
-                                  car.isAvailable ? Colors.green : Colors.red,
+                              color: car.isAvailable
+                                  ? Colors.green
+                                  : Colors.red,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -1567,13 +1524,14 @@ class _CarListScreenState extends State<CarListScreen>
                                 Expanded(
                                   child: Text(
                                     '${car.make} ${car.model}',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      height: 1.2,
-                                      fontSize: isDesktop ? 18 : 16,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          height: 1.2,
+                                          fontSize: isDesktop ? 18 : 16,
+                                        ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -1612,14 +1570,12 @@ class _CarListScreenState extends State<CarListScreen>
                                 Expanded(
                                   child: Text(
                                     car.location,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurface.withOpacity(
-                                        0.7,
-                                      ),
-                                      fontSize: isDesktop ? 14 : 12,
-                                    ),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: colorScheme.onSurface
+                                              .withOpacity(0.7),
+                                          fontSize: isDesktop ? 14 : 12,
+                                        ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -1769,25 +1725,27 @@ class _CarListScreenState extends State<CarListScreen>
                                     children: [
                                       Text(
                                         'Daily Rate',
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.onSurface
-                                              .withOpacity(0.6),
-                                          fontSize: isDesktop ? 12 : 11,
-                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: colorScheme.onSurface
+                                                  .withOpacity(0.6),
+                                              fontSize: isDesktop ? 12 : 11,
+                                            ),
                                       ),
                                       Row(
                                         children: [
                                           Text(
                                             car.displayPrice,
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.titleLarge?.copyWith(
-                                              color: colorScheme.primary,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: isDesktop ? 22 : 18,
-                                            ),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleLarge
+                                                ?.copyWith(
+                                                  color: colorScheme.primary,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: isDesktop ? 22 : 18,
+                                                ),
                                           ),
                                           if (isDesktop) ...[
                                             const SizedBox(width: 4),
@@ -1820,102 +1778,64 @@ class _CarListScreenState extends State<CarListScreen>
                                 // Book Now Button
                                 AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
-                                  child:
-                                      car.isAvailable
-                                          ? FilledButton.icon(
-                                            onPressed: () {
-                                              HapticFeedback.lightImpact();
-                                              Navigator.of(context).push(
-                                                PageRouteBuilder(
-                                                  pageBuilder:
-                                                      (
-                                                        context,
-                                                        animation,
-                                                        secondaryAnimation,
-                                                      ) => CarDetailsScreen(
-                                                        carId: car.id,
-                                                      ),
-                                                  transitionsBuilder: (
-                                                    context,
-                                                    animation,
-                                                    secondaryAnimation,
-                                                    child,
-                                                  ) {
-                                                    return SlideTransition(
-                                                      position: Tween<Offset>(
-                                                        begin: const Offset(
-                                                          1.0,
-                                                          0.0,
-                                                        ),
-                                                        end: Offset.zero,
-                                                      ).animate(
-                                                        CurvedAnimation(
-                                                          parent: animation,
-                                                          curve:
-                                                              Curves
-                                                                  .easeOutCubic,
-                                                        ),
-                                                      ),
-                                                      child: FadeTransition(
-                                                        opacity: animation,
-                                                        child: child,
-                                                      ),
-                                                    );
-                                                  },
-                                                  transitionDuration:
-                                                      const Duration(
-                                                        milliseconds: 400,
-                                                      ),
-                                                ),
-                                              );
-                                            },
-                                            style: FilledButton.styleFrom(
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: isDesktop ? 24 : 20,
-                                                vertical: isDesktop ? 14 : 12,
+                                  child: car.isAvailable
+                                      ? FilledButton.icon(
+                                          onPressed: () {
+                                            HapticFeedback.lightImpact();
+                                            showSeamlessPage(
+                                              context,
+                                              (context) => CarDetailsScreen(
+                                                carId: car.id,
                                               ),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                      isDesktop ? 16 : 12,
-                                                    ),
-                                              ),
-                                              elevation: isDesktop ? 4 : 2,
+                                            );
+                                          },
+                                          style: FilledButton.styleFrom(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: isDesktop ? 24 : 20,
+                                              vertical: isDesktop ? 14 : 12,
                                             ),
-                                            icon: Icon(
-                                              Icons.drive_eta_rounded,
-                                              size: isDesktop ? 18 : 16,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    isDesktop ? 16 : 12,
+                                                  ),
                                             ),
-                                            label: Text(
-                                              isDesktop ? 'Book Now' : 'Rent',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: isDesktop ? 14 : 13,
-                                              ),
-                                            ),
-                                          )
-                                          : OutlinedButton(
-                                            onPressed: null,
-                                            style: OutlinedButton.styleFrom(
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: isDesktop ? 24 : 20,
-                                                vertical: isDesktop ? 14 : 12,
-                                              ),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                      isDesktop ? 16 : 12,
-                                                    ),
-                                              ),
-                                            ),
-                                            child: Text(
-                                              'Unavailable',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: isDesktop ? 14 : 13,
-                                              ),
+                                            elevation: isDesktop ? 4 : 2,
+                                          ),
+                                          icon: Icon(
+                                            Icons.drive_eta_rounded,
+                                            size: isDesktop ? 18 : 16,
+                                          ),
+                                          label: Text(
+                                            isDesktop ? 'Book Now' : 'Rent',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: isDesktop ? 14 : 13,
                                             ),
                                           ),
+                                        )
+                                      : OutlinedButton(
+                                          onPressed: null,
+                                          style: OutlinedButton.styleFrom(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: isDesktop ? 24 : 20,
+                                              vertical: isDesktop ? 14 : 12,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    isDesktop ? 16 : 12,
+                                                  ),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'Unavailable',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: isDesktop ? 14 : 13,
+                                            ),
+                                          ),
+                                        ),
                                 ),
                               ],
                             ),
