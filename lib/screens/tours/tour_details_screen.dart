@@ -688,16 +688,61 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
                 image:
                     image.imageUrl.isNotEmpty
                         ? DecorationImage(
-                          image: NetworkImage(image.imageUrl),
-                          fit: BoxFit.cover,
-                          onError:
-                              (error, stackTrace) => _buildImagePlaceholder(),
-                        )
+                            image: NetworkImage(image.imageUrl),
+                            fit: BoxFit.cover,
+                            onError:
+                                (error, stackTrace) => _buildImagePlaceholder(),
+                          )
                         : null,
               ),
               child: image.imageUrl.isEmpty ? _buildImagePlaceholder() : null,
             );
           },
+        ),
+
+        // Gradient overlay with tour title
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [Colors.black87, Colors.transparent],
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _tour!.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on, size: 14, color: Colors.white70),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        _tour!.location,
+                        style: const TextStyle(color: Colors.white70),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
 
         // Enhanced image indicators
