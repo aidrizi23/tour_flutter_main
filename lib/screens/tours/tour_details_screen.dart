@@ -365,6 +365,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     final isMobile = screenWidth < 600;
     final isTablet = screenWidth >= 600 && screenWidth < 900;
     final isDesktop = screenWidth >= 1000;
+    final isWideDesktop = screenWidth >= 1400;
 
     if (_isLoadingTour) {
       return Scaffold(
@@ -455,106 +456,119 @@ class _TourDetailsScreenState extends State<TourDetailsScreen>
     }
 
     if (isDesktop) {
+      final double panelWidth = isWideDesktop ? 420 : 400;
+      const double maxPageWidth = 1200;
       return Scaffold(
         backgroundColor: colorScheme.surfaceContainerLowest,
-        body: Row(
-          children: [
-            Expanded(
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  SliverAppBar(
-                    expandedHeight: 400,
-                    pinned: true,
-                    stretch: true,
-                    backgroundColor: colorScheme.surface,
-                    foregroundColor: colorScheme.onSurface,
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          _buildEnhancedImageGallery(),
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  Colors.black.withOpacity(0.7),
-                                ],
-                                stops: const [0.6, 1.0],
+        body: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: maxPageWidth),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              children: [
+                Expanded(
+                  child: CustomScrollView(
+                    controller: _scrollController,
+                    slivers: [
+                      SliverAppBar(
+                        expandedHeight: 400,
+                        pinned: true,
+                        stretch: true,
+                        backgroundColor: colorScheme.surface,
+                        foregroundColor: colorScheme.onSurface,
+                        flexibleSpace: FlexibleSpaceBar(
+                          background: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              _buildEnhancedImageGallery(),
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.black.withOpacity(0.7),
+                                    ],
+                                    stops: const [0.6, 1.0],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        actions: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: CircleAvatar(
+                              backgroundColor: Colors.black.withOpacity(0.3),
+                              child: IconButton(
+                                icon: const Icon(Icons.share_rounded),
+                                onPressed: _shareTotal,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 16),
+                            child: CircleAvatar(
+                              backgroundColor: Colors.black.withOpacity(0.3),
+                              child: IconButton(
+                                icon: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 200),
+                                  child: Icon(
+                                    _isFavorite
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                    key: ValueKey(_isFavorite),
+                                    color: _isFavorite
+                                        ? Colors.red
+                                        : Colors.white,
+                                  ),
+                                ),
+                                onPressed: _toggleFavorite,
                               ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    actions: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: CircleAvatar(
-                          backgroundColor: Colors.black.withOpacity(0.3),
-                          child: IconButton(
-                            icon: const Icon(Icons.share_rounded),
-                            onPressed: _shareTotal,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 16),
-                        child: CircleAvatar(
-                          backgroundColor: Colors.black.withOpacity(0.3),
-                          child: IconButton(
-                            icon: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 200),
-                              child: Icon(
-                                _isFavorite
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                key: ValueKey(_isFavorite),
-                                color: _isFavorite ? Colors.red : Colors.white,
+                      SliverToBoxAdapter(
+                        child: FadeTransition(
+                          opacity: _fadeAnimation,
+                          child: SlideTransition(
+                            position: _slideAnimation,
+                            child: ScaleTransition(
+                              scale: _scaleAnimation,
+                              child: Column(
+                                children: [
+                                  _buildEnhancedTourHeader(),
+                                  _buildModernTourInfo(),
+                                  _buildEnhancedItinerary(),
+                                  _buildModernFeatures(),
+                                  _buildEnhancedLocationSection(),
+                                  _buildModernReviewsSection(),
+                                  const SizedBox(height: 40),
+                                ],
                               ),
                             ),
-                            onPressed: _toggleFavorite,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SliverToBoxAdapter(
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: SlideTransition(
-                        position: _slideAnimation,
-                        child: ScaleTransition(
-                          scale: _scaleAnimation,
-                          child: Column(
-                            children: [
-                              _buildEnhancedTourHeader(),
-                              _buildModernTourInfo(),
-                              _buildEnhancedItinerary(),
-                              _buildModernFeatures(),
-                              _buildEnhancedLocationSection(),
-                              _buildModernReviewsSection(),
-                              const SizedBox(height: 40),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                ),
+                Container(
+                  width: 400,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 24,
                   ),
-                ],
-              ),
+                  color: colorScheme.surface,
+                  child: _buildEnhancedBookingPanel(showCloseButton: false),
+                ),
+              ],
             ),
-            Container(
-              width: 400,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              color: colorScheme.surface,
-              child: _buildEnhancedBookingPanel(showCloseButton: false),
-            ),
-          ],
+          ),
         ),
       );
     }
