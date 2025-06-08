@@ -382,16 +382,33 @@ class _CarPaymentScreenState extends State<CarPaymentScreen>
                           ),
                           enablePostalCode: true,
                         ),
-                        if (_cardFieldInputDetails != null &&
-                            !_cardFieldInputDetails!.complete)
+                        if (_cardFieldInputDetails != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              'Please enter complete card information',
-                              style: TextStyle(
-                                color: colorScheme.error,
-                                fontSize: 12,
-                              ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _cardFieldInputDetails!.complete
+                                      ? Icons.check_circle
+                                      : Icons.warning,
+                                  color: _cardFieldInputDetails!.complete
+                                      ? Colors.green
+                                      : colorScheme.error,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _cardFieldInputDetails!.complete
+                                      ? 'Card information is complete'
+                                      : 'Please enter complete card information',
+                                  style: TextStyle(
+                                    color: _cardFieldInputDetails!.complete
+                                        ? Colors.green
+                                        : colorScheme.error,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                       ],
