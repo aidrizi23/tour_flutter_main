@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'widgets/hero_section.dart';
 import 'widgets/features_section.dart';
+import 'widgets/inspiration_section.dart';
 
 /// A simple landing page styled like a modern website.
 class HomeWebScreen extends StatelessWidget {
@@ -16,10 +17,10 @@ class HomeWebScreen extends StatelessWidget {
         foregroundColor: Colors.white,
         title: Text(
           'TourApp',
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge
-              ?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
         actions: [
           TextButton(
@@ -39,6 +40,7 @@ class HomeWebScreen extends StatelessWidget {
         slivers: [
           SliverToBoxAdapter(child: HomeHeroSection()),
           SliverToBoxAdapter(child: HomeFeaturesSection()),
+          SliverToBoxAdapter(child: HomeInspirationSection()),
           SliverToBoxAdapter(child: SizedBox(height: 40)),
         ],
       ),
