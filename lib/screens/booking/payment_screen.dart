@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import '../../models/booking_models.dart';
 import '../../services/booking_service.dart';
+import '../../utils/billing_details_helper.dart';
 import '../../widgets/custom_button.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -55,12 +56,13 @@ class _PaymentScreenState extends State<PaymentScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutBack,
+          ),
+        );
 
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
@@ -74,8 +76,18 @@ class _PaymentScreenState extends State<PaymentScreen>
   }
 
   Future<void> _initializeBillingDetails() async {
-    // You can pre-fill billing details from user profile if available
-    // For now, we'll leave them empty for the user to fill
+    final details = await BillingDetailsHelper.getUserBillingDetails();
+    if (!mounted || details == null) return;
+    setState(() {
+      _emailController.text = details.email ?? '';
+      _nameController.text = details.name ?? '';
+      _addressController.text = details.address?.line1 ?? '';
+      _addressLine2Controller.text = details.address?.line2 ?? '';
+      _cityController.text = details.address?.city ?? '';
+      _stateController.text = details.address?.state ?? '';
+      _postalCodeController.text = details.address?.postalCode ?? '';
+      _countryController.text = details.address?.country ?? '';
+    });
   }
 
   @override
@@ -116,38 +128,28 @@ class _PaymentScreenState extends State<PaymentScreen>
     HapticFeedback.mediumImpact();
 
     try {
-      // Create billing details - include all required parameters
-      final address = Address(
-        line1:
-            _addressController.text.trim().isNotEmpty
-                ? _addressController.text.trim()
-                : null,
-        line2:
-            _addressLine2Controller.text.trim().isNotEmpty
-                ? _addressLine2Controller.text.trim()
-                : null,
-        city:
-            _cityController.text.trim().isNotEmpty
-                ? _cityController.text.trim()
-                : null,
-        state:
-            _stateController.text.trim().isNotEmpty
-                ? _stateController.text.trim()
-                : null,
-        postalCode:
-            _postalCodeController.text.trim().isNotEmpty
-                ? _postalCodeController.text.trim()
-                : null,
-        country:
-            _countryController.text.trim().isNotEmpty
-                ? _countryController.text.trim()
-                : null,
-      );
-
-      final billingDetails = BillingDetails(
+      // Create billing details using helper
+      final billingDetails = BillingDetailsHelper.createBillingDetails(
         email: _emailController.text.trim(),
         name: _nameController.text.trim(),
-        address: address,
+        addressLine1: _addressController.text.trim().isEmpty
+            ? null
+            : _addressController.text.trim(),
+        addressLine2: _addressLine2Controller.text.trim().isEmpty
+            ? null
+            : _addressLine2Controller.text.trim(),
+        city: _cityController.text.trim().isEmpty
+            ? null
+            : _cityController.text.trim(),
+        state: _stateController.text.trim().isEmpty
+            ? null
+            : _stateController.text.trim(),
+        postalCode: _postalCodeController.text.trim().isEmpty
+            ? null
+            : _postalCodeController.text.trim(),
+        country: _countryController.text.trim().isEmpty
+            ? null
+            : _countryController.text.trim(),
       );
 
       // Confirm payment with Stripe
@@ -267,8 +269,9 @@ class _PaymentScreenState extends State<PaymentScreen>
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed:
-              _isProcessingPayment ? null : () => Navigator.of(context).pop(),
+          onPressed: _isProcessingPayment
+              ? null
+              : () => Navigator.of(context).pop(),
         ),
       ),
       body: FadeTransition(
@@ -309,8 +312,9 @@ class _PaymentScreenState extends State<PaymentScreen>
                       child: SizedBox(
                         width: double.infinity,
                         child: CustomButton(
-                          onPressed:
-                              _isProcessingPayment ? null : _processPayment,
+                          onPressed: _isProcessingPayment
+                              ? null
+                              : _processPayment,
                           isLoading: _isProcessingPayment,
                           minimumSize: const Size(double.infinity, 56),
                           borderRadius: 16,
@@ -493,8 +497,8 @@ class _PaymentScreenState extends State<PaymentScreen>
                 child: Image.network(
                   widget.paymentInfo.tourImageUrl!,
                   fit: BoxFit.cover,
-                  errorBuilder:
-                      (context, error, stackTrace) => _buildImagePlaceholder(),
+                  errorBuilder: (context, error, stackTrace) =>
+                      _buildImagePlaceholder(),
                 ),
               ),
             )
@@ -623,10 +627,9 @@ class _PaymentScreenState extends State<PaymentScreen>
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color:
-                    _isCardComplete
-                        ? Colors.green
-                        : colorScheme.outline.withOpacity(0.2),
+                color: _isCardComplete
+                    ? Colors.green
+                    : colorScheme.outline.withOpacity(0.2),
                 width: _isCardComplete ? 2 : 1,
               ),
             ),
@@ -1042,22 +1045,20 @@ class _PaymentScreenState extends State<PaymentScreen>
           label,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color:
-                isTotal
-                    ? colorScheme.onSurface
-                    : colorScheme.onSurface.withOpacity(0.8),
+            color: isTotal
+                ? colorScheme.onSurface
+                : colorScheme.onSurface.withOpacity(0.8),
           ),
         ),
         Text(
           value,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-            color:
-                isTotal
-                    ? colorScheme.primary
-                    : isDiscount
-                    ? Colors.green
-                    : colorScheme.onSurface,
+            color: isTotal
+                ? colorScheme.primary
+                : isDiscount
+                ? Colors.green
+                : colorScheme.onSurface,
           ),
         ),
       ],
@@ -1236,12 +1237,11 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog>
                   children: [
                     Text(
                       'Payment Successful!',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
                     ),
                     const SizedBox(height: 8),
                     Text(
