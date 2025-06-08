@@ -1,0 +1,802 @@
+# TourApp Houses & Recommendations Documentation
+
+## House Data Models
+
+### House Entity
+
+The House entity represents properties available for rent in the system.
+
+```csharp
+public class House
+{
+    [Key]
+    public int Id { get; set; }
+    
+    [Required]
+    [StringLength(100)]
+    public string Name { get; set; } = string.Empty;
+    
+    [Required]
+    public string Description { get; set; } = string.Empty;
+    
+    [Required]
+    public decimal NightlyRate { get; set; }
+    
+    [Required]
+    public string Address { get; set; } = string.Empty;
+    
+    public string City { get; set; } = string.Empty;
+    
+    public string State { get; set; } = string.Empty;
+    
+    public string Country { get; set; } = string.Empty;
+    
+    // Property types: Apartment, House, Villa, Cottage, etc.
+    public string PropertyType { get; set; } = "House";
+    
+    public int Bedrooms { get; set; }
+    
+    public int Bathrooms { get; set; }
+    
+    public int MaxGuests { get; set; }
+    
+    public decimal? CleaningFee { get; set; }
+    
+    public string? MainImageUrl { get; set; }
+    
+    public bool IsActive { get; set; } = true;
+    
+    public bool IsAvailable { get; set; } = true;
+    
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
+    public DateTime? UpdatedAt { get; set; }
+    
+    public string CreatedById { get; set; } = string.Empty;
+    
+    [ForeignKey("CreatedById")]
+    public ApplicationUser? CreatedBy { get; set; }
+    
+    // Navigation properties
+    public ICollection<HouseImage> Images { get; set; } = new List<HouseImage>();
+    public ICollection<HouseFeature> Features { get; set; } = new List<HouseFeature>();
+    public ICollection<HouseReview> Reviews { get; set; } = new List<HouseReview>();
+    public ICollection<HouseBooking> Bookings { get; set; } = new List<HouseBooking>();
+}
+```
+
+### Related Entities
+
+#### HouseImage
+```csharp
+public class HouseImage
+{
+    [Key]
+    public int Id { get; set; }
+    
+    [Required]
+    public string ImageUrl { get; set; } = string.Empty;
+    
+    public string? Caption { get; set; }
+    
+    public int DisplayOrder { get; set; }
+    
+    public int HouseId { get; set; }
+    
+    [ForeignKey("HouseId")]
+    public House? House { get; set; }
+}
+```
+
+#### HouseFeature
+```csharp
+public class HouseFeature
+{
+    [Key]
+    public int Id { get; set; }
+    
+    [Required]
+    public string Name { get; set; } = string.Empty;
+    
+    public string? Description { get; set; }
+    
+    public int HouseId { get; set; }
+    
+    [ForeignKey("HouseId")]
+    public House? House { get; set; }
+}
+```
+
+#### HouseReview
+```csharp
+public class HouseReview
+{
+    [Key]
+    public int Id { get; set; }
+    
+    public int HouseId { get; set; }
+    
+    [ForeignKey("HouseId")]
+    public House? House { get; set; }
+    
+    public string UserId { get; set; } = string.Empty;
+    
+    [ForeignKey("UserId")]
+    public ApplicationUser? User { get; set; }
+    
+    [Required]
+    public string Comment { get; set; } = string.Empty;
+    
+    [Range(1, 5)]
+    public int Rating { get; set; }
+    
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+```
+
+#### HouseBooking
+```csharp
+public class HouseBooking
+{
+    [Key]
+    public int Id { get; set; }
+    
+    public int HouseId { get; set; }
+    
+    [ForeignKey("HouseId")]
+    public House? House { get; set; }
+    
+    public string UserId { get; set; } = string.Empty;
+    
+    public DateTime BookingDate { get; set; }
+    
+    public DateTime CheckInDate { get; set; }
+    
+    public DateTime CheckOutDate { get; set; }
+    
+    public int GuestCount { get; set; }
+    
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal TotalAmount { get; set; }
+    
+    public string Status { get; set; } = string.Empty; // "Pending", "Confirmed", "Completed", "Cancelled"
+    
+    public string? Notes { get; set; }
+    
+    public string? PaymentMethod { get; set; }
+    
+    public string PaymentStatus { get; set; } = string.Empty; // "Unpaid", "Pending", "Paid", "Refunded", etc.
+    
+    public DateTime? PaymentDate { get; set; }
+    
+    public string? TransactionId { get; set; }
+}
+```
+
+## House API Endpoints
+
+### 1. Get All Houses
+
+**Endpoint:** `GET /api/houses`
+
+**Query Parameters:**
+- `searchTerm` (string, optional): Search houses by name, description, or location
+- `city` (string, optional): Filter by city
+- `country` (string, optional): Filter by country
+- `propertyType` (string, optional): Filter by property type
+- `minBedrooms` (int, optional): Minimum number of bedrooms
+- `maxBedrooms` (int, optional): Maximum number of bedrooms
+- `minBathrooms` (int, optional): Minimum number of bathrooms
+- `minGuests` (int, optional): Minimum guest capacity
+- `minPrice` (decimal, optional): Minimum nightly rate
+- `maxPrice` (decimal, optional): Maximum nightly rate
+- `availableFrom` (DateTime, optional): Available from date
+- `availableTo` (DateTime, optional): Available to date
+- `sortBy` (string, optional): Field to sort by (name, price, rating, etc.)
+- `ascending` (bool, optional): Sort order, default is false (descending)
+- `pageIndex` (int, optional): Page number, default is 1
+- `pageSize` (int, optional): Items per page, default is 10
+
+**Response:**
+```json
+{
+  "items": [
+    {
+      "id": 1,
+      "name": "Luxury Villa with Ocean View",
+      "description": "Beautiful villa overlooking the Mediterranean",
+      "nightlyRate": 250.00,
+      "address": "123 Coastal Road",
+      "city": "Santorini",
+      "state": "",
+      "country": "Greece",
+      "propertyType": "Villa",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "maxGuests": 8,
+      "cleaningFee": 100.00,
+      "mainImageUrl": "https://example.com/images/villa1.jpg",
+      "isAvailable": true,
+      "averageRating": 4.7,
+      "reviewCount": 23,
+      "features": [
+        {
+          "id": 1,
+          "name": "Swimming Pool",
+          "description": "Private infinity pool"
+        },
+        {
+          "id": 2,
+          "name": "Wi-Fi",
+          "description": "High-speed internet"
+        }
+      ],
+      "images": [
+        {
+          "id": 1,
+          "imageUrl": "https://example.com/images/villa1-1.jpg",
+          "caption": "Exterior view",
+          "displayOrder": 1
+        }
+      ]
+    }
+  ],
+  "pageIndex": 1,
+  "totalPages": 5,
+  "totalCount": 42,
+  "hasPreviousPage": false,
+  "hasNextPage": true
+}
+```
+
+### 2. Get House by ID
+
+**Endpoint:** `GET /api/houses/{id}`
+
+**Response:**
+```json
+{
+  "id": 1,
+  "name": "Luxury Villa with Ocean View",
+  "description": "Beautiful villa overlooking the Mediterranean",
+  "nightlyRate": 250.00,
+  "address": "123 Coastal Road",
+  "city": "Santorini",
+  "state": "",
+  "country": "Greece",
+  "propertyType": "Villa",
+  "bedrooms": 4,
+  "bathrooms": 3,
+  "maxGuests": 8,
+  "cleaningFee": 100.00,
+  "mainImageUrl": "https://example.com/images/villa1.jpg",
+  "isAvailable": true,
+  "averageRating": 4.7,
+  "reviewCount": 23,
+  "features": [
+    {
+      "id": 1,
+      "name": "Swimming Pool",
+      "description": "Private infinity pool"
+    },
+    {
+      "id": 2,
+      "name": "Wi-Fi",
+      "description": "High-speed internet"
+    }
+  ],
+  "images": [
+    {
+      "id": 1,
+      "imageUrl": "https://example.com/images/villa1-1.jpg",
+      "caption": "Exterior view",
+      "displayOrder": 1
+    }
+  ]
+}
+```
+
+### 3. Create House (Admin Only)
+
+**Endpoint:** `POST /api/houses`
+
+**Request:**
+```json
+{
+  "name": "Mountain Retreat Cabin",
+  "description": "Cozy cabin in the mountains",
+  "nightlyRate": 175.00,
+  "address": "456 Forest Drive",
+  "city": "Aspen",
+  "state": "Colorado",
+  "country": "USA",
+  "propertyType": "Cottage",
+  "bedrooms": 2,
+  "bathrooms": 1,
+  "maxGuests": 4,
+  "cleaningFee": 75.00,
+  "mainImageUrl": "https://example.com/images/cabin1.jpg",
+  "isActive": true,
+  "isAvailable": true,
+  "features": [
+    {
+      "name": "Fireplace",
+      "description": "Wood-burning fireplace"
+    },
+    {
+      "name": "Hot Tub",
+      "description": "Outdoor jacuzzi"
+    }
+  ],
+  "images": [
+    {
+      "imageUrl": "https://example.com/images/cabin1-1.jpg",
+      "caption": "Living room",
+      "displayOrder": 1
+    }
+  ]
+}
+```
+
+**Response:** Same as Get House by ID
+
+### 4. Update House (Admin Only)
+
+**Endpoint:** `PUT /api/houses/{id}`
+
+**Request:** Same as Create House
+
+**Response:** Same as Get House by ID
+
+### 5. Delete House (Admin Only)
+
+**Endpoint:** `DELETE /api/houses/{id}`
+
+**Response:** Status 204 No Content
+
+### 6. Get House Reviews
+
+**Endpoint:** `GET /api/houses/{id}/reviews`
+
+**Query Parameters:**
+- `pageIndex` (int, optional): Page number, default is 1
+- `pageSize` (int, optional): Items per page, default is 10
+
+**Response:**
+```json
+{
+  "items": [
+    {
+      "id": 1,
+      "comment": "Beautiful property with amazing views!",
+      "rating": 5,
+      "createdAt": "2023-09-15T14:30:00Z",
+      "userName": "JohnDoe"
+    },
+    {
+      "id": 2,
+      "comment": "Great location, but the cleanliness could be improved.",
+      "rating": 4,
+      "createdAt": "2023-09-10T09:15:00Z",
+      "userName": "JaneSmith"
+    }
+  ],
+  "pageIndex": 1,
+  "totalPages": 2,
+  "totalCount": 12,
+  "hasPreviousPage": false,
+  "hasNextPage": true
+}
+```
+
+### 7. Add House Review
+
+**Endpoint:** `POST /api/houses/reviews`
+
+**Request:**
+```json
+{
+  "houseId": 1,
+  "comment": "We had an amazing stay! The house was clean and beautiful.",
+  "rating": 5
+}
+```
+
+**Response:**
+```json
+{
+  "id": 3,
+  "comment": "We had an amazing stay! The house was clean and beautiful.",
+  "rating": 5,
+  "createdAt": "2023-09-20T10:45:00Z",
+  "userName": "CurrentUser"
+}
+```
+
+### 8. Check House Availability
+
+**Endpoint:** `POST /api/houses/check-availability`
+
+**Request:**
+```json
+{
+  "houseId": 1,
+  "checkInDate": "2023-10-15T00:00:00Z",
+  "checkOutDate": "2023-10-20T00:00:00Z",
+  "guestCount": 4
+}
+```
+
+**Response:**
+```json
+{
+  "isAvailable": true,
+  "totalPrice": 1350.00,
+  "nightlyRate": 250.00,
+  "cleaningFee": 100.00,
+  "nights": 5,
+  "availableRooms": 4
+}
+```
+
+### 9. Book House
+
+**Endpoint:** `POST /api/house-bookings`
+
+**Request:**
+```json
+{
+  "houseId": 1,
+  "checkInDate": "2023-10-15T00:00:00Z",
+  "checkOutDate": "2023-10-20T00:00:00Z",
+  "guestCount": 4,
+  "notes": "We'll be arriving around 3 PM",
+  "discountCode": "SUMMER2023"
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "houseId": 1,
+  "houseName": "Luxury Villa with Ocean View",
+  "checkInDate": "2023-10-15T00:00:00Z",
+  "checkOutDate": "2023-10-20T00:00:00Z",
+  "guestCount": 4,
+  "bookingDate": "2023-09-20T10:45:00Z",
+  "totalAmount": 1350.00,
+  "status": "Pending",
+  "notes": "We'll be arriving around 3 PM",
+  "paymentStatus": "Unpaid",
+  "discountCode": "SUMMER2023"
+}
+```
+
+### 10. Get User House Bookings
+
+**Endpoint:** `GET /api/house-bookings`
+
+**Response:**
+```json
+{
+  "items": [
+    {
+      "id": 1,
+      "houseId": 1,
+      "houseName": "Luxury Villa with Ocean View",
+      "mainImageUrl": "https://example.com/images/villa1.jpg",
+      "city": "Santorini",
+      "country": "Greece",
+      "checkInDate": "2023-10-15T00:00:00Z",
+      "checkOutDate": "2023-10-20T00:00:00Z",
+      "guestCount": 4,
+      "bookingDate": "2023-09-20T10:45:00Z",
+      "totalAmount": 1350.00,
+      "status": "Confirmed",
+      "paymentStatus": "Paid",
+      "paymentDate": "2023-09-20T11:30:00Z"
+    }
+  ],
+  "pageIndex": 1,
+  "totalPages": 1,
+  "totalCount": 1,
+  "hasPreviousPage": false,
+  "hasNextPage": false
+}
+```
+
+## User Recommendations API Endpoints
+
+### 1. Get Personalized House Recommendations
+
+**Endpoint:** `GET /api/recommendation/houses/personalized`
+
+**Query Parameters:**
+- `limit` (int, optional): Maximum number of recommendations to return, default is 5
+
+**Response:**
+```json
+[
+  {
+    "id": 5,
+    "name": "Beach House Retreat",
+    "description": "Spacious beach house with direct ocean access",
+    "nightlyRate": 320.00,
+    "address": "789 Shoreline Road",
+    "city": "Malibu",
+    "state": "California",
+    "country": "USA",
+    "propertyType": "House",
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "maxGuests": 6,
+    "cleaningFee": 150.00,
+    "mainImageUrl": "https://example.com/images/beach1.jpg",
+    "averageRating": 4.9,
+    "reviewCount": 31,
+    "discountedPrice": 272.00,
+    "discountPercentage": 15,
+    "reasonForRecommendation": "Based on your preference for beach locations and luxury properties"
+  }
+]
+```
+
+### 2. Get Personalized Tour Recommendations
+
+**Endpoint:** `GET /api/recommendation/tours/personalized`
+
+**Query Parameters:**
+- `limit` (int, optional): Maximum number of recommendations to return, default is 5
+
+**Response:**
+```json
+[
+  {
+    "id": 12,
+    "name": "Ancient Athens Cultural Tour",
+    "description": "Explore the ancient ruins and museums of Athens",
+    "price": 85.00,
+    "durationInDays": 1,
+    "location": "Athens, Greece",
+    "difficultyLevel": "Easy",
+    "activityType": "Cultural",
+    "category": "Historical",
+    "maxGroupSize": 15,
+    "mainImageUrl": "https://example.com/images/athens1.jpg",
+    "averageRating": 4.8,
+    "reviewCount": 45,
+    "discountedPrice": 68.00,
+    "discountPercentage": 20,
+    "reasonForRecommendation": "Based on your interest in historical sites and previous bookings in Greece"
+  }
+]
+```
+
+### 3. Get Popular Destinations
+
+**Endpoint:** `GET /api/recommendation/destinations/popular`
+
+**Query Parameters:**
+- `limit` (int, optional): Maximum number of destinations to return, default is 10
+
+**Response:**
+```json
+[
+  "Santorini, Greece",
+  "Paris, France",
+  "Bali, Indonesia",
+  "New York, USA",
+  "Rome, Italy"
+]
+```
+
+### 4. Get Trending Packages
+
+**Endpoint:** `GET /api/recommendation/packages/trending`
+
+**Query Parameters:**
+- `limit` (int, optional): Maximum number of packages to return, default is 5
+
+**Response:**
+```json
+[
+  {
+    "id": 3,
+    "name": "Greek Islands Adventure",
+    "description": "Explore the beautiful islands of Greece",
+    "price": 1999.00,
+    "originalPrice": 2499.00,
+    "discountPercentage": 20,
+    "location": "Greece",
+    "startDate": "2023-10-01T00:00:00Z",
+    "endDate": "2023-10-08T00:00:00Z",
+    "duration": 8,
+    "mainImageUrl": "https://example.com/images/greek-islands.jpg",
+    "maxPeople": 12,
+    "isFeatured": true,
+    "tours": [
+      {
+        "tourId": 12,
+        "tourName": "Ancient Athens Cultural Tour",
+        "specialPrice": 60.00,
+        "startDate": "2023-10-01T09:00:00Z",
+        "durationInDays": 1,
+        "location": "Athens, Greece",
+        "mainImageUrl": "https://example.com/images/athens1.jpg"
+      }
+    ],
+    "houses": [
+      {
+        "houseId": 1,
+        "houseName": "Luxury Villa with Ocean View",
+        "specialPrice": 200.00,
+        "checkInDate": "2023-10-02T14:00:00Z",
+        "checkOutDate": "2023-10-08T11:00:00Z",
+        "nights": 6,
+        "location": "Santorini, Greece",
+        "mainImageUrl": "https://example.com/images/villa1.jpg"
+      }
+    ]
+  }
+]
+```
+
+### 5. Get Similar Tours
+
+**Endpoint:** `GET /api/recommendation/tours/{tourId}/similar`
+
+**Query Parameters:**
+- `limit` (int, optional): Maximum number of similar tours to return, default is 4
+
+**Response:** Array of TourDto objects similar to the one in Get Personalized Tour Recommendations
+
+### 6. Get Similar Packages
+
+**Endpoint:** `GET /api/recommendation/packages/{packageId}/similar`
+
+**Query Parameters:**
+- `limit` (int, optional): Maximum number of similar packages to return, default is 4
+
+**Response:** Array of TravelPackageDto objects similar to the one in Get Trending Packages
+
+### 7. Get User Insights
+
+**Endpoint:** `GET /api/recommendation/user/insights`
+
+**Response:**
+```json
+{
+  "userId": "user123",
+  "mostVisitedDestination": "Greece",
+  "favoriteTourCategory": "Historical",
+  "totalSpent": 5325.50,
+  "totalTrips": 7,
+  "averageTripDuration": 5,
+  "totalSavings": 978.25
+}
+```
+
+### 8. Get Flash Deals
+
+**Endpoint:** `GET /api/recommendation/deals/flash`
+
+**Query Parameters:**
+- `limit` (int, optional): Maximum number of deals to return, default is 4
+
+**Response:**
+```json
+[
+  {
+    "id": 15,
+    "type": "Tour",
+    "name": "Grand Canyon Helicopter Tour",
+    "description": "Spectacular aerial views of the Grand Canyon",
+    "originalPrice": 399.00,
+    "discountedPrice": 299.00,
+    "discountPercentage": 25,
+    "imageUrl": "https://example.com/images/grand-canyon-heli.jpg",
+    "location": "Las Vegas, USA",
+    "endsAt": "2023-09-30T23:59:59Z"
+  }
+]
+```
+
+### 9. Get Seasonal Offers
+
+**Endpoint:** `GET /api/recommendation/offers/seasonal`
+
+**Query Parameters:**
+- `limit` (int, optional): Maximum number of offers to return, default is 4
+
+**Response:**
+```json
+[
+  {
+    "id": 8,
+    "type": "Package",
+    "name": "Autumn in New England",
+    "description": "Experience the stunning fall foliage",
+    "price": 1499.00,
+    "discountAmount": 300.00,
+    "imageUrl": "https://example.com/images/new-england-fall.jpg",
+    "location": "Vermont, USA",
+    "season": "Fall",
+    "seasonalHighlight": "Peak foliage viewing season"
+  }
+]
+```
+
+## Integration Workflow
+
+### Houses Integration
+
+1. **Listing Houses:**
+   - The frontend will call `GET /api/houses` with appropriate filters to display available houses
+   - Results can be displayed in a grid or list view with pagination
+   - Sort options should be provided for price, rating, location, etc.
+
+2. **House Detail View:**
+   - When a user selects a house, call `GET /api/houses/{id}` to get full details
+   - Display images in a carousel/gallery
+   - Show all features, amenities, and availability calendar
+   - Display reviews and ratings
+
+3. **House Booking Flow:**
+   - User selects dates and guest count
+   - Call `POST /api/houses/check-availability` to verify availability
+   - If available, user proceeds to booking form
+   - User completes form and submits with `POST /api/house-bookings`
+   - System generates booking and redirects to payment process
+   - After payment, update booking status
+
+4. **Review Process:**
+   - After a completed stay, users can leave reviews
+   - System should check if user has a confirmed, completed booking
+   - Use `POST /api/houses/reviews` to submit review
+
+### Recommendations Integration
+
+1. **Personalized Recommendations:**
+   - On user dashboard or home page, call `GET /api/recommendation/houses/personalized` and `GET /api/recommendation/tours/personalized`
+   - Display recommendations with reasons why they were recommended
+   - Allow direct booking from recommendation cards
+
+2. **Destination Exploration:**
+   - Use `GET /api/recommendation/destinations/popular` to show trending destinations
+   - When a destination is selected, filter houses and tours by that location
+
+3. **Package Recommendations:**
+   - Feature trending packages using `GET /api/recommendation/packages/trending`
+   - When viewing a package, show similar packages with `GET /api/recommendation/packages/{packageId}/similar`
+
+4. **Flash Deals and Seasonal Offers:**
+   - Display prominently on home page and in dedicated deals section
+   - Use `GET /api/recommendation/deals/flash` and `GET /api/recommendation/offers/seasonal`
+   - Implement countdown timers for deals with expiration dates
+
+5. **User Insights Dashboard:**
+   - Call `GET /api/recommendation/user/insights` to show personalized statistics
+   - Present visualizations of travel patterns, spending, and preferences
+   - Use this data to suggest new destinations or tour types
+
+### API Security and Performance Considerations
+
+1. **Authorization:**
+   - All recommendation endpoints should require authentication
+   - House creation/updating is restricted to admin users
+   - Booking and reviewing require authenticated users
+
+2. **Caching:**
+   - Popular destinations and trending packages can be cached
+   - House details can be cached with appropriate invalidation
+   - Personal recommendations should be calculated in real-time
+
+3. **Rate Limiting:**
+   - Implement rate limiting for check-availability endpoints to prevent abuse
+   - Consider rate limits for recommendation endpoints to manage server load
+
+4. **Data Validation:**
+   - Validate date ranges, guest counts against house capacity
+   - Ensure review submissions meet length and content requirements
+   - Verify user eligibility for leaving reviews

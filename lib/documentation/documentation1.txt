@@ -1,0 +1,681 @@
+# Tour Booking API Documentation
+
+## Overview
+This API provides a complete tour booking system with authentication, tour management, booking functionality, and payment processing via Stripe.
+
+**Base URL**: `http://localhost:5076` (Development)
+
+## Authentication
+All protected endpoints require a JWT token in the Authorization header:
+```
+Authorization: Bearer <jwt_token>
+```
+
+---
+
+## 1. AUTHENTICATION ENDPOINTS
+
+### 1.1 Register User
+**Endpoint**: `POST /api/auth/register`
+
+**Request Body**:
+```json
+{
+  "email": "string",                    // Required, valid email format
+  "password": "string",                 // Required, minimum 6 characters
+  "confirmPassword": "string",          // Required, must match password
+  "firstName": "string",                // Required
+  "lastName": "string",                 // Required
+  "dateOfBirth": "2024-01-01T00:00:00Z" // Optional, ISO 8601 format
+}
+```
+
+**Response** (201 Created):
+```json
+{
+  "isSuccess": true,
+  "message": "User registered and logged in successfully!",
+  "token": "jwt_token_string",
+  "refreshToken": "refresh_token_string",
+  "expiration": "2024-01-01T12:00:00Z",
+  "userName": "user@example.com",
+  "email": "user@example.com",
+  "roles": ["User"]
+}
+```
+
+### 1.2 Login User
+**Endpoint**: `POST /api/auth/login`
+
+**Request Body**:
+```json
+{
+  "email": "string",     // Required
+  "password": "string"   // Required
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "isSuccess": true,
+  "message": "Login successful",
+  "token": "jwt_token_string",
+  "refreshToken": "refresh_token_string",
+  "expiration": "2024-01-01T12:00:00Z",
+  "userName": "user@example.com",
+  "email": "user@example.com",
+  "roles": ["User"]
+}
+```
+
+### 1.3 Refresh Token
+**Endpoint**: `POST /api/auth/refresh-token`
+
+**Request Body**:
+```json
+{
+  "token": "current_jwt_token",          // Required
+  "refreshToken": "current_refresh_token" // Required
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "isSuccess": true,
+  "message": "Token refreshed successfully",
+  "token": "new_jwt_token",
+  "refreshToken": "new_refresh_token",
+  "expiration": "2024-01-01T12:00:00Z",
+  "userName": "user@example.com",
+  "email": "user@example.com",
+  "roles": ["User"]
+}
+```
+
+### 1.4 Google Login
+**Endpoint**: `POST /api/auth/google-login`
+
+**Request Body**:
+```json
+{
+  "provider": "Google",    // Required
+  "idToken": "google_id_token_from_frontend" // Required
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "isSuccess": true,
+  "message": "Google login successful",
+  "token": "jwt_token_string",
+  "refreshToken": "refresh_token_string",
+  "expiration": "2024-01-01T12:00:00Z",
+  "userName": "user@example.com",
+  "email": "user@example.com",
+  "roles": ["User"]
+}
+```
+
+### 1.5 Logout
+**Endpoint**: `POST /api/auth/logout`
+**Auth Required**: Yes
+
+**Response** (200 OK):
+```json
+{
+  "isSuccess": true,
+  "message": "Logged out successfully. Tokens revoked."
+}
+```
+
+---
+
+## 2. TOUR ENDPOINTS
+
+### 2.1 Get Tours (with filtering)
+**Endpoint**: `GET /api/tours`
+
+**Query Parameters**:
+- `searchTerm`: string (optional) - Search across name, description, location
+- `location`: string (optional)
+- `category`: string (optional)
+- `difficultyLevel`: string (optional) - Easy, Moderate, Challenging
+- `activityType`: string (optional) - Indoor, Outdoor, Mixed
+- `minPrice`: decimal (optional)
+- `maxPrice`: decimal (optional)
+- `minDuration`: integer (optional) - Duration in days
+- `maxDuration`: integer (optional)
+- `sortBy`: string (optional) - name, price, location, duration, rating, created
+- `ascending`: boolean (optional, default: false)
+- `pageIndex`: integer (optional, default: 1)
+- `pageSize`: integer (optional, default: 10)
+
+**Response** (200 OK):
+```json
+{
+  "items": [
+    {
+      "id": 1,
+      "name": "Amazing City Tour",
+      "description": "Explore the beautiful city...",
+      "price": 99.99,
+      "durationInDays": 1,
+      "location": "Paris, France",
+      "difficultyLevel": "Easy",
+      "activityType": "Outdoor",
+      "category": "Cultural",
+      "maxGroupSize": 15,
+      "mainImageUrl": "https://example.com/image.jpg",
+      "isActive": true,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "images": [
+        {
+          "id": 1,
+          "imageUrl": "https://example.com/image1.jpg",
+          "caption": "Beautiful view",
+          "displayOrder": 1
+        }
+      ],
+      "features": [
+        {
+          "id": 1,
+          "name": "Audio Guide",
+          "description": "Professional audio commentary"
+        }
+      ],
+      "itineraryItems": [
+        {
+          "id": 1,
+          "dayNumber": 1,
+          "title": "Morning Visit",
+          "description": "Visit the famous landmark",
+          "location": "Downtown",
+          "startTime": "09:00:00",
+          "endTime": "12:00:00",
+          "activityType": "Sightseeing"
+        }
+      ],
+      "averageRating": 4.5,
+      "reviewCount": 24,
+      "discountedPrice": 79.99,     // Present if there's an active discount
+      "discountPercentage": 20       // Present if there's an active discount
+    }
+  ],
+  "pageIndex": 1,
+  "totalPages": 5,
+  "totalCount": 50,
+  "hasPreviousPage": false,
+  "hasNextPage": true
+}
+```
+
+### 2.2 Advanced Tour Search
+**Endpoint**: `POST /api/tours/search`
+
+**Request Body**:
+```json
+{
+  "searchTerm": "string",
+  "name": "string",
+  "location": "string",
+  "category": "string",
+  "difficultyLevel": "string",
+  "activityType": "string",
+  "minDuration": 1,
+  "maxDuration": 10,
+  "minGroupSize": 1,
+  "maxGroupSize": 50,
+  "minPrice": 0,
+  "maxPrice": 1000,
+  "isActive": true,
+  "startDate": "2024-01-01T00:00:00Z",
+  "endDate": "2024-12-31T00:00:00Z",
+  "sortBy": "string",
+  "ascending": false,
+  "requiredFeatures": ["Audio Guide", "Transportation"]
+}
+```
+
+**Query Parameters**:
+- `pageIndex`: integer (default: 1)
+- `pageSize`: integer (default: 10)
+
+**Response**: Same as Get Tours endpoint
+
+### 2.3 Get Tour by ID
+**Endpoint**: `GET /api/tours/{id}`
+
+**Response** (200 OK): Single tour object (same structure as in Get Tours response)
+
+### 2.4 Get Tour Reviews
+**Endpoint**: `GET /api/tours/{id}/reviews`
+
+**Query Parameters**:
+- `pageIndex`: integer (default: 1)
+- `pageSize`: integer (default: 10)
+
+**Response** (200 OK):
+```json
+{
+  "items": [
+    {
+      "id": 1,
+      "comment": "Amazing experience!",
+      "rating": 5,
+      "createdAt": "2024-01-01T00:00:00Z",
+      "userName": "john_doe"
+    }
+  ],
+  "pageIndex": 1,
+  "totalPages": 3,
+  "totalCount": 30,
+  "hasPreviousPage": false,
+  "hasNextPage": true
+}
+```
+
+### 2.5 Add Tour Review
+**Endpoint**: `POST /api/tours/reviews`
+**Auth Required**: Yes
+
+**Request Body**:
+```json
+{
+  "tourId": 1,
+  "comment": "string",     // Required
+  "rating": 5              // Required, 1-5
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "id": 1,
+  "comment": "Great tour!",
+  "rating": 5,
+  "createdAt": "2024-01-01T00:00:00Z",
+  "userName": "john_doe"
+}
+```
+
+### 2.6 Apply Discount to Tour
+**Endpoint**: `POST /api/tours/{id}/apply-discount`
+**Auth Required**: Yes
+
+**Query Parameters**:
+- `discountCode`: string (required)
+
+**Response** (200 OK): Tour object with discount applied (discountedPrice and discountPercentage fields populated)
+
+### 2.7 Check Tour Availability
+**Endpoint**: `POST /api/tours/check-availability`
+
+**Request Body**:
+```json
+{
+  "tourId": 1,
+  "startDate": "2024-06-01T00:00:00Z",
+  "groupSize": 4
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "isAvailable": true,
+  "totalPrice": 399.96,
+  "durationInDays": 1,
+  "startDate": "2024-06-01T00:00:00Z",
+  "endDate": "2024-06-01T00:00:00Z",
+  "availableSpots": 11
+}
+```
+
+---
+
+## 3. BOOKING ENDPOINTS
+
+### 3.1 Get User Bookings
+**Endpoint**: `GET /api/bookings`
+**Auth Required**: Yes
+
+**Response** (200 OK):
+```json
+[
+  {
+    "id": 1,
+    "tourId": 1,
+    "tourName": "Amazing City Tour",
+    "numberOfPeople": 2,
+    "bookingDate": "2024-01-01T10:00:00Z",
+    "tourStartDate": "2024-06-01T00:00:00Z",
+    "totalAmount": 199.98,
+    "status": "Confirmed",
+    "notes": "Vegetarian meals please",
+    "paymentMethod": "card",
+    "paymentStatus": "Paid",
+    "paymentDate": "2024-01-01T10:05:00Z",
+    "transactionId": "pi_1234567890",
+    "discountCode": "SAVE20"
+  }
+]
+```
+
+### 3.2 Get Booking by ID
+**Endpoint**: `GET /api/bookings/{id}`
+**Auth Required**: Yes
+
+**Response** (200 OK): Single booking object (same structure as in Get User Bookings)
+
+### 3.3 Create Booking
+**Endpoint**: `POST /api/bookings`
+**Auth Required**: Yes
+
+**Request Body**:
+```json
+{
+  "tourId": 1,
+  "numberOfPeople": 2,
+  "tourStartDate": "2024-06-01T00:00:00Z",
+  "notes": "string",       // Optional
+  "discountCode": "string" // Optional
+}
+```
+
+**Response** (201 Created): Booking object with `paymentStatus: "Unpaid"`
+
+### 3.4 Quick Book (Create with Immediate Payment Intent)
+**Endpoint**: `POST /api/bookings/quick-book`
+**Auth Required**: Yes
+
+**Request Body**:
+```json
+{
+  "tourId": 1,
+  "numberOfPeople": 2,
+  "tourStartDate": "2024-06-01T00:00:00Z",
+  "notes": "string",                  // Optional
+  "initiatePaymentImmediately": true, // Default: true
+  "discountCode": "string"            // Optional
+}
+```
+
+**Response** (201 Created):
+```json
+{
+  "id": 1,
+  "tourId": 1,
+  "tourName": "Amazing City Tour",
+  "numberOfPeople": 2,
+  "bookingDate": "2024-01-01T10:00:00Z",
+  "tourStartDate": "2024-06-01T00:00:00Z",
+  "totalAmount": 199.98,
+  "status": "Pending",
+  "notes": null,
+  "paymentMethod": null,
+  "paymentStatus": "Pending",
+  "paymentDate": null,
+  "transactionId": "pi_1234567890",
+  "discountCode": null,
+  "paymentInfo": {
+    "bookingId": 1,
+    "tourId": 1,
+    "tourName": "Amazing City Tour",
+    "tourImageUrl": "https://example.com/image.jpg",
+    "tourLocation": "Paris, France",
+    "numberOfPeople": 2,
+    "tourStartDate": "2024-06-01T00:00:00Z",
+    "durationInDays": 1,
+    "pricePerPerson": 99.99,
+    "totalAmount": 199.98,
+    "paymentStatus": "Pending",
+    "paymentMethod": null,
+    "transactionId": "pi_1234567890",
+    "clientSecret": "pi_1234567890_secret_xxx", // Used for Stripe Elements
+    "discountCode": null,
+    "discountAmount": null,
+    "originalAmount": null
+  }
+}
+```
+
+### 3.5 Get Booking Payment Info
+**Endpoint**: `GET /api/bookings/{id}/payment-info`
+**Auth Required**: Yes
+
+**Response** (200 OK):
+```json
+{
+  "bookingId": 1,
+  "tourId": 1,
+  "tourName": "Amazing City Tour",
+  "tourImageUrl": "https://example.com/image.jpg",
+  "tourLocation": "Paris, France",
+  "numberOfPeople": 2,
+  "tourStartDate": "2024-06-01T00:00:00Z",
+  "durationInDays": 1,
+  "pricePerPerson": 99.99,
+  "totalAmount": 199.98,
+  "paymentStatus": "Pending",
+  "paymentMethod": null,
+  "transactionId": "pi_1234567890",
+  "discountCode": null,
+  "discountAmount": null,
+  "originalAmount": null
+}
+```
+
+### 3.6 Update Booking Metadata
+**Endpoint**: `PUT /api/bookings/{id}/metadata`
+**Auth Required**: Yes
+
+**Request Body**:
+```json
+{
+  "tourStartDate": "2024-06-02T00:00:00Z",
+  "numberOfPeople": 3,
+  "notes": "Updated notes"
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "bookingId": 1,
+  "tourId": 1,
+  "tourName": "Amazing City Tour",
+  "numberOfPeople": 3,
+  "tourStartDate": "2024-06-02T00:00:00Z",
+  "totalAmount": 299.97,
+  "notes": "Updated notes",
+  "discountCode": null
+}
+```
+
+### 3.7 Apply Discount to Booking
+**Endpoint**: `POST /api/bookings/{id}/apply-discount`
+**Auth Required**: Yes
+
+**Query Parameters**:
+- `discountCode`: string (required)
+
+**Response** (200 OK): Updated booking object with discount applied
+
+### 3.8 Initiate Payment
+**Endpoint**: `POST /api/bookings/{id}/initiate-payment`
+**Auth Required**: Yes
+
+**Response** (200 OK):
+```json
+{
+  "clientSecret": "pi_1234567890_secret_xxx",
+  "paymentIntentId": "pi_1234567890",
+  "amount": 199.98,
+  "currency": "usd",
+  "status": "requires_payment_method"
+}
+```
+
+### 3.9 Process Payment
+**Endpoint**: `POST /api/bookings/{id}/process-payment`
+**Auth Required**: Yes
+
+**Request Body**:
+```json
+{
+  "paymentMethod": "pm_1234567890",      // Payment method ID from Stripe
+  "paymentIntentId": "pi_1234567890",    // Payment intent ID
+  "stripeToken": "string"                // Alternative to paymentMethod
+}
+```
+
+**Response** (200 OK): Updated booking object with `paymentStatus: "Paid"` and `status: "Confirmed"`
+
+### 3.10 Cancel Booking
+**Endpoint**: `POST /api/bookings/{id}/cancel`
+**Auth Required**: Yes
+
+**Response** (200 OK):
+```json
+{
+  "message": "Booking cancelled successfully"
+}
+```
+
+---
+
+## 4. STRIPE WEBHOOK
+
+### 4.1 Stripe Webhook Handler
+**Endpoint**: `POST /api/stripewebhook`
+
+This endpoint handles Stripe webhooks for payment status updates. It automatically updates booking statuses based on Stripe events.
+
+**Headers Required**:
+- `Stripe-Signature`: string (Stripe webhook signature)
+
+---
+
+## USER WORKFLOWS
+
+### 1. User Registration & Login Flow
+
+```mermaid
+graph TD
+    A[User visits app] --> B{Has account?}
+    B -->|No| C[POST /api/auth/register]
+    B -->|Yes| D[POST /api/auth/login]
+    C --> E[Receive JWT + Refresh Token]
+    D --> E
+    E --> F[Store tokens in frontend]
+    F --> G[Use JWT for authenticated requests]
+    
+    H[Token expires] --> I[POST /api/auth/refresh-token]
+    I --> E
+```
+
+### 2. Tour Discovery & Booking Flow
+
+```mermaid
+graph TD
+    A[Browse Tours] --> B[GET /api/tours]
+    B --> C[Apply filters via GET params]
+    C --> D[View tour details: GET /api/tours/{id}]
+    D --> E[Check availability: POST /api/tours/check-availability]
+    E --> F{Available?}
+    F -->|Yes| G[Create booking: POST /api/bookings]
+    F -->|No| H[Choose different date/size]
+    H --> E
+    G --> I[Apply discount: POST /api/bookings/{id}/apply-discount]
+    I --> J[Initiate payment: POST /api/bookings/{id}/initiate-payment]
+    J --> K[Process payment: POST /api/bookings/{id}/process-payment]
+    K --> L[Booking confirmed]
+```
+
+### 3. Quick Booking Flow (Simplified)
+
+```mermaid
+graph TD
+    A[User selects tour] --> B[POST /api/bookings/quick-book]
+    B --> C[Receive booking with payment info]
+    C --> D[Use clientSecret for Stripe Elements]
+    D --> E[User enters payment details]
+    E --> F[Stripe confirms payment]
+    F --> G[Webhook updates booking status]
+    G --> H[Booking confirmed]
+```
+
+### 4. Payment Processing Workflow
+
+For Stripe Elements integration:
+
+1. **Create/Quick Book**: Get `clientSecret` from booking creation
+2. **Frontend**: Initialize Stripe Elements with `clientSecret`
+3. **User Payment**: User enters payment details in Stripe Elements
+4. **Stripe Confirmation**: Stripe processes payment
+5. **Webhook**: Stripe sends webhook to update booking status
+6. **Frontend Poll**: Frontend can call `GET /api/bookings/{id}` to check status
+
+---
+
+## COMMON ERROR RESPONSES
+
+### 400 Bad Request
+```json
+{
+  "message": "Validation errors: Field is required"
+}
+```
+
+### 401 Unauthorized
+```json
+{
+  "message": "User not authenticated"
+}
+```
+
+### 404 Not Found
+```json
+{
+  "message": "Tour with ID 1 not found"
+}
+```
+
+### 500 Internal Server Error
+```json
+{
+  "message": "An error occurred while processing your request"
+}
+```
+
+---
+
+## NOTES FOR FRONTEND DEVELOPERS
+
+1. **Authentication**: Store JWT and refresh tokens securely. Implement automatic token refresh.
+
+2. **Stripe Integration**: Use Stripe Elements for payment processing. The `clientSecret` from quick-book or initiate-payment is used to initialize Stripe Elements.
+
+3. **Real-time Updates**: Consider implementing polling for booking status updates after payment processing.
+
+4. **Error Handling**: Implement proper error handling for all scenarios, especially payment failures.
+
+5. **Date Formats**: All dates are in ISO 8601 format (UTC).
+
+6. **Pagination**: Most list endpoints support pagination with `pageIndex` and `pageSize` parameters.
+
+7. **Search & Filtering**: Use query parameters for simple filtering or POST requests for complex searches.
+
+8. **Discount Codes**: Apply discount codes before payment processing for best user experience.
+
+## STRIPE PUBLISHABLE KEY
+
+For frontend Stripe integration, use the publishable key from your configuration:
+```
+pk_test_51N89riFiAvvrMfxF5CrKRqzHp8r9W692c4kcYlvoekki8giyuVeV1sr4EFwbAKPD757x2yZ1rEc3lofEosoCCpd000YkxIkbmm
+```
+
+Remember to switch to production keys when deploying to production environment.
