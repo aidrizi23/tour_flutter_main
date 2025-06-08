@@ -5,6 +5,7 @@ import 'package:tour_flutter_main/models/auth_models.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/tours/tour_list_screen.dart';
+import 'screens/home/home_web_screen.dart';
 import 'screens/cars/car_list_screen.dart';
 import 'screens/admin/admin_tour_create_screen.dart';
 import 'screens/admin/admin_panel_screen.dart';
@@ -44,6 +45,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
+        '/home': (context) => const HomeWebScreen(),
         '/tours': (context) => const TourListScreen(),
         '/cars': (context) => const CarListScreen(),
         '/admin-panel': (context) => const AdminPanelScreen(),
@@ -210,6 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isAdmin = false;
 
   final List<Widget> _userScreens = [
+    const HomeWebScreen(),
     const TourListScreen(),
     const RecommendationScreen(),
     const CarListScreen(),
@@ -218,6 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   final List<Widget> _adminScreens = [
+    const HomeWebScreen(),
     const TourListScreen(),
     const RecommendationScreen(),
     const CarListScreen(),
@@ -248,6 +252,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final bool isDesktop = MediaQuery.of(context).size.width >= 800;
 
     final navigationDestinations = <NavigationDestination>[
+      NavigationDestination(
+        icon: const Icon(Icons.home_outlined),
+        selectedIcon: Icon(Icons.home, color: colorScheme.primary),
+        label: 'Home',
+      ),
       NavigationDestination(
         icon: const Icon(Icons.explore_outlined),
         selectedIcon: Icon(Icons.explore, color: colorScheme.primary),
