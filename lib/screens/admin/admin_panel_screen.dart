@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../services/auth_service.dart';
 import 'admin_tour_create_screen.dart';
 import 'admin_discount_management_screen.dart';
+import 'admin_dashboard_screen.dart';
 
 class AdminPanelScreen extends StatefulWidget {
   const AdminPanelScreen({super.key});
@@ -96,12 +97,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
     final isTablet = screenWidth >= 768 && screenWidth < 1200;
     final isDesktop = screenWidth >= 1200;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surfaceContainerLowest,
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: CustomScrollView(
-          slivers: [
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: CustomScrollView(
+        slivers: [
             // Header Section
             SliverToBoxAdapter(
               child: Container(
@@ -116,6 +115,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                 padding: EdgeInsets.all(isMobile ? 16 : 24),
                 child: Column(
                   children: [
+                    // Dashboard navigation card
+                    _buildDashboardCard(colorScheme, isMobile),
+                    const SizedBox(height: 24),
+
                     // Stats Overview
                     _buildStatsOverview(isMobile, isTablet, isDesktop),
                     const SizedBox(height: 32),
@@ -135,6 +138,112 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
               ),
             ),
           ],
+        ),
+      );
+  }
+
+  Widget _buildDashboardCard(ColorScheme colorScheme, bool isMobile) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colorScheme.primary,
+            colorScheme.secondary,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            HapticFeedback.mediumImpact();
+            Navigator.of(context).push(
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const AdminDashboardScreen(),
+                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(1.0, 0.0),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeOutCubic,
+                      ),
+                    ),
+                    child: FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    ),
+                  );
+                },
+                transitionDuration: const Duration(milliseconds: 400),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.dashboard_rounded,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Advanced Dashboard',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Comprehensive analytics, charts, and real-time data',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.arrow_forward_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

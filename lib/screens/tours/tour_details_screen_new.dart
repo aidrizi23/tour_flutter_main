@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import '../../models/tour_models.dart';
 import '../../models/booking_models.dart';
 import '../../services/tour_service.dart';
-import '../../widgets/responsive_layout.dart';
 import '../../widgets/tour_details/tour_image_gallery.dart';
 import '../../widgets/tour_details/tour_header.dart';
 import '../../widgets/tour_details/tour_information.dart';
@@ -198,34 +197,14 @@ class _TourDetailsScreenNewState extends State<TourDetailsScreenNew>
     final isDesktop = screenWidth >= 1200;
 
     if (_isLoadingTour) {
-      return ResponsiveLayout(
-        currentIndex: 0,
-        onDestinationSelected: (index) {},
-        isAdmin: false,
-        child: _buildLoadingScreen(colorScheme),
-      );
+      return _buildLoadingScreen(colorScheme);
     }
 
     if (_errorMessage != null || _tour == null) {
-      return ResponsiveLayout(
-        currentIndex: 0,
-        onDestinationSelected: (index) {},
-        isAdmin: false,
-        child: _buildErrorScreen(colorScheme),
-      );
+      return _buildErrorScreen(colorScheme);
     }
 
-    return ResponsiveLayout(
-      currentIndex: 0,
-      onDestinationSelected: (index) {
-        Navigator.of(context).pop();
-      },
-      isAdmin: false,
-      child: Scaffold(
-        backgroundColor: colorScheme.surfaceContainerLowest,
-        body: _buildContent(colorScheme, screenWidth, screenHeight, isDesktop, isTablet, isMobile),
-      ),
-    );
+    return _buildContent(colorScheme, screenWidth, screenHeight, isDesktop, isTablet, isMobile);
   }
 
   Widget _buildContent(
@@ -495,65 +474,11 @@ class _TourDetailsScreenNewState extends State<TourDetailsScreenNew>
   }
 
   Widget _buildLoadingScreen(ColorScheme colorScheme) {
-    return Scaffold(
-      backgroundColor: colorScheme.surfaceContainerLowest,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: colorScheme.shadow.withValues(alpha: 0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  SizedBox(
-                    width: 80,
-                    height: 80,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 6,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  Text(
-                    'Loading tour details...',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.7),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorScreen(ColorScheme colorScheme) {
-    return Scaffold(
-      backgroundColor: colorScheme.surfaceContainerLowest,
-      appBar: AppBar(
-        title: const Text('Tour Details'),
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Container(
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               color: colorScheme.surface,
@@ -567,44 +492,87 @@ class _TourDetailsScreenNewState extends State<TourDetailsScreenNew>
               ],
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: colorScheme.errorContainer,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.error_outline_rounded,
-                    size: 60,
-                    color: colorScheme.error,
+                SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 6,
+                    color: colorScheme.primary,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
                 Text(
-                  'Tour Not Found',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _errorMessage ?? 'The requested tour could not be found.',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  'Loading tour details...',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 32),
-                FilledButton.icon(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.arrow_back_rounded),
-                  label: const Text('Go Back'),
-                ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorScreen(ColorScheme colorScheme) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: colorScheme.errorContainer,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.error_outline_rounded,
+                  size: 60,
+                  color: colorScheme.error,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Tour Not Found',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _errorMessage ?? 'The requested tour could not be found.',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              FilledButton.icon(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.arrow_back_rounded),
+                label: const Text('Go Back'),
+              ),
+            ],
           ),
         ),
       ),

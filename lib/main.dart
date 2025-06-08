@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:tour_flutter_main/models/auth_models.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
-import 'screens/tours/tour_list_screen.dart';
+import 'screens/tours/tour_list_screen_new.dart';
 import 'screens/cars/car_list_screen.dart';
 import 'screens/houses/house_list_screen.dart';
 import 'screens/admin/admin_tour_create_screen.dart';
@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
           routes: {
             '/login': (context) => const LoginScreen(),
             '/register': (context) => const RegisterScreen(),
-            '/tours': (context) => const TourListScreen(),
+            '/tours': (context) => const TourListScreenNew(),
             '/cars': (context) => const CarListScreen(),
             '/admin-panel': (context) => const AdminPanelScreen(),
             '/admin/create-tour': (context) => const AdminTourCreateScreen(),
@@ -459,7 +459,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isAdmin = false;
 
   final List<Widget> _userScreens = [
-    const TourListScreen(),
+    const TourListScreenNew(),
     const RecommendationScreen(),
     const CarListScreen(),
     const HouseListScreen(),
@@ -468,7 +468,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   final List<Widget> _adminScreens = [
-    const TourListScreen(),
+    const TourListScreenNew(),
     const RecommendationScreen(),
     const CarListScreen(),
     const HouseListScreen(),

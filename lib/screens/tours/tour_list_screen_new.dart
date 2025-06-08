@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/tour_models.dart';
 import '../../services/tour_service.dart';
+import '../../utils/layout_utils.dart';
 import 'tour_details_screen_new.dart';
 
 class TourListScreenNew extends StatefulWidget {
@@ -309,6 +310,21 @@ class _TourListScreenNewState extends State<TourListScreenNew>
     return _favoriteToursLocal.any((t) => t.id == tour.id);
   }
 
+  IconData _getFeatureIcon(String featureName) {
+    final name = featureName.toLowerCase();
+    if (name.contains('guide')) return Icons.person_rounded;
+    if (name.contains('transport')) return Icons.directions_bus_rounded;
+    if (name.contains('meal') || name.contains('food')) return Icons.restaurant_rounded;
+    if (name.contains('hotel') || name.contains('accommodation')) return Icons.hotel_rounded;
+    if (name.contains('ticket') || name.contains('entry')) return Icons.confirmation_number_rounded;
+    if (name.contains('wifi')) return Icons.wifi_rounded;
+    if (name.contains('photo')) return Icons.camera_alt_rounded;
+    if (name.contains('group') || name.contains('small')) return Icons.group_rounded;
+    if (name.contains('equipment')) return Icons.build_rounded;
+    if (name.contains('insurance')) return Icons.security_rounded;
+    return Icons.check_circle_rounded;
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -316,13 +332,11 @@ class _TourListScreenNewState extends State<TourListScreenNew>
     final isTablet = screenWidth > 600 && screenWidth <= 1200;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surfaceContainerLowest,
-      body: RefreshIndicator(
-        onRefresh: () => _loadTours(isRefresh: true),
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
+    return RefreshIndicator(
+      onRefresh: () => _loadTours(isRefresh: true),
+      child: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
             // Modern App Bar
             SliverAppBar(
               floating: true,
@@ -507,8 +521,7 @@ class _TourListScreenNewState extends State<TourListScreenNew>
               _buildToursGrid(isDesktop, isTablet, colorScheme),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildSearchSection(ColorScheme colorScheme) {
@@ -858,7 +871,7 @@ class _TourListScreenNewState extends State<TourListScreenNew>
 
   Widget _buildToursGrid(bool isDesktop, bool isTablet, ColorScheme colorScheme) {
     final crossAxisCount = isDesktop ? 3 : (isTablet ? 2 : 1);
-    final childAspectRatio = isDesktop ? 0.8 : (isTablet ? 0.85 : 1.1);
+    final childAspectRatio = isDesktop ? 0.7 : (isTablet ? 0.75 : 0.95);
 
     return SliverPadding(
       padding: const EdgeInsets.all(16),
@@ -900,27 +913,11 @@ class _TourListScreenNewState extends State<TourListScreenNew>
             onTap: () {
               HapticFeedback.mediumImpact();
               Navigator.of(context).push(
-                PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) =>
-                      TourDetailsScreenNew(tourId: tour.id),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    return SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(1.0, 0.0),
-                        end: Offset.zero,
-                      ).animate(
-                        CurvedAnimation(
-                          parent: animation,
-                          curve: Curves.easeOutCubic,
-                        ),
-                      ),
-                      child: FadeTransition(
-                        opacity: animation,
-                        child: child,
-                      ),
-                    );
-                  },
-                  transitionDuration: const Duration(milliseconds: 400),
+                LayoutUtils.createLayoutRoute(
+                  child: TourDetailsScreenNew(tourId: tour.id),
+                  context: context,
+                  currentIndex: 0,
+                  isAdmin: false,
                 ),
               );
             },
@@ -928,11 +925,11 @@ class _TourListScreenNewState extends State<TourListScreenNew>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image section
+                // Image section - made larger
                 Stack(
                   children: [
                     Container(
-                      height: isDesktop ? 200 : (isTablet ? 180 : 160),
+                      height: isDesktop ? 240 : (isTablet ? 220 : 200),
                       width: double.infinity,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -977,7 +974,7 @@ class _TourListScreenNewState extends State<TourListScreenNew>
 
                     // Gradient overlay
                     Container(
-                      height: isDesktop ? 200 : (isTablet ? 180 : 160),
+                      height: isDesktop ? 240 : (isTablet ? 220 : 200),
                       decoration: BoxDecoration(
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(20),
@@ -1150,94 +1147,194 @@ class _TourListScreenNewState extends State<TourListScreenNew>
 
                         const Spacer(),
 
-                        // Price and book button
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                        // Price and additional details
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                            // Rating and reviews count
+                            if (tour.averageRating != null && tour.reviewCount != null) ...[
+                              Row(
                                 children: [
-                                  if (tour.discountedPrice != null && tour.discountedPrice! < tour.price) ...[
-                                    Text(
-                                      '\$${tour.price.toStringAsFixed(0)}',
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurface.withValues(alpha: 0.5),
-                                        decoration: TextDecoration.lineThrough,
-                                      ),
-                                    ),
-                                    Text(
-                                      '\$${tour.discountedPrice!.toStringAsFixed(0)}',
-                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                        color: colorScheme.primary,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: isDesktop ? 24 : 20,
-                                      ),
-                                    ),
-                                  ] else ...[
-                                    Text(
-                                      '\$${tour.price.toStringAsFixed(0)}',
-                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                        color: colorScheme.primary,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: isDesktop ? 24 : 20,
-                                      ),
-                                    ),
-                                  ],
+                                  ...List.generate(5, (index) {
+                                    final rating = tour.averageRating!;
+                                    if (index < rating.floor()) {
+                                      return Icon(
+                                        Icons.star_rounded,
+                                        color: Colors.amber,
+                                        size: 16,
+                                      );
+                                    } else if (index < rating) {
+                                      return Icon(
+                                        Icons.star_half_rounded,
+                                        color: Colors.amber,
+                                        size: 16,
+                                      );
+                                    } else {
+                                      return Icon(
+                                        Icons.star_outline_rounded,
+                                        color: colorScheme.outline,
+                                        size: 16,
+                                      );
+                                    }
+                                  }),
+                                  const SizedBox(width: 8),
                                   Text(
-                                    'per person',
+                                    '${tour.averageRating!.toStringAsFixed(1)} (${tour.reviewCount} reviews)',
                                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                            FilledButton(
-                              onPressed: () {
-                                HapticFeedback.lightImpact();
-                                Navigator.of(context).push(
-                                  PageRouteBuilder(
-                                    pageBuilder: (context, animation, secondaryAnimation) =>
-                                        TourDetailsScreenNew(tourId: tour.id),
-                                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                      return SlideTransition(
-                                        position: Tween<Offset>(
-                                          begin: const Offset(1.0, 0.0),
-                                          end: Offset.zero,
-                                        ).animate(
-                                          CurvedAnimation(
-                                            parent: animation,
-                                            curve: Curves.easeOutCubic,
+                              const SizedBox(height: 12),
+                            ],
+                            
+                            // Features preview
+                            if (tour.features.isNotEmpty) ...[
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 4,
+                                children: tour.features.take(2).map((feature) {
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.secondaryContainer.withValues(alpha: 0.5),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          _getFeatureIcon(feature.name),
+                                          size: 12,
+                                          color: colorScheme.onSecondaryContainer,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          feature.name,
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w500,
+                                            color: colorScheme.onSecondaryContainer,
                                           ),
                                         ),
-                                        child: FadeTransition(
-                                          opacity: animation,
-                                          child: child,
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
+                            
+                            // Pricing information
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      if (tour.discountedPrice != null && tour.discountedPrice! < tour.price) ...[
+                                        Row(
+                                          children: [
+                                            Text(
+                                              '\$${tour.price.toStringAsFixed(0)}',
+                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                color: colorScheme.onSurface.withValues(alpha: 0.5),
+                                                decoration: TextDecoration.lineThrough,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: Colors.red,
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                '${tour.discountPercentage ?? 0}% OFF',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      );
-                                    },
-                                    transitionDuration: const Duration(milliseconds: 400),
+                                        Text(
+                                          '\$${tour.discountedPrice!.toStringAsFixed(0)}',
+                                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                            color: colorScheme.primary,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: isDesktop ? 24 : 20,
+                                          ),
+                                        ),
+                                      ] else ...[
+                                        Text(
+                                          '\$${tour.price.toStringAsFixed(0)}',
+                                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                            color: colorScheme.primary,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: isDesktop ? 24 : 20,
+                                          ),
+                                        ),
+                                      ],
+                                      Text(
+                                        'per person',
+                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.onSurface.withValues(alpha: 0.6),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                );
-                              },
-                              style: FilledButton.styleFrom(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: isDesktop ? 16 : 12,
-                                  vertical: isDesktop ? 12 : 8,
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                // Difficulty and activity type badges
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: tour.difficultyColor.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: tour.difficultyColor.withValues(alpha: 0.3),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        tour.difficultyLevel,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: tour.difficultyColor,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          tour.activityIcon,
+                                          size: 12,
+                                          color: colorScheme.onSurface.withValues(alpha: 0.6),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          tour.activityType,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: colorScheme.onSurface.withValues(alpha: 0.6),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              child: Text(
-                                'Book Now',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: isDesktop ? 14 : 12,
-                                ),
-                              ),
+                              ],
                             ),
                           ],
                         ),
