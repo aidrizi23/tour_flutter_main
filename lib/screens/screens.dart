@@ -3,6 +3,7 @@ export 'auth/login_screen.dart';
 export 'auth/register_screen.dart';
 export 'tours/tour_list_screen.dart';
 export 'tours/tour_details_screen.dart';
+export 'home/home_web_screen.dart';
 export 'booking/booking_screen.dart';
 export 'booking/payment_screen.dart';
 export 'booking/payment_result_screen.dart';
