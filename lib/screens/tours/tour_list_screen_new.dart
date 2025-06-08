@@ -316,12 +316,16 @@ class _TourListScreenNewState extends State<TourListScreenNew>
     final name = featureName.toLowerCase();
     if (name.contains('guide')) return Icons.person_rounded;
     if (name.contains('transport')) return Icons.directions_bus_rounded;
-    if (name.contains('meal') || name.contains('food')) return Icons.restaurant_rounded;
-    if (name.contains('hotel') || name.contains('accommodation')) return Icons.hotel_rounded;
-    if (name.contains('ticket') || name.contains('entry')) return Icons.confirmation_number_rounded;
+    if (name.contains('meal') || name.contains('food'))
+      return Icons.restaurant_rounded;
+    if (name.contains('hotel') || name.contains('accommodation'))
+      return Icons.hotel_rounded;
+    if (name.contains('ticket') || name.contains('entry'))
+      return Icons.confirmation_number_rounded;
     if (name.contains('wifi')) return Icons.wifi_rounded;
     if (name.contains('photo')) return Icons.camera_alt_rounded;
-    if (name.contains('group') || name.contains('small')) return Icons.group_rounded;
+    if (name.contains('group') || name.contains('small'))
+      return Icons.group_rounded;
     if (name.contains('equipment')) return Icons.build_rounded;
     if (name.contains('insurance')) return Icons.security_rounded;
     return Icons.check_circle_rounded;
@@ -339,191 +343,194 @@ class _TourListScreenNewState extends State<TourListScreenNew>
       child: CustomScrollView(
         controller: _scrollController,
         slivers: [
-            // Modern App Bar
-            SliverAppBar(
-              floating: true,
-              snap: true,
-              elevation: 0,
-              backgroundColor: colorScheme.primary,
-              foregroundColor: colorScheme.onPrimary,
-              expandedHeight: 200,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        colorScheme.primary,
-                        colorScheme.primary.withValues(alpha: 0.8),
-                      ],
-                    ),
+          // Modern App Bar
+          SliverAppBar(
+            floating: true,
+            snap: true,
+            elevation: 0,
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
+            expandedHeight: 200,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      colorScheme.primary,
+                      colorScheme.primary.withValues(alpha: 0.8),
+                    ],
                   ),
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Discover Amazing Tours',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .headlineLarge
-                                          ?.copyWith(
-                                            color: colorScheme.onPrimary,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                ),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Discover Amazing Tours',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.headlineLarge?.copyWith(
+                                      color: colorScheme.onPrimary,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      _totalCount > 0
-                                          ? '$_totalCount adventures await you'
-                                          : 'Find your perfect adventure',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyLarge
-                                          ?.copyWith(
-                                            color: colorScheme.onPrimary
-                                                .withValues(alpha: 0.9),
-                                          ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _totalCount > 0
+                                        ? '$_totalCount adventures await you'
+                                        : 'Find your perfect adventure',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge?.copyWith(
+                                      color: colorScheme.onPrimary.withValues(
+                                        alpha: 0.9,
+                                      ),
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.onPrimary.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(20),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: colorScheme.onPrimary.withValues(
+                                  alpha: 0.2,
                                 ),
-                                child: Icon(
-                                  Icons.explore_rounded,
-                                  color: colorScheme.onPrimary,
-                                  size: 32,
-                                ),
+                                borderRadius: BorderRadius.circular(20),
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
+                              child: Icon(
+                                Icons.explore_rounded,
+                                color: colorScheme.onPrimary,
+                                size: 32,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
+          ),
 
-            // Search Section
+          // Search Section
+          SliverToBoxAdapter(
+            child: AnimatedBuilder(
+              animation: _listAnimation,
+              builder: (context, child) {
+                return Transform.translate(
+                  offset: Offset(0, -30 * (1 - _listAnimation.value)),
+                  child: Opacity(
+                    opacity: _listAnimation.value,
+                    child: Container(
+                      margin: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorScheme.shadow.withValues(alpha: 0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: _buildSearchSection(colorScheme),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Filters Panel
+          if (_showFilters)
             SliverToBoxAdapter(
               child: AnimatedBuilder(
-                animation: _listAnimation,
+                animation: _filterFadeAnimation,
                 builder: (context, child) {
                   return Transform.translate(
-                    offset: Offset(0, -30 * (1 - _listAnimation.value)),
+                    offset: Offset(0, -20 * (1 - _filterFadeAnimation.value)),
                     child: Opacity(
-                      opacity: _listAnimation.value,
-                      child: Container(
-                        margin: const EdgeInsets.all(16),
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surface,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: colorScheme.shadow.withValues(alpha: 0.1),
-                              blurRadius: 20,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: _buildSearchSection(colorScheme),
-                      ),
+                      opacity: _filterFadeAnimation.value,
+                      child: _buildFiltersPanel(colorScheme),
                     ),
                   );
                 },
               ),
             ),
 
-            // Filters Panel
-            if (_showFilters)
-              SliverToBoxAdapter(
-                child: AnimatedBuilder(
-                  animation: _filterFadeAnimation,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(0, -20 * (1 - _filterFadeAnimation.value)),
-                      child: Opacity(
-                        opacity: _filterFadeAnimation.value,
-                        child: _buildFiltersPanel(colorScheme),
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-            // Quick Stats
-            SliverToBoxAdapter(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _isLoading
-                            ? 'Loading tours...'
-                            : '$_totalCount tours found',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurface.withValues(alpha: 0.8),
-                        ),
+          // Quick Stats
+          SliverToBoxAdapter(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      _isLoading
+                          ? 'Loading tours...'
+                          : '$_totalCount tours found',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface.withValues(alpha: 0.8),
                       ),
                     ),
-                    if (!_isLoading && _tours.isNotEmpty)
-                      Row(
-                        children: [
-                          IconButton(
-                            onPressed: _toggleFilters,
-                            icon: AnimatedRotation(
-                              turns: _showFilters ? 0.5 : 0,
-                              duration: const Duration(milliseconds: 300),
-                              child: Icon(
-                                Icons.tune_rounded,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                            style: IconButton.styleFrom(
-                              backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+                  ),
+                  if (!_isLoading && _tours.isNotEmpty)
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: _toggleFilters,
+                          icon: AnimatedRotation(
+                            turns: _showFilters ? 0.5 : 0,
+                            duration: const Duration(milliseconds: 300),
+                            child: Icon(
+                              Icons.tune_rounded,
+                              color: colorScheme.primary,
                             ),
                           ),
-                        ],
-                      ),
-                  ],
-                ),
+                          style: IconButton.styleFrom(
+                            backgroundColor: colorScheme.primary.withValues(
+                              alpha: 0.1,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
               ),
             ),
+          ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-            // Content
-            if (_isLoading && _tours.isEmpty)
-              SliverFillRemaining(child: _buildLoadingState(colorScheme))
-            else if (_errorMessage != null)
-              SliverFillRemaining(child: _buildErrorState(colorScheme))
-            else if (_tours.isEmpty)
-              SliverFillRemaining(child: _buildEmptyState(colorScheme))
-            else
-              _buildToursGrid(isDesktop, isTablet, colorScheme),
-          ],
-        ),
-      );
+          // Content
+          if (_isLoading && _tours.isEmpty)
+            SliverFillRemaining(child: _buildLoadingState(colorScheme))
+          else if (_errorMessage != null)
+            SliverFillRemaining(child: _buildErrorState(colorScheme))
+          else if (_tours.isEmpty)
+            SliverFillRemaining(child: _buildEmptyState(colorScheme))
+          else
+            _buildToursGrid(isDesktop, isTablet, colorScheme),
+        ],
+      ),
+    );
   }
 
   Widget _buildSearchSection(ColorScheme colorScheme) {
@@ -542,20 +549,22 @@ class _TourListScreenNewState extends State<TourListScreenNew>
               color: colorScheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: _isSearchFocused
-                    ? colorScheme.primary
-                    : colorScheme.outline.withValues(alpha: 0.2),
+                color:
+                    _isSearchFocused
+                        ? colorScheme.primary
+                        : colorScheme.outline.withValues(alpha: 0.2),
                 width: _isSearchFocused ? 2 : 1,
               ),
-              boxShadow: _isSearchFocused
-                  ? [
-                      BoxShadow(
-                        color: colorScheme.primary.withValues(alpha: 0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                  : null,
+              boxShadow:
+                  _isSearchFocused
+                      ? [
+                        BoxShadow(
+                          color: colorScheme.primary.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                      : null,
             ),
             child: ValueListenableBuilder<bool>(
               valueListenable: _isSearching,
@@ -568,36 +577,39 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                     hintStyle: TextStyle(
                       color: colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
-                    prefixIcon: isSearching
-                        ? Padding(
-                            padding: const EdgeInsets.all(14.0),
-                            child: SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: colorScheme.primary,
+                    prefixIcon:
+                        isSearching
+                            ? Padding(
+                              padding: const EdgeInsets.all(14.0),
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: colorScheme.primary,
+                                ),
                               ),
+                            )
+                            : Icon(
+                              Icons.search_rounded,
+                              color:
+                                  _isSearchFocused
+                                      ? colorScheme.primary
+                                      : colorScheme.outline,
                             ),
-                          )
-                        : Icon(
-                            Icons.search_rounded,
-                            color: _isSearchFocused
-                                ? colorScheme.primary
-                                : colorScheme.outline,
-                          ),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            onPressed: () {
-                              _searchController.clear();
-                              _onSearchChanged('');
-                            },
-                            icon: Icon(
-                              Icons.clear_rounded,
-                              color: colorScheme.outline,
-                            ),
-                          )
-                        : null,
+                    suffixIcon:
+                        _searchController.text.isNotEmpty
+                            ? IconButton(
+                              onPressed: () {
+                                _searchController.clear();
+                                _onSearchChanged('');
+                              },
+                              icon: Icon(
+                                Icons.clear_rounded,
+                                color: colorScheme.outline,
+                              ),
+                            )
+                            : null,
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -619,30 +631,27 @@ class _TourListScreenNewState extends State<TourListScreenNew>
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
-              _buildQuickFilter(
-                'All',
-                _selectedCategory == null,
-                () {
-                  setState(() => _selectedCategory = null);
-                  _loadTours(isRefresh: true);
-                },
-                colorScheme,
-              ),
+              _buildQuickFilter('All', _selectedCategory == null, () {
+                setState(() => _selectedCategory = null);
+                _loadTours(isRefresh: true);
+              }, colorScheme),
               const SizedBox(width: 8),
-              ...(_categories.take(5).map(
-                (category) => Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: _buildQuickFilter(
-                    category,
-                    _selectedCategory == category,
-                    () {
-                      setState(() => _selectedCategory = category);
-                      _loadTours(isRefresh: true);
-                    },
-                    colorScheme,
-                  ),
-                ),
-              )),
+              ...(_categories
+                  .take(5)
+                  .map(
+                    (category) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _buildQuickFilter(
+                        category,
+                        _selectedCategory == category,
+                        () {
+                          setState(() => _selectedCategory = category);
+                          _loadTours(isRefresh: true);
+                        },
+                        colorScheme,
+                      ),
+                    ),
+                  )),
               Padding(
                 padding: const EdgeInsets.only(left: 8),
                 child: _buildMoreFiltersButton(colorScheme),
@@ -675,20 +684,22 @@ class _TourListScreenNewState extends State<TourListScreenNew>
             color: isSelected ? colorScheme.primary : colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected
-                  ? colorScheme.primary
-                  : colorScheme.outline.withValues(alpha: 0.3),
+              color:
+                  isSelected
+                      ? colorScheme.primary
+                      : colorScheme.outline.withValues(alpha: 0.3),
               width: isSelected ? 2 : 1,
             ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: colorScheme.primary.withValues(alpha: 0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
+            boxShadow:
+                isSelected
+                    ? [
+                      BoxShadow(
+                        color: colorScheme.primary.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                    : null,
           ),
           child: Text(
             label,
@@ -716,14 +727,16 @@ class _TourListScreenNewState extends State<TourListScreenNew>
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: _showFilters
-                ? colorScheme.primary.withValues(alpha: 0.1)
-                : colorScheme.surface,
+            color:
+                _showFilters
+                    ? colorScheme.primary.withValues(alpha: 0.1)
+                    : colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: _showFilters
-                  ? colorScheme.primary
-                  : colorScheme.outline.withValues(alpha: 0.3),
+              color:
+                  _showFilters
+                      ? colorScheme.primary
+                      : colorScheme.outline.withValues(alpha: 0.3),
               width: _showFilters ? 2 : 1,
             ),
           ),
@@ -778,10 +791,9 @@ class _TourListScreenNewState extends State<TourListScreenNew>
             children: [
               Text(
                 'Filter Results',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               Row(
                 children: [
@@ -810,22 +822,24 @@ class _TourListScreenNewState extends State<TourListScreenNew>
       spacing: 16,
       runSpacing: 16,
       children: [
-        _buildFilterDropdown('Location', _selectedLocation, [
-          'Any Location',
-          ..._locations
-        ], (value) => setState(() => _selectedLocation = value)),
-        _buildFilterDropdown('Activity Type', _selectedActivityType, [
-          'Any Activity',
-          'Indoor',
-          'Outdoor',
-          'Mixed'
-        ], (value) => setState(() => _selectedActivityType = value)),
-        _buildFilterDropdown('Difficulty', _selectedDifficulty, [
-          'Any Difficulty',
-          'Easy',
-          'Moderate',
-          'Challenging'
-        ], (value) => setState(() => _selectedDifficulty = value)),
+        _buildFilterDropdown(
+          'Location',
+          _selectedLocation,
+          ['Any Location', ..._locations],
+          (value) => setState(() => _selectedLocation = value),
+        ),
+        _buildFilterDropdown(
+          'Activity Type',
+          _selectedActivityType,
+          ['Any Activity', 'Indoor', 'Outdoor', 'Mixed'],
+          (value) => setState(() => _selectedActivityType = value),
+        ),
+        _buildFilterDropdown(
+          'Difficulty',
+          _selectedDifficulty,
+          ['Any Difficulty', 'Easy', 'Moderate', 'Challenging'],
+          (value) => setState(() => _selectedDifficulty = value),
+        ),
         _buildFilterDropdown('Sort By', _sortBy, [
           'created',
           'name',
@@ -850,10 +864,9 @@ class _TourListScreenNewState extends State<TourListScreenNew>
         children: [
           Text(
             title,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
@@ -861,9 +874,10 @@ class _TourListScreenNewState extends State<TourListScreenNew>
             decoration: const InputDecoration(
               contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
-            items: options.map((option) {
-              return DropdownMenuItem(value: option, child: Text(option));
-            }).toList(),
+            items:
+                options.map((option) {
+                  return DropdownMenuItem(value: option, child: Text(option));
+                }).toList(),
             onChanged: onChanged,
           ),
         ],
@@ -871,7 +885,11 @@ class _TourListScreenNewState extends State<TourListScreenNew>
     );
   }
 
-  Widget _buildToursGrid(bool isDesktop, bool isTablet, ColorScheme colorScheme) {
+  Widget _buildToursGrid(
+    bool isDesktop,
+    bool isTablet,
+    ColorScheme colorScheme,
+  ) {
     final crossAxisCount = isDesktop ? 3 : (isTablet ? 2 : 1);
     final childAspectRatio = isDesktop ? 0.7 : (isTablet ? 0.75 : 0.95);
 
@@ -884,31 +902,36 @@ class _TourListScreenNewState extends State<TourListScreenNew>
           mainAxisSpacing: 16,
           childAspectRatio: childAspectRatio,
         ),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            if (index < _tours.length) {
-              return _buildModernTourCard(_tours[index], isDesktop, isTablet, colorScheme);
-            } else if (_isLoadingMore) {
-              return _buildLoadingMoreCard(colorScheme);
-            }
-            return null;
-          },
-          childCount: _tours.length + (_isLoadingMore ? 1 : 0),
-        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          if (index < _tours.length) {
+            return _buildModernTourCard(
+              _tours[index],
+              isDesktop,
+              isTablet,
+              colorScheme,
+            );
+          } else if (_isLoadingMore) {
+            return _buildLoadingMoreCard(colorScheme);
+          }
+          return null;
+        }, childCount: _tours.length + (_isLoadingMore ? 1 : 0)),
       ),
     );
   }
 
-  Widget _buildModernTourCard(Tour tour, bool isDesktop, bool isTablet, ColorScheme colorScheme) {
+  Widget _buildModernTourCard(
+    Tour tour,
+    bool isDesktop,
+    bool isTablet,
+    ColorScheme colorScheme,
+  ) {
     return Hero(
       tag: 'tour_${tour.id}',
       child: Card(
         clipBehavior: Clip.antiAlias,
         elevation: isDesktop ? 8 : 4,
         shadowColor: colorScheme.shadow.withValues(alpha: 0.15),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -943,35 +966,47 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                           ],
                         ),
                       ),
-                      child: tour.mainImageUrl != null && tour.mainImageUrl!.isNotEmpty
-                          ? ClipRRect(
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(20),
-                                topRight: Radius.circular(20),
-                              ),
-                              child: Image.network(
-                                tour.mainImageUrl!,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    _buildImagePlaceholder(colorScheme),
-                                loadingBuilder: (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return Center(
-                                    child: CircularProgressIndicator(
-                                      value: loadingProgress.expectedTotalBytes != null
-                                          ? loadingProgress.cumulativeBytesLoaded /
-                                              loadingProgress.expectedTotalBytes!
-                                          : null,
-                                      strokeWidth: 2,
-                                      color: colorScheme.primary,
-                                    ),
-                                  );
-                                },
-                              ),
-                            )
-                          : _buildImagePlaceholder(colorScheme),
+                      child:
+                          tour.mainImageUrl != null &&
+                                  tour.mainImageUrl!.isNotEmpty
+                              ? ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(20),
+                                  topRight: Radius.circular(20),
+                                ),
+                                child: Image.network(
+                                  tour.mainImageUrl!,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  errorBuilder:
+                                      (context, error, stackTrace) =>
+                                          _buildImagePlaceholder(colorScheme),
+                                  loadingBuilder: (
+                                    context,
+                                    child,
+                                    loadingProgress,
+                                  ) {
+                                    if (loadingProgress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value:
+                                            loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    loadingProgress
+                                                        .expectedTotalBytes!
+                                                : null,
+                                        strokeWidth: 2,
+                                        color: colorScheme.primary,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              )
+                              : _buildImagePlaceholder(colorScheme),
                     ),
 
                     // Gradient overlay
@@ -1048,7 +1083,8 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                             _isFavorite(tour)
                                 ? Icons.favorite_rounded
                                 : Icons.favorite_border_rounded,
-                            color: _isFavorite(tour) ? Colors.red : Colors.white,
+                            color:
+                                _isFavorite(tour) ? Colors.red : Colors.white,
                             size: 20,
                           ),
                           padding: const EdgeInsets.all(8),
@@ -1092,7 +1128,10 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                       children: [
                         // Category
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: colorScheme.primaryContainer,
                             borderRadius: BorderRadius.circular(8),
@@ -1113,7 +1152,9 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                         // Tour name
                         Text(
                           tour.name,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             height: 1.2,
                             fontSize: isDesktop ? 18 : 16,
@@ -1136,8 +1177,12 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                             Expanded(
                               child: Text(
                                 tour.location,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurface.withValues(alpha: 0.7),
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurface.withValues(
+                                    alpha: 0.7,
+                                  ),
                                   fontSize: isDesktop ? 14 : 12,
                                 ),
                                 maxLines: 1,
@@ -1154,7 +1199,8 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Rating and reviews count
-                            if (tour.averageRating != null && tour.reviewCount != null) ...[
+                            if (tour.averageRating != null &&
+                                tour.reviewCount != null) ...[
                               Row(
                                 children: [
                                   ...List.generate(5, (index) {
@@ -1182,8 +1228,12 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                                   const SizedBox(width: 8),
                                   Text(
                                     '${tour.averageRating!.toStringAsFixed(1)} (${tour.reviewCount} reviews)',
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurface.withValues(
+                                        alpha: 0.7,
+                                      ),
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -1191,44 +1241,55 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                               ),
                               const SizedBox(height: 12),
                             ],
-                            
+
                             // Features preview
                             if (tour.features.isNotEmpty) ...[
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 4,
-                                children: tour.features.take(2).map((feature) {
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.secondaryContainer.withValues(alpha: 0.5),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          _getFeatureIcon(feature.name),
-                                          size: 12,
-                                          color: colorScheme.onSecondaryContainer,
+                                children:
+                                    tour.features.take(2).map((feature) {
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
                                         ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          feature.name,
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w500,
-                                            color: colorScheme.onSecondaryContainer,
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.secondaryContainer
+                                              .withValues(alpha: 0.5),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              _getFeatureIcon(feature.name),
+                                              size: 12,
+                                              color:
+                                                  colorScheme
+                                                      .onSecondaryContainer,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              feature.name,
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w500,
+                                                color:
+                                                    colorScheme
+                                                        .onSecondaryContainer,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
                               ),
                               const SizedBox(height: 12),
                             ],
-                            
+
                             // Pricing information
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1236,24 +1297,36 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      if (tour.discountedPrice != null && tour.discountedPrice! < tour.price) ...[
+                                      if (tour.discountedPrice != null &&
+                                          tour.discountedPrice! <
+                                              tour.price) ...[
                                         Row(
                                           children: [
                                             Text(
                                               '\$${tour.price.toStringAsFixed(0)}',
-                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                color: colorScheme.onSurface.withValues(alpha: 0.5),
-                                                decoration: TextDecoration.lineThrough,
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.bodySmall?.copyWith(
+                                                color: colorScheme.onSurface
+                                                    .withValues(alpha: 0.5),
+                                                decoration:
+                                                    TextDecoration.lineThrough,
                                               ),
                                             ),
                                             const SizedBox(width: 8),
                                             Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
                                               decoration: BoxDecoration(
                                                 color: Colors.red,
-                                                borderRadius: BorderRadius.circular(4),
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
                                               ),
                                               child: Text(
                                                 '${tour.discountPercentage ?? 0}% OFF',
@@ -1268,7 +1341,9 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                                         ),
                                         Text(
                                           '\$${tour.discountedPrice!.toStringAsFixed(0)}',
-                                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.titleLarge?.copyWith(
                                             color: colorScheme.primary,
                                             fontWeight: FontWeight.bold,
                                             fontSize: isDesktop ? 24 : 20,
@@ -1277,7 +1352,9 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                                       ] else ...[
                                         Text(
                                           '\$${tour.price.toStringAsFixed(0)}',
-                                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.titleLarge?.copyWith(
                                             color: colorScheme.primary,
                                             fontWeight: FontWeight.bold,
                                             fontSize: isDesktop ? 24 : 20,
@@ -1286,8 +1363,11 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                                       ],
                                       Text(
                                         'per person',
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.onSurface.withValues(alpha: 0.6),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.onSurface
+                                              .withValues(alpha: 0.6),
                                         ),
                                       ),
                                     ],
@@ -1298,12 +1378,18 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: tour.difficultyColor.withValues(alpha: 0.1),
+                                        color: tour.difficultyColor.withValues(
+                                          alpha: 0.1,
+                                        ),
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(
-                                          color: tour.difficultyColor.withValues(alpha: 0.3),
+                                          color: tour.difficultyColor
+                                              .withValues(alpha: 0.3),
                                         ),
                                       ),
                                       child: Text(
@@ -1322,14 +1408,16 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                                         Icon(
                                           tour.activityIcon,
                                           size: 12,
-                                          color: colorScheme.onSurface.withValues(alpha: 0.6),
+                                          color: colorScheme.onSurface
+                                              .withValues(alpha: 0.6),
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
                                           tour.activityType,
                                           style: TextStyle(
                                             fontSize: 11,
-                                            color: colorScheme.onSurface.withValues(alpha: 0.6),
+                                            color: colorScheme.onSurface
+                                                .withValues(alpha: 0.6),
                                           ),
                                         ),
                                       ],
@@ -1468,10 +1556,9 @@ class _TourListScreenNewState extends State<TourListScreenNew>
               const SizedBox(height: 24),
               Text(
                 'Unable to load tours',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
@@ -1508,7 +1595,8 @@ class _TourListScreenNewState extends State<TourListScreenNew>
   }
 
   Widget _buildEmptyState(ColorScheme colorScheme) {
-    final hasActiveFilters = _selectedCategory != null ||
+    final hasActiveFilters =
+        _selectedCategory != null ||
         _selectedLocation != null ||
         _selectedDifficulty != null ||
         _selectedActivityType != null ||
@@ -1545,10 +1633,9 @@ class _TourListScreenNewState extends State<TourListScreenNew>
                 hasActiveFilters
                     ? 'No matching tours found'
                     : 'No tours available',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),

@@ -11,6 +11,12 @@ import '../../services/car_booking_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import 'car_payment_screen.dart';
+import 'details/image_gallery.dart';
+import 'details/car_header.dart';
+import 'details/description_section.dart';
+import 'details/features_section.dart';
+import 'details/location_section.dart';
+import 'details/reviews_section.dart';
 
 class CarDetailsScreen extends StatefulWidget {
   final int carId;
@@ -66,19 +72,19 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
     super.initState();
 
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
     _fabController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
     _staggerController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
     _bookingPanelController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
 
@@ -372,6 +378,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
       log('Payment info retrieved successfully, proceeding to payment screen');
 
       // Navigate to payment screen
+      if (!mounted) return;
       final result = await Navigator.of(context).push(
         PageRouteBuilder(
           pageBuilder:
@@ -457,479 +464,299 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isMobile = screenWidth < 768;
-    final isTablet = screenWidth >= 768 && screenWidth < 1200;
-    final isDesktop = screenWidth >= 1200;
+    final isMobile = screenWidth < 600;
 
     if (_isLoadingCar) {
-      return _buildLoadingScreen(colorScheme);
+      return Scaffold(
+        backgroundColor: colorScheme.surfaceContainerLowest,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 80,
+                height: 80,
+                child: CircularProgressIndicator(
+                  strokeWidth: 6,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  'Loading car details...',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     if (_errorMessage != null || _car == null) {
-      return _buildErrorScreen(colorScheme);
+      return Scaffold(
+        backgroundColor: colorScheme.surfaceContainerLowest,
+        appBar: AppBar(
+          title: const Text('Car Details'),
+          backgroundColor: colorScheme.surface,
+          foregroundColor: colorScheme.onSurface,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: colorScheme.errorContainer,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.error_outline_rounded,
+                    size: 60,
+                    color: colorScheme.error,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Car Not Found',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _errorMessage ?? 'The requested car could not be found.',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                FilledButton.icon(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  label: const Text('Go Back'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
     }
 
     return Scaffold(
       backgroundColor: colorScheme.surfaceContainerLowest,
       body: Stack(
         children: [
-          // Main Content
-          if (isDesktop)
-            _buildDesktopLayout(colorScheme, screenWidth, screenHeight)
-          else if (isTablet)
-            _buildTabletLayout(colorScheme, screenWidth, screenHeight)
-          else
-            _buildMobileLayout(colorScheme, screenWidth, screenHeight),
+          CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              // Enhanced Image Gallery and App Bar
+              SliverAppBar(
+                expandedHeight: isMobile ? 320 : 400,
+                pinned: true,
+                stretch: true,
+                backgroundColor: colorScheme.surface,
+                foregroundColor: colorScheme.onSurface,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      CarImageGallery(
+                        images: _car!.images,
+                        controller: _imageController,
+                        currentIndex: _currentImageIndex,
+                        onPageChanged:
+                            (i) => setState(() => _currentImageIndex = i),
+                      ),
+                      // Gradient overlay for better text visibility
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.7),
+                            ],
+                            stops: const [0.6, 1.0],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: CircleAvatar(
+                      backgroundColor: Colors.black.withOpacity(0.3),
+                      child: IconButton(
+                        icon: const Icon(Icons.share_rounded),
+                        onPressed: _shareTotal,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: CircleAvatar(
+                      backgroundColor: Colors.black.withOpacity(0.3),
+                      child: IconButton(
+                        icon: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: Icon(
+                            _isFavorite
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            key: ValueKey(_isFavorite),
+                            color: _isFavorite ? Colors.red : Colors.white,
+                          ),
+                        ),
+                        onPressed: _toggleFavorite,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
 
-          // Floating Action Button - Responsive positioning
-          Positioned(
-            bottom: isMobile ? 24 : 32,
-            left: isMobile ? 24 : (isDesktop ? screenWidth * 0.25 + 32 : 32),
-            right: isMobile ? 24 : (isDesktop ? 32 : 32),
-            child: _buildBookingFAB(colorScheme, isMobile),
-          ),
-
-          // Booking Panel Overlay
-          if (_showBookingPanel)
-            _buildBookingPanelOverlay(colorScheme, isMobile, isTablet),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoadingScreen(ColorScheme colorScheme) {
-    return Scaffold(
-      backgroundColor: colorScheme.surfaceContainerLowest,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 80,
-              height: 80,
-              child: CircularProgressIndicator(
-                strokeWidth: 6,
-                color: colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Text(
-                'Loading car details...',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.7),
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorScreen(ColorScheme colorScheme) {
-    return Scaffold(
-      backgroundColor: colorScheme.surfaceContainerLowest,
-      appBar: AppBar(
-        title: const Text('Car Details'),
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: colorScheme.errorContainer,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.error_outline_rounded,
-                  size: 60,
-                  color: colorScheme.error,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Car Not Found',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _errorMessage ?? 'The requested car could not be found.',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.7),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              FilledButton.icon(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.arrow_back_rounded),
-                label: const Text('Go Back'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDesktopLayout(
-    ColorScheme colorScheme,
-    double width,
-    double height,
-  ) {
-    return Row(
-      children: [
-        // Left side - Image gallery
-        SizedBox(width: width * 0.6, child: _buildEnhancedImageGallery(true)),
-        // Right side - Content
-        Expanded(
-          child: Container(
-            height: height,
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              boxShadow: [
-                BoxShadow(
-                  color: colorScheme.shadow.withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  offset: const Offset(-4, 0),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                _buildDesktopHeader(colorScheme),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(32),
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
+              // Car content with enhanced design
+              SliverToBoxAdapter(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: ScaleTransition(
+                      scale: _scaleAnimation,
                       child: Column(
                         children: [
-                          _buildEnhancedCarHeader(colorScheme, false),
-                          const SizedBox(height: 32),
-                          _buildModernCarInfo(colorScheme),
-                          const SizedBox(height: 32),
-                          _buildModernFeatures(colorScheme, false),
-                          const SizedBox(height: 32),
-                          _buildEnhancedLocationSection(colorScheme),
-                          const SizedBox(height: 32),
-                          _buildModernReviewsSection(colorScheme),
+                          CarHeader(car: _car!),
+                          CarDescriptionSection(car: _car!),
+                          CarFeaturesSection(features: _car!.features),
+                          CarLocationSection(car: _car!),
+                          CarReviewsSection(
+                            reviews: _reviews,
+                            reviewController: _reviewController,
+                            selectedRating: _selectedRating,
+                            onRatingChanged:
+                                (r) => setState(() => _selectedRating = r),
+                            onSubmit: _submitReview,
+                            submitting: _isSubmittingReview,
+                            averageRating: _car!.averageRating,
+                            reviewCount: _car!.reviewCount,
+                          ),
                           const SizedBox(height: 120), // Space for FAB
                         ],
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildTabletLayout(
-    ColorScheme colorScheme,
-    double width,
-    double height,
-  ) {
-    return CustomScrollView(
-      controller: _scrollController,
-      slivers: [
-        SliverAppBar(
-          expandedHeight: 400,
-          pinned: true,
-          stretch: true,
-          backgroundColor: colorScheme.surface,
-          foregroundColor: colorScheme.onSurface,
-          flexibleSpace: FlexibleSpaceBar(
-            background: _buildEnhancedImageGallery(false),
-          ),
-          actions: _buildAppBarActions(colorScheme),
-        ),
-        SliverToBoxAdapter(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: Container(
-              constraints: BoxConstraints(maxWidth: width * 0.8),
-              margin: EdgeInsets.symmetric(horizontal: width * 0.1),
-              child: Column(
-                children: [
-                  _buildEnhancedCarHeader(colorScheme, true),
-                  const SizedBox(height: 32),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          children: [
-                            _buildModernCarInfo(colorScheme),
-                            const SizedBox(height: 32),
-                            _buildEnhancedLocationSection(colorScheme),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 32),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            _buildModernFeatures(colorScheme, true),
-                            const SizedBox(height: 32),
-                            _buildModernReviewsSection(colorScheme),
-                          ],
-                        ),
+          // Enhanced Floating Action Button
+          Positioned(
+            bottom: 24,
+            left: 24,
+            right: 24,
+            child: RotationTransition(
+              turns: _rotateAnimation,
+              child: ScaleTransition(
+                scale: _fabController,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withOpacity(0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 120), // Space for FAB
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMobileLayout(
-    ColorScheme colorScheme,
-    double width,
-    double height,
-  ) {
-    return CustomScrollView(
-      controller: _scrollController,
-      slivers: [
-        SliverAppBar(
-          expandedHeight: 320,
-          pinned: true,
-          stretch: true,
-          backgroundColor: colorScheme.surface,
-          foregroundColor: colorScheme.onSurface,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Stack(
-              fit: StackFit.expand,
-              children: [
-                _buildEnhancedImageGallery(false),
-                // Gradient overlay for better text visibility
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.7),
+                  child: CustomButton(
+                    onPressed: _toggleBookingPanel,
+                    isLoading: false,
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    minimumSize: const Size(double.infinity, 64),
+                    borderRadius: 20,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.calendar_today_rounded, size: 20),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Book Now - ${_car!.displayPrice}/day',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
-                      stops: const [0.6, 1.0],
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
           ),
-          actions: _buildAppBarActions(colorScheme),
-        ),
-        SliverToBoxAdapter(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Column(
-                  children: [
-                    _buildEnhancedCarHeader(colorScheme, true),
-                    _buildModernCarInfo(colorScheme),
-                    _buildModernFeatures(colorScheme, true),
-                    _buildEnhancedLocationSection(colorScheme),
-                    _buildModernReviewsSection(colorScheme),
-                    const SizedBox(height: 120), // Space for FAB
-                  ],
+
+          // Enhanced Booking panel overlay
+          if (_showBookingPanel)
+            Positioned.fill(
+              child: Material(
+                color: Colors.black54,
+                child: InkWell(
+                  onTap: () => _toggleBookingPanel(),
+                  child: Container(
+                    alignment: Alignment.center,
+                    child: Container(
+                      margin: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 16 : 40,
+                        vertical: 40,
+                      ),
+                      constraints: const BoxConstraints(maxWidth: 500),
+                      child: AnimatedBuilder(
+                        animation: _bookingPanelAnimation,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: 0.8 + (0.2 * _bookingPanelAnimation.value),
+                            child: Transform.translate(
+                              offset: Offset(
+                                0,
+                                50 * (1 - _bookingPanelAnimation.value),
+                              ),
+                              child: Opacity(
+                                opacity: _bookingPanelAnimation.value,
+                                child: child,
+                              ),
+                            ),
+                          );
+                        },
+                        child: _buildEnhancedBookingPanel(),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDesktopHeader(ColorScheme colorScheme) {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: colorScheme.outline.withValues(alpha: 0.2),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.arrow_back_rounded),
-            style: IconButton.styleFrom(
-              backgroundColor: colorScheme.surfaceContainerLow,
-              padding: const EdgeInsets.all(12),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              'Car Details',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-            ),
-          ),
-          ..._buildAppBarActions(colorScheme).map(
-            (action) =>
-                Padding(padding: const EdgeInsets.only(left: 8), child: action),
-          ),
         ],
       ),
     );
   }
 
-  List<Widget> _buildAppBarActions(ColorScheme colorScheme) {
-    return [
-      CircleAvatar(
-        backgroundColor: Colors.black.withValues(alpha: 0.3),
-        child: IconButton(
-          icon: const Icon(Icons.share_rounded),
-          onPressed: _shareTotal,
-          color: Colors.white,
-        ),
-      ),
-      const SizedBox(width: 8),
-      CircleAvatar(
-        backgroundColor: Colors.black.withValues(alpha: 0.3),
-        child: IconButton(
-          icon: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: Icon(
-              _isFavorite ? Icons.favorite : Icons.favorite_border,
-              key: ValueKey(_isFavorite),
-              color: _isFavorite ? Colors.red : Colors.white,
-            ),
-          ),
-          onPressed: _toggleFavorite,
-        ),
-      ),
-      const SizedBox(width: 16),
-    ];
-  }
-
-  Widget _buildBookingFAB(ColorScheme colorScheme, bool isMobile) {
-    return RotationTransition(
-      turns: _rotateAnimation,
-      child: ScaleTransition(
-        scale: _fabController,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: colorScheme.primary.withValues(alpha: 0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: CustomButton(
-            onPressed: _toggleBookingPanel,
-            isLoading: false,
-            backgroundColor: colorScheme.primary,
-            foregroundColor: colorScheme.onPrimary,
-            minimumSize: Size(double.infinity, isMobile ? 64 : 72),
-            borderRadius: 20,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.calendar_today_rounded, size: 20),
-                const SizedBox(width: 12),
-                Text(
-                  'Book Now - ${_car!.displayPrice}/day',
-                  style: TextStyle(
-                    fontSize: isMobile ? 18 : 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBookingPanelOverlay(
-    ColorScheme colorScheme,
-    bool isMobile,
-    bool isTablet,
-  ) {
-    return Positioned.fill(
-      child: Material(
-        color: Colors.black54,
-        child: InkWell(
-          onTap: () => _toggleBookingPanel(),
-          child: Container(
-            alignment: Alignment.center,
-            child: Container(
-              margin: EdgeInsets.symmetric(
-                horizontal: isMobile ? 16 : (isTablet ? 40 : 80),
-                vertical: 40,
-              ),
-              constraints: BoxConstraints(
-                maxWidth: isMobile ? double.infinity : 600,
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
-              ),
-              child: AnimatedBuilder(
-                animation: _bookingPanelAnimation,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: 0.8 + (0.2 * _bookingPanelAnimation.value),
-                    child: Transform.translate(
-                      offset: Offset(
-                        0,
-                        50 * (1 - _bookingPanelAnimation.value),
-                      ),
-                      child: Opacity(
-                        opacity: _bookingPanelAnimation.value,
-                        child: child,
-                      ),
-                    ),
-                  );
-                },
-                child: _buildEnhancedBookingPanel(colorScheme),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEnhancedImageGallery(bool isDesktop) {
+  Widget _buildEnhancedImageGallery() {
     final images =
         _car!.images.isEmpty
             ? [CarImage(id: 0, imageUrl: '', displayOrder: 0)]
@@ -1066,7 +893,11 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
     );
   }
 
-  Widget _buildEnhancedCarHeader(ColorScheme colorScheme, bool isMobile) {
+  Widget _buildEnhancedCarHeader() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return Container(
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(24),
@@ -1236,7 +1067,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
     );
   }
 
-  Widget _buildModernCarInfo(ColorScheme colorScheme) {
+  Widget _buildModernCarInfo() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(24),
@@ -1289,8 +1122,12 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
     );
   }
 
-  Widget _buildModernFeatures(ColorScheme colorScheme, bool isMobile) {
+  Widget _buildModernFeatures() {
     if (_car!.features.isEmpty) return const SizedBox.shrink();
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -1404,7 +1241,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
     );
   }
 
-  Widget _buildEnhancedLocationSection(ColorScheme colorScheme) {
+  Widget _buildEnhancedLocationSection() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(24),
@@ -1519,7 +1358,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
     );
   }
 
-  Widget _buildModernReviewsSection(ColorScheme colorScheme) {
+  Widget _buildModernReviewsSection() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(24),
@@ -1853,7 +1694,9 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
     );
   }
 
-  Widget _buildEnhancedBookingPanel(ColorScheme colorScheme) {
+  Widget _buildEnhancedBookingPanel() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Material(
       borderRadius: BorderRadius.circular(24),
       elevation: 8,

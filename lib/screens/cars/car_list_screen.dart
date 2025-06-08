@@ -4,6 +4,8 @@ import '../../models/car_models.dart';
 import '../../services/car_service.dart';
 import 'car_details_screen.dart';
 
+import "../../widgets/seamless_page_route.dart";
+
 class CarListScreen extends StatefulWidget {
   const CarListScreen({super.key});
 
@@ -143,25 +145,21 @@ class _CarListScreenState extends State<CarListScreen>
 
       final result = await _carService.getCars(filter: filter);
 
-      if (mounted) {
-        setState(() {
-          if (isRefresh || _currentPage == 1) {
-            _cars = result.items;
-          } else {
-            _cars.addAll(result.items);
-          }
-          _hasMorePages = result.hasNextPage;
-          _totalCount = result.totalCount;
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        if (isRefresh || _currentPage == 1) {
+          _cars = result.items;
+        } else {
+          _cars.addAll(result.items);
+        }
+        _hasMorePages = result.hasNextPage;
+        _totalCount = result.totalCount;
+        _isLoading = false;
+      });
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'Failed to load cars: ${e.toString()}';
-        });
-      }
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Failed to load cars: ${e.toString()}';
+      });
     }
   }
 
@@ -199,20 +197,16 @@ class _CarListScreenState extends State<CarListScreen>
 
       final result = await _carService.getCars(filter: filter);
 
-      if (mounted) {
-        setState(() {
-          _cars.addAll(result.items);
-          _hasMorePages = result.hasNextPage;
-          _isLoadingMore = false;
-        });
-      }
+      setState(() {
+        _cars.addAll(result.items);
+        _hasMorePages = result.hasNextPage;
+        _isLoadingMore = false;
+      });
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingMore = false;
-          _currentPage--; // Revert page increment on error
-        });
-      }
+      setState(() {
+        _isLoadingMore = false;
+        _currentPage--; // Revert page increment on error
+      });
     }
   }
 
@@ -221,12 +215,10 @@ class _CarListScreenState extends State<CarListScreen>
       final makes = await _carService.getMakes();
       final locations = await _carService.getLocations();
 
-      if (mounted) {
-        setState(() {
-          _makes = makes;
-          _locations = locations;
-        });
-      }
+      setState(() {
+        _makes = makes;
+        _locations = locations;
+      });
     } catch (e) {
       // Handle error silently for filter options
     }
@@ -281,8 +273,9 @@ class _CarListScreenState extends State<CarListScreen>
   }
 
   double _getChildAspectRatio(double screenWidth) {
-    if (screenWidth > 1000)
+    if (screenWidth > 1000) {
       return 0.75; // Taller cards for more content on desktop
+    }
     if (screenWidth > 700) return 0.8;
     return 1.0; // More square on mobile
   }
@@ -1358,35 +1351,9 @@ class _CarListScreenState extends State<CarListScreen>
               child: InkWell(
                 onTap: () {
                   HapticFeedback.mediumImpact();
-                  Navigator.of(context).push(
-                    PageRouteBuilder(
-                      pageBuilder:
-                          (context, animation, secondaryAnimation) =>
-                              CarDetailsScreen(carId: car.id),
-                      transitionsBuilder: (
-                        context,
-                        animation,
-                        secondaryAnimation,
-                        child,
-                      ) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(1.0, 0.0),
-                            end: Offset.zero,
-                          ).animate(
-                            CurvedAnimation(
-                              parent: animation,
-                              curve: Curves.easeOutCubic,
-                            ),
-                          ),
-                          child: FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          ),
-                        );
-                      },
-                      transitionDuration: const Duration(milliseconds: 400),
-                    ),
+                  showSeamlessPage(
+                    context,
+                    CarDetailsScreen(carId: car.id),
                   );
                 },
                 borderRadius: BorderRadius.circular(isDesktop ? 24 : 20),
@@ -1835,48 +1802,9 @@ class _CarListScreenState extends State<CarListScreen>
                                           ? FilledButton.icon(
                                             onPressed: () {
                                               HapticFeedback.lightImpact();
-                                              Navigator.of(context).push(
-                                                PageRouteBuilder(
-                                                  pageBuilder:
-                                                      (
-                                                        context,
-                                                        animation,
-                                                        secondaryAnimation,
-                                                      ) => CarDetailsScreen(
-                                                        carId: car.id,
-                                                      ),
-                                                  transitionsBuilder: (
-                                                    context,
-                                                    animation,
-                                                    secondaryAnimation,
-                                                    child,
-                                                  ) {
-                                                    return SlideTransition(
-                                                      position: Tween<Offset>(
-                                                        begin: const Offset(
-                                                          1.0,
-                                                          0.0,
-                                                        ),
-                                                        end: Offset.zero,
-                                                      ).animate(
-                                                        CurvedAnimation(
-                                                          parent: animation,
-                                                          curve:
-                                                              Curves
-                                                                  .easeOutCubic,
-                                                        ),
-                                                      ),
-                                                      child: FadeTransition(
-                                                        opacity: animation,
-                                                        child: child,
-                                                      ),
-                                                    );
-                                                  },
-                                                  transitionDuration:
-                                                      const Duration(
-                                                        milliseconds: 400,
-                                                      ),
-                                                ),
+                                              showSeamlessPage(
+                                                context,
+                                                CarDetailsScreen(carId: car.id),
                                               );
                                             },
                                             style: FilledButton.styleFrom(
