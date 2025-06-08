@@ -11,6 +11,13 @@ import '../../services/car_booking_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import 'car_payment_screen.dart';
+import 'details/image_gallery.dart';
+import 'details/car_header.dart';
+import 'details/description_section.dart';
+import 'details/features_section.dart';
+import 'details/location_section.dart';
+import 'details/reviews_section.dart';
+import 'details/booking_success_dialog.dart';
 
 class CarDetailsScreen extends StatefulWidget {
   final int carId;
@@ -565,7 +572,13 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                   background: Stack(
                     fit: StackFit.expand,
                     children: [
-                      _buildEnhancedImageGallery(),
+                      CarImageGallery(
+                        images: _car!.images,
+                        controller: _imageController,
+                        currentIndex: _currentImageIndex,
+                        onPageChanged: (i) =>
+                            setState(() => _currentImageIndex = i),
+                      ),
                       // Gradient overlay for better text visibility
                       Container(
                         decoration: BoxDecoration(
@@ -627,11 +640,21 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                       scale: _scaleAnimation,
                       child: Column(
                         children: [
-                          _buildEnhancedCarHeader(),
-                          _buildModernCarInfo(),
-                          _buildModernFeatures(),
-                          _buildEnhancedLocationSection(),
-                          _buildModernReviewsSection(),
+                          CarHeader(car: _car!),
+                          CarDescriptionSection(car: _car!),
+                          CarFeaturesSection(features: _car!.features),
+                          CarLocationSection(car: _car!),
+                          CarReviewsSection(
+                            reviews: _reviews,
+                            reviewController: _reviewController,
+                            selectedRating: _selectedRating,
+                            onRatingChanged: (r) =>
+                                setState(() => _selectedRating = r),
+                            onSubmit: _submitReview,
+                            submitting: _isSubmittingReview,
+                            averageRating: _car!.averageRating,
+                            reviewCount: _car!.reviewCount,
+                          ),
                           const SizedBox(height: 120), // Space for FAB
                         ],
                       ),
