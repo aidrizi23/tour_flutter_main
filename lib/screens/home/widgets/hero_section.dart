@@ -5,11 +5,11 @@ class HomeHeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= 800;
-        final height = isDesktop ? 500.0 : 300.0;
+        final height = isDesktop ? 600.0 : 400.0;
         return SizedBox(
           height: height,
           child: Stack(
@@ -39,32 +39,30 @@ class HomeHeroSection extends StatelessWidget {
                   children: [
                     Text(
                       'Explore the World',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineLarge
-                          ?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style: theme.textTheme.displaySmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     Text(
                       'Find unforgettable experiences and make memories.',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge
-                          ?.copyWith(color: Colors.white70),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: Colors.white70,
+                      ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
                     FilledButton(
                       onPressed: () {
                         Navigator.of(context).pushNamed('/tours');
                       },
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 16),
+                          horizontal: 32,
+                          vertical: 20,
+                        ),
                       ),
                       child: const Text('Start Exploring'),
                     ),
