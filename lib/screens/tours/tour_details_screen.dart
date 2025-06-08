@@ -8,6 +8,7 @@ import '../../widgets/custom_button.dart';
 import '../booking/payment_screen.dart';
 import 'details/image_gallery.dart';
 import 'details/tour_header.dart';
+import 'details/info_section.dart';
 import 'details/description_section.dart';
 import 'details/features_section.dart';
 import 'details/itinerary_section.dart';
@@ -158,23 +159,53 @@ class _TourDetailsScreenState extends State<TourDetailsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => BookingBottomSheet(
-        selectedDate: _selectedDate,
-        people: _people,
-        onDateChanged: (d) => setState(() => _selectedDate = d),
-        onPeopleChanged: (p) => setState(() => _people = p),
-        onCheckAvailability: _checkAvailability,
-        availability: _availability,
-        checkingAvailability: _checkingAvailability,
-        booking: _booking,
-        onBook: _book,
-      ),
+      builder:
+          (context) => BookingBottomSheet(
+            selectedDate: _selectedDate,
+            people: _people,
+            onDateChanged: (d) => setState(() => _selectedDate = d),
+            onPeopleChanged: (p) => setState(() => _people = p),
+            onCheckAvailability: _checkAvailability,
+            availability: _availability,
+            checkingAvailability: _checkingAvailability,
+            booking: _booking,
+            onBook: _book,
+          ),
     );
+  }
+
+  List<Widget> _buildSlivers() {
+    return [
+      SliverAppBar(
+        pinned: true,
+        expandedHeight: 300,
+        flexibleSpace: FlexibleSpaceBar(
+          background: TourImageGallery(images: _tour!.images),
+        ),
+      ),
+      SliverToBoxAdapter(child: TourHeader(tour: _tour!)),
+      SliverToBoxAdapter(child: TourInfoSection(tour: _tour!)),
+      SliverToBoxAdapter(child: TourDescriptionSection(tour: _tour!)),
+      SliverToBoxAdapter(child: TourFeaturesSection(features: _tour!.features)),
+      SliverToBoxAdapter(
+        child: TourItinerarySection(items: _tour!.itineraryItems),
+      ),
+      SliverToBoxAdapter(
+        child: ReviewsSection(
+          reviews: _reviews,
+          reviewController: _reviewController,
+          selectedRating: _selectedRating,
+          onRatingChanged: (r) => setState(() => _selectedRating = r),
+          onSubmit: _submittingReview ? () {} : _submitReview,
+          submitting: _submittingReview,
+        ),
+      ),
+      const SliverToBoxAdapter(child: SizedBox(height: 100)),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -193,36 +224,7 @@ class _TourDetailsScreenState extends State<TourDetailsScreen> {
           minimumSize: const Size(double.infinity, 56),
         ),
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: 300,
-            flexibleSpace: FlexibleSpaceBar(
-              background: TourImageGallery(images: _tour!.images),
-            ),
-          ),
-          SliverToBoxAdapter(child: TourHeader(tour: _tour!)),
-          SliverToBoxAdapter(child: TourDescriptionSection(tour: _tour!)),
-          SliverToBoxAdapter(
-            child: TourFeaturesSection(features: _tour!.features),
-          ),
-          SliverToBoxAdapter(
-            child: TourItinerarySection(items: _tour!.itineraryItems),
-          ),
-          SliverToBoxAdapter(
-            child: ReviewsSection(
-              reviews: _reviews,
-              reviewController: _reviewController,
-              selectedRating: _selectedRating,
-              onRatingChanged: (r) => setState(() => _selectedRating = r),
-              onSubmit: _submittingReview ? () {} : _submitReview,
-              submitting: _submittingReview,
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
-        ],
-      ),
+      body: CustomScrollView(slivers: _buildSlivers()),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/tour_models.dart';
+import '../../../widgets/modern_widgets.dart';
 
 class TourHeader extends StatelessWidget {
   final Tour tour;
@@ -29,25 +30,38 @@ class TourHeader extends StatelessWidget {
                 color: colorScheme.primary,
               ),
               const SizedBox(width: 4),
-              Text(tour.location),
-              const Spacer(),
+              Expanded(child: Text(tour.location)),
               if (tour.averageRating != null)
                 Row(
                   children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 18),
+                    ModernRatingStars(rating: tour.averageRating!, size: 16),
                     const SizedBox(width: 4),
-                    Text(tour.averageRating!.toStringAsFixed(1)),
+                    Text(
+                      '(${tour.reviewCount ?? 0})',
+                      style: theme.textTheme.bodySmall,
+                    ),
                   ],
                 ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            tour.displayPrice,
-            style: theme.textTheme.titleLarge?.copyWith(
-              color: colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Text(
+                tour.displayPrice,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '/person',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.6),
+                ),
+              ),
+            ],
           ),
           if (tour.hasDiscount)
             Text(

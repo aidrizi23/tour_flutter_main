@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/tour_models.dart';
 import '../../../widgets/custom_button.dart';
 import '../../../widgets/custom_text_field.dart';
+import '../../../widgets/modern_widgets.dart';
 
 class ReviewsSection extends StatelessWidget {
   final List<TourReview> reviews;
@@ -39,17 +40,9 @@ class ReviewsSection extends StatelessWidget {
           const SizedBox(height: 16),
           Text('Add your review', style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
-          Row(
-            children: List.generate(5, (index) {
-              final i = index + 1;
-              return IconButton(
-                icon: Icon(
-                  Icons.star,
-                  color: i <= selectedRating ? Colors.amber : Colors.grey,
-                ),
-                onPressed: () => onRatingChanged(i),
-              );
-            }),
+          ModernRatingStars(
+            rating: selectedRating.toDouble(),
+            onRatingChanged: onRatingChanged,
           ),
           CustomTextField(
             controller: reviewController,
@@ -88,23 +81,16 @@ class _ReviewTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(
-                review.userName,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  review.userName,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const Spacer(),
-              Row(
-                children: List.generate(5, (index) {
-                  final i = index + 1;
-                  return Icon(
-                    Icons.star,
-                    size: 16,
-                    color: i <= review.rating ? Colors.amber : Colors.grey,
-                  );
-                }),
-              ),
+              ModernRatingStars(rating: review.rating.toDouble(), size: 16),
             ],
           ),
           const SizedBox(height: 4),
