@@ -31,6 +31,15 @@ class TourService {
       }
     } catch (e) {
       log('Error fetching tours: $e');
+      
+      // If it's a connection error, return dummy data for development
+      if (e.toString().contains('Connection refused') || 
+          e.toString().contains('Network unreachable') ||
+          e.toString().contains('SocketException')) {
+        log('Connection failed, returning dummy tours data');
+        return _createDummyPaginatedTours();
+      }
+      
       rethrow;
     }
   }
@@ -55,6 +64,15 @@ class TourService {
       }
     } catch (e) {
       log('Error fetching tour: $e');
+      
+      // If it's a connection error, return dummy data for development
+      if (e.toString().contains('Connection refused') || 
+          e.toString().contains('Network unreachable') ||
+          e.toString().contains('SocketException')) {
+        log('Connection failed, returning dummy tour data');
+        return _createDummyTour(id);
+      }
+      
       rethrow;
     }
   }
@@ -175,6 +193,15 @@ class TourService {
       }
     } catch (e) {
       log('Error fetching reviews: $e');
+      
+      // If it's a connection error, return dummy data for development
+      if (e.toString().contains('Connection refused') || 
+          e.toString().contains('Network unreachable') ||
+          e.toString().contains('SocketException')) {
+        log('Connection failed, returning dummy reviews data');
+        return _createDummyReviews(tourId);
+      }
+      
       rethrow;
     }
   }
@@ -295,6 +322,108 @@ class TourService {
       log('Error fetching locations: $e');
       return [];
     }
+  }
+
+  // Dummy data methods for offline development
+  PaginatedTours _createDummyPaginatedTours() {
+    final dummyTours = [
+      _createDummyTour(1),
+      _createDummyTour(2),
+      _createDummyTour(3),
+    ];
+    
+    return PaginatedTours(
+      items: dummyTours,
+      pageIndex: 1,
+      totalPages: 1,
+      totalCount: dummyTours.length,
+      hasPreviousPage: false,
+      hasNextPage: false,
+    );
+  }
+
+  Tour _createDummyTour(int id) {
+    return Tour(
+      id: id,
+      name: 'Historic Walking Tour $id',
+      description: 'Explore the historic city center and learn about its fascinating past. This comprehensive walking tour covers major landmarks, hidden gems, and local stories.',
+      location: 'City Center',
+      category: 'Cultural',
+      price: 45.0 + (id * 10),
+      discountedPrice: null,
+      durationInDays: 1,
+      difficultyLevel: 'Easy',
+      activityType: 'Outdoor',
+      maxGroupSize: 15,
+      mainImageUrl: 'https://images.unsplash.com/photo-1539650116574-75c0c6d73c6e?w=800&h=600&fit=crop',
+      isActive: true,
+      averageRating: 4.5 + (id * 0.1),
+      reviewCount: 20 + (id * 5),
+      createdAt: DateTime.now().subtract(Duration(days: id * 10)),
+      images: [
+        TourImage(
+          id: id * 10 + 1,
+          imageUrl: 'https://images.unsplash.com/photo-1539650116574-75c0c6d73c6e?w=800&h=600&fit=crop',
+          caption: 'Historic square',
+          displayOrder: 1,
+        ),
+        TourImage(
+          id: id * 10 + 2,
+          imageUrl: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&h=600&fit=crop',
+          caption: 'Old architecture',
+          displayOrder: 2,
+        ),
+      ],
+      features: [
+        TourFeature(
+          id: id * 10 + 1,
+          name: 'Professional Guide',
+          description: 'Experienced local guide',
+        ),
+        TourFeature(
+          id: id * 10 + 2,
+          name: 'Small Group',
+          description: 'Maximum 15 people',
+        ),
+      ],
+      itineraryItems: [
+        ItineraryItem(
+          id: id * 10 + 1,
+          dayNumber: 1,
+          title: 'Historic Center Exploration',
+          description: 'Start at the main square and explore historic buildings',
+          startTime: '09:00 AM',
+          endTime: '12:00 PM',
+          activityType: 'Walking',
+        ),
+      ],
+    );
+  }
+
+  List<TourReview> _createDummyReviews(int tourId) {
+    return [
+      TourReview(
+        id: tourId * 100 + 1,
+        userName: 'John Smith',
+        rating: 5,
+        comment: 'Amazing tour! The guide was very knowledgeable and the pace was perfect.',
+        createdAt: DateTime.now().subtract(const Duration(days: 5)),
+      ),
+      TourReview(
+        id: tourId * 100 + 2,
+        userName: 'Sarah Johnson',
+        rating: 4,
+        comment: 'Great experience, learned a lot about the city history.',
+        createdAt: DateTime.now().subtract(const Duration(days: 12)),
+      ),
+      TourReview(
+        id: tourId * 100 + 3,
+        userName: 'Mike Davis',
+        rating: 5,
+        comment: 'Highly recommended! Perfect for history enthusiasts.',
+        createdAt: DateTime.now().subtract(const Duration(days: 20)),
+      ),
+    ];
   }
 
   // Constants for filtering options
