@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/tour_models.dart';
+import '../../../../models/tour_models.dart';
 
 class TourItinerary extends StatefulWidget {
   final Tour tour;

@@ -780,7 +780,7 @@ public class HouseBooking
    - Present visualizations of travel patterns, spending, and preferences
    - Use this data to suggest new destinations or tour types
 
-### API Security and Performance Considerations
+### API Security and Performance ConsiderationsY
 
 1. **Authorization:**
    - All recommendation endpoints should require authentication

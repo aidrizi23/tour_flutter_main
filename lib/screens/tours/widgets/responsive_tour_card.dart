@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../models/tour_models.dart';
-import '../screens/tours/tour_details_screen.dart';
+import '../../../models/tour_models.dart';
+import '../tour_details_screen.dart';
 
 class ResponsiveTourCard extends StatefulWidget {
   final Tour tour;

@@ -84,4 +84,20 @@ class ThemeProvider extends ChangeNotifier {
         return 'System';
     }
   }
+
+  Future<void> toggleTheme() async {
+    switch (_themeMode) {
+      case ThemeMode.light:
+        await setThemeMode(ThemeMode.dark);
+        break;
+      case ThemeMode.dark:
+        await setThemeMode(ThemeMode.light);
+        break;
+      case ThemeMode.system:
+        // If system, toggle to light or dark based on current system setting
+        final isCurrentlyDark = WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
+        await setThemeMode(isCurrentlyDark ? ThemeMode.light : ThemeMode.dark);
+        break;
+    }
+  }
 }

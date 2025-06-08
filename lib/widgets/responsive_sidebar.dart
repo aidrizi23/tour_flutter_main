@@ -386,6 +386,11 @@ class ResponsiveSidebar extends StatelessWidget {
 
     final baseDestinations = [
       NavigationDestination(
+        icon: const Icon(Icons.home_rounded),
+        selectedIcon: Icon(Icons.home_rounded, color: colorScheme.primary),
+        label: 'Home',
+      ),
+      NavigationDestination(
         icon: const Icon(Icons.tour_rounded),
         selectedIcon: Icon(Icons.tour_rounded, color: colorScheme.primary),
         label: 'Tours',
@@ -404,8 +409,8 @@ class ResponsiveSidebar extends StatelessWidget {
         label: 'Cars',
       ),
       NavigationDestination(
-        icon: const Icon(Icons.home_rounded),
-        selectedIcon: Icon(Icons.home_rounded, color: colorScheme.primary),
+        icon: const Icon(Icons.house_rounded),
+        selectedIcon: Icon(Icons.house_rounded, color: colorScheme.primary),
         label: 'Houses',
       ),
       NavigationDestination(
@@ -447,6 +452,11 @@ class ResponsiveSidebar extends StatelessWidget {
 
     final baseItems = [
       {
+        'icon': Icons.home_rounded,
+        'selectedIcon': Icons.home_rounded,
+        'label': 'Home',
+      },
+      {
         'icon': Icons.tour_rounded,
         'selectedIcon': Icons.tour_rounded,
         'label': 'Tours',
@@ -462,8 +472,8 @@ class ResponsiveSidebar extends StatelessWidget {
         'label': 'Cars',
       },
       {
-        'icon': Icons.home_rounded,
-        'selectedIcon': Icons.home_rounded,
+        'icon': Icons.house_rounded,
+        'selectedIcon': Icons.house_rounded,
         'label': 'Houses',
       },
       {

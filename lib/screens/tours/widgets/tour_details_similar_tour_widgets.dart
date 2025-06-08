@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:tour_flutter_main/models/tour_models.dart';
 import 'package:tour_flutter_main/screens/tours/tour_details_screen.dart';
-import '../models/tour_models.dart';
-import '../services/recommendation_service.dart';
+import 'package:tour_flutter_main/services/recommendation_service.dart';
 
 class TourDetailsSimilarToursWidget extends StatefulWidget {
   final int tourId;

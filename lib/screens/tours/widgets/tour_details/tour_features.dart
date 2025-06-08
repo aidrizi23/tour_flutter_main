@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/tour_models.dart';
+import '../../../../models/tour_models.dart';
 
 class TourFeatures extends StatelessWidget {
   final Tour tour;

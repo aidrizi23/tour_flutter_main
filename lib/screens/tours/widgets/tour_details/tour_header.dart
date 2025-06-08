@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../models/tour_models.dart';
+import '../../../../models/tour_models.dart';
 
 class TourHeader extends StatelessWidget {
   final Tour tour;

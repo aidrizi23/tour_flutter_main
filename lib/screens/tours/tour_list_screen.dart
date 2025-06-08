@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/tour_models.dart';
 import '../../services/tour_service.dart';
-import '../../widgets/responsive_tour_card.dart';
+import 'widgets/responsive_tour_card.dart';
 
 class TourListScreen extends StatefulWidget {
   const TourListScreen({super.key});

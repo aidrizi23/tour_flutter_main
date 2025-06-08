@@ -13,6 +13,7 @@ import 'screens/profile/profile_screen.dart';
 import 'screens/booking/booking_screen.dart';
 import 'screens/recommendation/recommendation_screen.dart';
 import 'screens/settings/settings_screen.dart';
+import 'screens/home/home_screen.dart';
 import 'widgets/responsive_layout.dart';
 import 'services/auth_service.dart';
 import 'services/stripe_service.dart';
@@ -54,6 +55,7 @@ class MyApp extends StatelessWidget {
             '/register': (context) => const RegisterScreen(),
             '/tours': (context) => const TourListScreenNew(),
             '/cars': (context) => const CarListScreen(),
+            '/houses': (context) => const HouseListScreen(),
             '/admin-panel': (context) => const AdminPanelScreen(),
             '/admin/create-tour': (context) => const AdminTourCreateScreen(),
             '/profile': (context) => const ProfileScreen(),
@@ -459,6 +461,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isAdmin = false;
 
   final List<Widget> _userScreens = [
+    const EnhancedHomeScreen(),
     const TourListScreenNew(),
     const RecommendationScreen(),
     const CarListScreen(),
@@ -468,6 +471,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   final List<Widget> _adminScreens = [
+    const EnhancedHomeScreen(),
     const TourListScreenNew(),
     const RecommendationScreen(),
     const CarListScreen(),

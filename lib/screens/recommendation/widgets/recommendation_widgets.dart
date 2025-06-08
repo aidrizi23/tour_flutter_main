@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../models/recommendation_models.dart';
-import '../models/tour_models.dart';
+import '../../../models/recommendation_models.dart';
+import '../../../models/tour_models.dart';
 
 // Section title widget with optional "See All" button
 class SectionTitle extends StatelessWidget {

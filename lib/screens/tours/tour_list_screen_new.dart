@@ -237,10 +237,12 @@ class _TourListScreenNewState extends State<TourListScreenNew>
       final categories = await _tourService.getCategories();
       final locations = await _tourService.getLocations();
 
-      setState(() {
-        _categories = categories;
-        _locations = locations;
-      });
+      if (mounted) {
+        setState(() {
+          _categories = categories;
+          _locations = locations;
+        });
+      }
     } catch (e) {
       debugPrint("Error loading filter options: $e");
     }

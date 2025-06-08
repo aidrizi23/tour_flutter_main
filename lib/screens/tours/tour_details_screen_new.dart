@@ -3,12 +3,12 @@ import 'package:flutter/services.dart';
 import '../../models/tour_models.dart';
 import '../../models/booking_models.dart';
 import '../../services/tour_service.dart';
-import '../../widgets/tour_details/tour_image_gallery.dart';
-import '../../widgets/tour_details/tour_header.dart';
-import '../../widgets/tour_details/tour_information.dart';
-import '../../widgets/tour_details/tour_itinerary.dart';
-import '../../widgets/tour_details/tour_features.dart';
-import '../../widgets/tour_details/tour_booking_panel.dart';
+import 'widgets/tour_details/tour_image_gallery.dart';
+import 'widgets/tour_details/tour_header.dart';
+import 'widgets/tour_details/tour_information.dart';
+import 'widgets/tour_details/tour_itinerary.dart';
+import 'widgets/tour_details/tour_features.dart';
+import 'widgets/tour_details/tour_booking_panel.dart';
 import '../booking/payment_screen.dart';
 
 class TourDetailsScreenNew extends StatefulWidget {

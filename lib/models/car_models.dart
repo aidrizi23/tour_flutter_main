@@ -448,3 +448,89 @@ class CarAvailabilityRequest {
 }
 
 // CarAvailabilityResponse moved to dedicated file: lib/models/car_availability_response.dart
+
+// ========== CREATE CAR MODELS ==========
+
+class CreateCarRequest {
+  final String make;
+  final String model;
+  final int year;
+  final String description;
+  final double dailyRate;
+  final String category;
+  final String transmission;
+  final String fuelType;
+  final int seats;
+  final String? mainImageUrl;
+  final bool isAvailable;
+  final String location;
+  final List<CreateCarImage> images;
+  final List<CreateCarFeature> features;
+
+  CreateCarRequest({
+    required this.make,
+    required this.model,
+    required this.year,
+    required this.description,
+    required this.dailyRate,
+    required this.category,
+    required this.transmission,
+    required this.fuelType,
+    required this.seats,
+    this.mainImageUrl,
+    this.isAvailable = true,
+    required this.location,
+    this.images = const [],
+    this.features = const [],
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'make': make,
+      'model': model,
+      'year': year,
+      'description': description,
+      'dailyRate': dailyRate,
+      'category': category,
+      'transmission': transmission,
+      'fuelType': fuelType,
+      'seats': seats,
+      'mainImageUrl': mainImageUrl,
+      'isAvailable': isAvailable,
+      'location': location,
+      'images': images.map((e) => e.toJson()).toList(),
+      'features': features.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
+class CreateCarImage {
+  final String imageUrl;
+  final String? caption;
+  final int displayOrder;
+
+  CreateCarImage({
+    required this.imageUrl,
+    this.caption,
+    required this.displayOrder,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'imageUrl': imageUrl,
+      'caption': caption,
+      'displayOrder': displayOrder,
+    };
+  }
+}
+
+class CreateCarFeature {
+  final String name;
+  final String? description;
+
+  CreateCarFeature({required this.name, this.description});
+
+  Map<String, dynamic> toJson() {
+    return {'name': name, 'description': description};
+  }
+}
