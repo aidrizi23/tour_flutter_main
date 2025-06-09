@@ -22,7 +22,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
   final TourService _tourService = TourService();
   final HouseService _houseService = HouseService();
   final CarService _carService = CarService();
-  
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -30,7 +30,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
   List<Tour> _featuredTours = [];
   List<House> _featuredHouses = [];
   List<Car> _featuredCars = [];
-  
+
   bool _isLoading = true;
   String? _error;
 
@@ -47,21 +47,22 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+      ),
+    );
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.2, 0.8, curve: Curves.easeOut),
-    ));
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.2, 0.8, curve: Curves.easeOut),
+      ),
+    );
 
     _animationController.forward();
   }
@@ -74,34 +75,40 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
       });
 
       final results = await Future.wait([
-        _tourService.getTours(filter: TourFilterRequest(
-          sortBy: 'rating',
-          ascending: false,
-          pageSize: 6,
-        )),
-        _houseService.getHouses(filter: HouseFilterRequest(
-          sortBy: 'averageRating',
-          ascending: false,
-          pageSize: 4,
-        )),
-        _carService.getCars(filter: CarFilterRequest(
-          sortBy: 'averageRating',
-          ascending: false,
-          pageSize: 4,
-        )),
+        _tourService.getTours(
+          filter: TourFilterRequest(
+            sortBy: 'rating',
+            ascending: false,
+            pageSize: 6,
+          ),
+        ),
+        _houseService.getHouses(
+          filter: HouseFilterRequest(
+            sortBy: 'averageRating',
+            ascending: false,
+            pageSize: 4,
+          ),
+        ),
+        _carService.getCars(
+          filter: CarFilterRequest(
+            sortBy: 'averageRating',
+            ascending: false,
+            pageSize: 4,
+          ),
+        ),
       ]);
 
       if (mounted) {
         setState(() {
           final tourResponse = results[0] as PaginatedTours;
           _featuredTours = tourResponse.items;
-          
+
           final houseResponse = results[1] as PaginatedHouses;
           _featuredHouses = houseResponse.items;
-          
+
           final carResponse = results[2] as PaginatedCars;
           _featuredCars = carResponse.items;
-          
+
           _isLoading = false;
         });
       }
@@ -123,24 +130,17 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _isLoading ? _buildLoadingState() : _buildContent(),
-    );
+    return Scaffold(body: _isLoading ? _buildLoadingState() : _buildContent());
   }
 
   Widget _buildLoadingState() {
-    return const Center(
-      child: ModernLoadingIndicator(),
-    );
+    return const Center(child: ModernLoadingIndicator());
   }
 
   Widget _buildContent() {
     if (_error != null) {
       return Center(
-        child: ModernErrorWidget(
-          message: _error!,
-          onRetry: _loadHomeData,
-        ),
+        child: ModernErrorWidget(message: _error!, onRetry: _loadHomeData),
       );
     }
 
@@ -157,15 +157,9 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
               ),
             ),
           ),
-          const SliverToBoxAdapter(
-            child: CompanyOverview(),
-          ),
-          const SliverToBoxAdapter(
-            child: ServicesShowcase(),
-          ),
-          const SliverToBoxAdapter(
-            child: StatsOverview(),
-          ),
+          const SliverToBoxAdapter(child: CompanyOverview()),
+          const SliverToBoxAdapter(child: ServicesShowcase()),
+          const SliverToBoxAdapter(child: StatsOverview()),
           SliverToBoxAdapter(
             child: FeaturedContent(
               featuredTours: _featuredTours,
@@ -173,16 +167,11 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
               featuredCars: _featuredCars,
             ),
           ),
-          const SliverToBoxAdapter(
-            child: TestimonialsSection(),
-          ),
-          const SliverToBoxAdapter(
-            child: CTASection(),
-          ),
+          const SliverToBoxAdapter(child: TestimonialsSection()),
+          const SliverToBoxAdapter(child: CTASection()),
           const SliverToBoxAdapter(child: SizedBox(height: 32)),
         ],
       ),
     );
   }
-
 }
