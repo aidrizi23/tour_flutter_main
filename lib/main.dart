@@ -468,6 +468,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const HouseListScreen(),
     const BookingScreen(),
     const ProfileScreen(),
+    const SettingsScreen(),
   ];
 
   final List<Widget> _adminScreens = [
@@ -479,6 +480,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const BookingScreen(),
     const AdminPanelScreen(),
     const ProfileScreen(),
+    const SettingsScreen(),
   ];
 
   @override

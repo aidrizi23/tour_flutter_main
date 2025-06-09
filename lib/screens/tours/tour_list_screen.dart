@@ -95,21 +95,25 @@ class _TourListScreenState extends State<TourListScreen> {
 
       final result = await _tourService.getTours(filter: filter);
 
-      setState(() {
-        if (isRefresh || _currentPage == 1) {
-          _tours = result.items;
-        } else {
-          _tours.addAll(result.items);
-        }
-        _hasMorePages = result.hasNextPage;
-        _totalCount = result.totalCount;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          if (isRefresh || _currentPage == 1) {
+            _tours = result.items;
+          } else {
+            _tours.addAll(result.items);
+          }
+          _hasMorePages = result.hasNextPage;
+          _totalCount = result.totalCount;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Failed to load tours: ${e.toString()}';
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Failed to load tours: ${e.toString()}';
+        });
+      }
     }
   }
 
@@ -139,16 +143,20 @@ class _TourListScreenState extends State<TourListScreen> {
 
       final result = await _tourService.getTours(filter: filter);
 
-      setState(() {
-        _tours.addAll(result.items);
-        _hasMorePages = result.hasNextPage;
-        _isLoadingMore = false;
-      });
+      if (mounted) {
+        setState(() {
+          _tours.addAll(result.items);
+          _hasMorePages = result.hasNextPage;
+          _isLoadingMore = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isLoadingMore = false;
-        _currentPage--;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+          _currentPage--;
+        });
+      }
     }
   }
 
@@ -157,10 +165,12 @@ class _TourListScreenState extends State<TourListScreen> {
       final categories = await _tourService.getCategories();
       final locations = await _tourService.getLocations();
 
-      setState(() {
-        _categories = categories;
-        _locations = locations;
-      });
+      if (mounted) {
+        setState(() {
+          _categories = categories;
+          _locations = locations;
+        });
+      }
     } catch (e) {
       debugPrint("Error loading filter options: $e");
     }

@@ -39,6 +39,8 @@ This is a Flutter tourism application with a multi-platform responsive design su
 - Bottom navigation for mobile
 - Hero transitions for tour cards to details screens
 - Uses `LayoutUtils.createLayoutRoute()` for consistent responsive navigation
+- Main screens (Tours, Cars, Houses, Bookings, Profile, Settings, Admin) are managed via `IndexedStack`
+- Detail screens and payment flows use independent `Scaffold` for focused workflows
 
 ### UI Components
 - **Modern Design**: Material 3 design system with custom theming
@@ -57,8 +59,10 @@ The booking system integrates with Stripe:
 
 ### Known Issues & Solutions
 - **Hero Tag Conflicts**: Tour cards use `tour_card_${id}` tags, image galleries use `tour_image_${id}_${index}`
+- **setState() after dispose()**: Always wrap setState calls in `if (mounted)` checks for async operations
 - **Network Errors**: API calls have proper error handling with user-friendly messages
-- **Image Loading**: Graceful fallbacks for failed image loads
+- **Image Loading**: Graceful fallbacks for failed image loads, validate URLs before displaying (check for "string" literals)
+- **Navigation Consistency**: All main screens use `ResponsiveLayout` wrapper for consistent sidebar/navigation
 
 ### File Organization
 - `lib/screens/tours/` - Tour listing and detail screens
@@ -71,4 +75,7 @@ The booking system integrates with Stripe:
 - Always use proper responsive breakpoints (mobile: <768px, tablet: 768-1200px, desktop: >1200px)
 - Hero widgets must have unique tags to avoid conflicts
 - API error handling should provide user-friendly messages
-- Image URLs should be validated before displaying
+- Image URLs should be validated before displaying (check for null, empty, or "string" values)
+- Use `if (mounted)` checks before setState() calls in async functions to prevent memory leaks
+- Prefer `.withValues(alpha: value)` over deprecated `.withOpacity()` method
+- Settings screen is integrated into main navigation (not a separate route)

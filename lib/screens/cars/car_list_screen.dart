@@ -145,21 +145,25 @@ class _CarListScreenState extends State<CarListScreen>
 
       final result = await _carService.getCars(filter: filter);
 
-      setState(() {
-        if (isRefresh || _currentPage == 1) {
-          _cars = result.items;
-        } else {
-          _cars.addAll(result.items);
-        }
-        _hasMorePages = result.hasNextPage;
-        _totalCount = result.totalCount;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          if (isRefresh || _currentPage == 1) {
+            _cars = result.items;
+          } else {
+            _cars.addAll(result.items);
+          }
+          _hasMorePages = result.hasNextPage;
+          _totalCount = result.totalCount;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Failed to load cars: ${e.toString()}';
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Failed to load cars: ${e.toString()}';
+        });
+      }
     }
   }
 
@@ -197,16 +201,20 @@ class _CarListScreenState extends State<CarListScreen>
 
       final result = await _carService.getCars(filter: filter);
 
-      setState(() {
-        _cars.addAll(result.items);
-        _hasMorePages = result.hasNextPage;
-        _isLoadingMore = false;
-      });
+      if (mounted) {
+        setState(() {
+          _cars.addAll(result.items);
+          _hasMorePages = result.hasNextPage;
+          _isLoadingMore = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isLoadingMore = false;
-        _currentPage--; // Revert page increment on error
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+          _currentPage--; // Revert page increment on error
+        });
+      }
     }
   }
 
@@ -215,10 +223,12 @@ class _CarListScreenState extends State<CarListScreen>
       final makes = await _carService.getMakes();
       final locations = await _carService.getLocations();
 
-      setState(() {
-        _makes = makes;
-        _locations = locations;
-      });
+      if (mounted) {
+        setState(() {
+          _makes = makes;
+          _locations = locations;
+        });
+      }
     } catch (e) {
       // Handle error silently for filter options
     }

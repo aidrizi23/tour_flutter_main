@@ -300,7 +300,7 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
                 widget.onDestinationSelected(_getBookingsIndex());
                 break;
               case 'settings':
-                Navigator.of(context).pushNamed('/settings');
+                widget.onDestinationSelected(_getSettingsIndex());
                 break;
               case 'logout':
                 // TODO: Handle logout
@@ -470,14 +470,23 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout>
         selectedIcon: Icon(Icons.person, color: colorScheme.primary),
         label: 'Profile',
       ),
+      NavigationDestination(
+        icon: const Icon(Icons.settings_outlined),
+        selectedIcon: Icon(Icons.settings, color: colorScheme.primary),
+        label: 'Settings',
+      ),
     ];
   }
 
   int _getProfileIndex() {
-    return widget.isAdmin ? 6 : 5;
+    return widget.isAdmin ? 7 : 6;
   }
 
   int _getBookingsIndex() {
     return 4;
+  }
+
+  int _getSettingsIndex() {
+    return widget.isAdmin ? 8 : 7;
   }
 }

@@ -92,9 +92,9 @@ class _SettingsScreenState extends State<SettingsScreen>
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 768;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surfaceContainerLowest,
-      body: FadeTransition(
+    return Container(
+      color: colorScheme.surfaceContainerLowest,
+      child: FadeTransition(
         opacity: _fadeAnimation,
         child: CustomScrollView(
           slivers: [
@@ -105,22 +105,32 @@ class _SettingsScreenState extends State<SettingsScreen>
                 child: SafeArea(
                   child: Padding(
                     padding: EdgeInsets.all(isMobile ? 20 : 32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        if (isMobile)
-                          Row(
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                colorScheme.primary,
+                                colorScheme.secondary,
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.settings_rounded,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              IconButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                icon: const Icon(Icons.arrow_back_rounded),
-                                style: IconButton.styleFrom(
-                                  backgroundColor:
-                                      colorScheme.surfaceContainerLow,
-                                  padding: const EdgeInsets.all(12),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
                               Text(
                                 'Settings',
                                 style: Theme.of(
@@ -130,60 +140,20 @@ class _SettingsScreenState extends State<SettingsScreen>
                                   color: colorScheme.onSurface,
                                 ),
                               ),
-                            ],
-                          )
-                        else
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      colorScheme.primary,
-                                      colorScheme.secondary,
-                                    ],
+                              const SizedBox(height: 8),
+                              Text(
+                                'Customize your AlbTour experience',
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodyLarge?.copyWith(
+                                  color: colorScheme.onSurface.withValues(
+                                    alpha: 0.7,
                                   ),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: const Icon(
-                                  Icons.settings_rounded,
-                                  color: Colors.white,
-                                  size: 32,
-                                ),
-                              ),
-                              const SizedBox(width: 20),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Settings',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.headlineLarge?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.onSurface,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Customize your AlbTour experience',
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyLarge?.copyWith(
-                                        color: colorScheme.onSurface.withValues(
-                                          alpha: 0.7,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
                                 ),
                               ),
                             ],
                           ),
+                        ),
                       ],
                     ),
                   ),
