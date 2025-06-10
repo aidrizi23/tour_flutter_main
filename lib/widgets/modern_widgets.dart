@@ -946,13 +946,9 @@ class _ModernLoadingIndicatorState extends State<ModernLoadingIndicator>
       vsync: this,
     )..repeat(reverse: true);
 
-    _pulseAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.2,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -1039,7 +1035,8 @@ class ModernErrorWidget extends StatelessWidget {
   const ModernErrorWidget({
     super.key,
     this.title = 'Something went wrong',
-    this.message = 'Please try again or contact support if the problem persists.',
+    this.message =
+        'Please try again or contact support if the problem persists.',
     this.onRetry,
     this.icon = Icons.error_outline_rounded,
     this.showRetryButton = true,
@@ -1068,11 +1065,7 @@ class ModernErrorWidget extends StatelessWidget {
               color: theme.colorScheme.error.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              size: 48,
-              color: theme.colorScheme.error,
-            ),
+            child: Icon(icon, size: 48, color: theme.colorScheme.error),
           ),
           const SizedBox(height: 16),
           Text(
@@ -1114,11 +1107,7 @@ class ModernInsightsCard extends StatefulWidget {
   final UserInsights insights;
   final VoidCallback? onTap;
 
-  const ModernInsightsCard({
-    super.key,
-    required this.insights,
-    this.onTap,
-  });
+  const ModernInsightsCard({super.key, required this.insights, this.onTap});
 
   @override
   State<ModernInsightsCard> createState() => _ModernInsightsCardState();
@@ -1138,21 +1127,22 @@ class _ModernInsightsCardState extends State<ModernInsightsCard>
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.0, 0.7, curve: Curves.easeOut),
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.7, curve: Curves.easeOut),
+      ),
+    );
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
-    ));
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
 
     _animationController.forward();
   }
@@ -1309,19 +1299,12 @@ class _ModernInsightsCardState extends State<ModernInsightsCard>
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.2), width: 1),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            color: color,
-            size: 24,
-          ),
+          Icon(icon, color: color, size: 24),
           const SizedBox(height: 8),
           Text(
             value,
@@ -1348,11 +1331,7 @@ class ModernFlashDealCard extends StatefulWidget {
   final FlashDeal deal;
   final VoidCallback? onTap;
 
-  const ModernFlashDealCard({
-    super.key,
-    required this.deal,
-    this.onTap,
-  });
+  const ModernFlashDealCard({super.key, required this.deal, this.onTap});
 
   @override
   State<ModernFlashDealCard> createState() => _ModernFlashDealCardState();
@@ -1380,7 +1359,7 @@ class _ModernFlashDealCardState extends State<ModernFlashDealCard> {
   void _updateTimeRemaining() {
     final now = DateTime.now();
     final difference = widget.deal.endsAt.difference(now);
-    
+
     if (mounted) {
       setState(() {
         _timeRemaining = difference.isNegative ? Duration.zero : difference;
@@ -1510,10 +1489,7 @@ class _ModernFlashDealCardState extends State<ModernFlashDealCard> {
               ),
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.green.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -1577,11 +1553,7 @@ class _ModernFlashDealCardState extends State<ModernFlashDealCard> {
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.timer_rounded,
-            color: Colors.red,
-            size: 20,
-          ),
+          const Icon(Icons.timer_rounded, color: Colors.red, size: 20),
           const SizedBox(width: 8),
           Text(
             'Ends in: ',
@@ -1615,7 +1587,8 @@ class ModernRecommendationCard extends StatefulWidget {
   });
 
   @override
-  State<ModernRecommendationCard> createState() => _ModernRecommendationCardState();
+  State<ModernRecommendationCard> createState() =>
+      _ModernRecommendationCardState();
 }
 
 class _ModernRecommendationCardState extends State<ModernRecommendationCard>
@@ -1631,13 +1604,9 @@ class _ModernRecommendationCardState extends State<ModernRecommendationCard>
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -1698,20 +1667,24 @@ class _ModernRecommendationCardState extends State<ModernRecommendationCard>
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                theme.colorScheme.primaryContainer.withOpacity(0.3),
-                                theme.colorScheme.secondaryContainer.withOpacity(0.3),
+                                theme.colorScheme.primaryContainer.withOpacity(
+                                  0.3,
+                                ),
+                                theme.colorScheme.secondaryContainer
+                                    .withOpacity(0.3),
                               ],
                             ),
                           ),
-                          child: tour.mainImageUrl != null
-                              ? Image.network(
-                                  tour.mainImageUrl!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return _buildImagePlaceholder(context);
-                                  },
-                                )
-                              : _buildImagePlaceholder(context),
+                          child:
+                              tour.mainImageUrl != null
+                                  ? Image.network(
+                                    tour.mainImageUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return _buildImagePlaceholder(context);
+                                    },
+                                  )
+                                  : _buildImagePlaceholder(context),
                         ),
                         Positioned(
                           top: 12,
@@ -1780,7 +1753,8 @@ class _ModernRecommendationCardState extends State<ModernRecommendationCard>
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.secondaryContainer.withOpacity(0.5),
+                            color: theme.colorScheme.secondaryContainer
+                                .withOpacity(0.5),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -1795,7 +1769,8 @@ class _ModernRecommendationCardState extends State<ModernRecommendationCard>
                                 child: Text(
                                   widget.recommendation.reasonForRecommendation,
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSecondaryContainer,
+                                    color:
+                                        theme.colorScheme.onSecondaryContainer,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -1894,9 +1869,9 @@ class _ModernRecommendationCardState extends State<ModernRecommendationCard>
 
   Widget _buildImagePlaceholder(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
-      color: theme.colorScheme.surfaceVariant,
+      color: theme.colorScheme.surfaceContainerHighest,
       child: Center(
         child: Icon(
           Icons.image_rounded,
@@ -1925,11 +1900,7 @@ class _ModernRecommendationCardState extends State<ModernRecommendationCard>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 14,
-            color: chipColor,
-          ),
+          Icon(icon, size: 14, color: chipColor),
           const SizedBox(width: 4),
           Text(
             label,
@@ -1966,9 +1937,7 @@ class ModernTourCard extends StatelessWidget {
       color: theme.colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: theme.colorScheme.outline.withOpacity(0.2),
-        ),
+        side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.2)),
       ),
       child: InkWell(
         onTap: onTap,
@@ -1996,15 +1965,16 @@ class ModernTourCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    child: tour.mainImageUrl != null
-                        ? Image.network(
-                            tour.mainImageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return _buildImagePlaceholder(context);
-                            },
-                          )
-                        : _buildImagePlaceholder(context),
+                    child:
+                        tour.mainImageUrl != null
+                            ? Image.network(
+                              tour.mainImageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildImagePlaceholder(context);
+                              },
+                            )
+                            : _buildImagePlaceholder(context),
                   ),
                   if (showDiscount && tour.hasDiscount)
                     Positioned(
@@ -2157,9 +2127,9 @@ class ModernTourCard extends StatelessWidget {
 
   Widget _buildImagePlaceholder(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
-      color: theme.colorScheme.surfaceVariant,
+      color: theme.colorScheme.surfaceContainerHighest,
       child: Center(
         child: Icon(
           Icons.image_rounded,
@@ -2188,11 +2158,7 @@ class ModernTourCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 14,
-            color: chipColor,
-          ),
+          Icon(icon, size: 14, color: chipColor),
           const SizedBox(width: 4),
           Text(
             label,
@@ -2212,11 +2178,7 @@ class ModernSeasonalOfferCard extends StatelessWidget {
   final SeasonalOffer offer;
   final VoidCallback? onTap;
 
-  const ModernSeasonalOfferCard({
-    super.key,
-    required this.offer,
-    this.onTap,
-  });
+  const ModernSeasonalOfferCard({super.key, required this.offer, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -2228,10 +2190,7 @@ class ModernSeasonalOfferCard extends StatelessWidget {
       color: theme.colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: seasonColor.withOpacity(0.3),
-          width: 2,
-        ),
+        side: BorderSide(color: seasonColor.withOpacity(0.3), width: 2),
       ),
       child: InkWell(
         onTap: onTap,
@@ -2243,10 +2202,7 @@ class ModernSeasonalOfferCard extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                seasonColor.withOpacity(0.1),
-                theme.colorScheme.surface,
-              ],
+              colors: [seasonColor.withOpacity(0.1), theme.colorScheme.surface],
             ),
           ),
           child: Column(
@@ -2403,13 +2359,9 @@ class _ModernActionCardState extends State<ModernActionCard>
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -2435,38 +2387,37 @@ class _ModernActionCardState extends State<ModernActionCard>
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: isDisabled
-                    ? theme.colorScheme.outline.withOpacity(0.2)
-                    : actionColor.withOpacity(0.3),
+                color:
+                    isDisabled
+                        ? theme.colorScheme.outline.withOpacity(0.2)
+                        : actionColor.withOpacity(0.3),
                 width: 1,
               ),
             ),
             child: InkWell(
               onTap: isDisabled ? null : widget.onTap,
-              onTapDown: isDisabled
-                  ? null
-                  : (_) => _animationController.forward(),
-              onTapUp: isDisabled
-                  ? null
-                  : (_) => _animationController.reverse(),
-              onTapCancel: isDisabled
-                  ? null
-                  : () => _animationController.reverse(),
+              onTapDown:
+                  isDisabled ? null : (_) => _animationController.forward(),
+              onTapUp:
+                  isDisabled ? null : (_) => _animationController.reverse(),
+              onTapCancel:
+                  isDisabled ? null : () => _animationController.reverse(),
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  gradient: isDisabled
-                      ? null
-                      : LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            actionColor.withOpacity(0.1),
-                            theme.colorScheme.surface,
-                          ],
-                        ),
+                  gradient:
+                      isDisabled
+                          ? null
+                          : LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              actionColor.withOpacity(0.1),
+                              theme.colorScheme.surface,
+                            ],
+                          ),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -2474,17 +2425,19 @@ class _ModernActionCardState extends State<ModernActionCard>
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: isDisabled
-                            ? theme.colorScheme.surfaceVariant
-                            : actionColor.withOpacity(0.2),
+                        color:
+                            isDisabled
+                                ? theme.colorScheme.surfaceContainerHighest
+                                : actionColor.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         widget.icon,
                         size: 32,
-                        color: isDisabled
-                            ? theme.colorScheme.onSurfaceVariant
-                            : actionColor,
+                        color:
+                            isDisabled
+                                ? theme.colorScheme.onSurfaceVariant
+                                : actionColor,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -2492,9 +2445,10 @@ class _ModernActionCardState extends State<ModernActionCard>
                       widget.title,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: isDisabled
-                            ? theme.colorScheme.onSurfaceVariant
-                            : null,
+                        color:
+                            isDisabled
+                                ? theme.colorScheme.onSurfaceVariant
+                                : null,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -2503,9 +2457,11 @@ class _ModernActionCardState extends State<ModernActionCard>
                       Text(
                         widget.subtitle!,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: isDisabled
-                              ? theme.colorScheme.onSurfaceVariant.withOpacity(0.7)
-                              : theme.colorScheme.onSurfaceVariant,
+                          color:
+                              isDisabled
+                                  ? theme.colorScheme.onSurfaceVariant
+                                      .withOpacity(0.7)
+                                  : theme.colorScheme.onSurfaceVariant,
                         ),
                         textAlign: TextAlign.center,
                       ),

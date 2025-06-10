@@ -8,7 +8,6 @@ import '../../services/booking_service.dart';
 import '../../services/car_service.dart';
 import '../../services/house_service.dart';
 import '../../services/discount_service.dart';
-import '../../models/tour_models.dart';
 import 'admin_tour_create_screen.dart';
 import 'admin_discount_management_screen.dart';
 
@@ -27,15 +26,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   final CarService _carService = CarService();
   final HouseService _houseService = HouseService();
   final DiscountService _discountService = DiscountService();
-  
+
   late AnimationController _fadeController;
   late AnimationController _chartController;
   late AnimationController _cardController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _chartAnimation;
-  
+
   Timer? _refreshTimer;
-  
+
   // Dashboard data
   Map<String, dynamic> _dashboardStats = {};
   List<Map<String, dynamic>> _revenueData = [];
@@ -66,7 +65,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
+
     _fadeAnimation = CurvedAnimation(
       parent: _fadeController,
       curve: Curves.easeOutCubic,
@@ -75,7 +74,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       parent: _chartController,
       curve: Curves.elasticOut,
     );
-    
+
     _fadeController.forward();
     _chartController.forward();
     _cardController.forward();
@@ -97,16 +96,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
       // Simulate loading real dashboard data with API calls
       await Future.delayed(const Duration(milliseconds: 800));
-      
+
       // In a real app, these would be actual API calls:
       // final tours = await _tourService.getTours();
       // final bookings = await _bookingService.getAllBookings();
       // etc.
-      
+
       // Generate realistic dummy data for demonstration
       final now = DateTime.now();
       final random = math.Random();
-      
+
       setState(() {
         _dashboardStats = {
           'totalTours': 47 + random.nextInt(5),
@@ -122,7 +121,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           'conversionRate': 12.5 + (random.nextDouble() * 3),
           'avgBookingValue': 287.50 + (random.nextDouble() * 50),
         };
-        
+
         // Revenue trend for the last 7 days
         _revenueData = List.generate(7, (index) {
           final date = now.subtract(Duration(days: 6 - index));
@@ -132,7 +131,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             'bookings': 8 + random.nextInt(15),
           };
         });
-        
+
         // Bookings trend for the last 12 hours
         _bookingsTrend = List.generate(12, (index) {
           final hour = now.subtract(Duration(hours: 11 - index));
@@ -142,7 +141,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             'revenue': random.nextDouble() * 800,
           };
         });
-        
+
         // Popular tours data
         _popularTours = [
           {
@@ -174,7 +173,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             'rating': 4.7,
           },
         ];
-        
+
         // Recent activity feed
         _recentActivity = [
           {
@@ -218,7 +217,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             'color': Colors.purple,
           },
         ];
-        
+
         _isLoadingStats = false;
       });
     } catch (e) {
@@ -231,15 +230,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
 
   Future<void> _updateRealTimeData() async {
     if (!mounted) return;
-    
+
     final random = math.Random();
     final now = DateTime.now();
-    
+
     setState(() {
       // Update some stats with slight variations
-      _dashboardStats['todayBookings'] = (_dashboardStats['todayBookings'] as int) + (random.nextBool() ? 1 : 0);
-      _dashboardStats['monthlyRevenue'] = (_dashboardStats['monthlyRevenue'] as double) + (random.nextDouble() * 100);
-      
+      _dashboardStats['todayBookings'] =
+          (_dashboardStats['todayBookings'] as int) +
+          (random.nextBool() ? 1 : 0);
+      _dashboardStats['monthlyRevenue'] =
+          (_dashboardStats['monthlyRevenue'] as double) +
+          (random.nextDouble() * 100);
+
       // Add new activity if random chance
       if (random.nextDouble() < 0.3) {
         final activities = [
@@ -260,9 +263,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             'color': Colors.blue,
           },
         ];
-        
-        _recentActivity.insert(0, activities[random.nextInt(activities.length)]);
-        
+
+        _recentActivity.insert(
+          0,
+          activities[random.nextInt(activities.length)],
+        );
+
         // Keep only recent 10 activities
         if (_recentActivity.length > 10) {
           _recentActivity = _recentActivity.take(10).toList();
@@ -311,47 +317,52 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         onRefresh: _loadDashboardData,
         child: CustomScrollView(
           slivers: [
-              // Modern App Bar
-              _buildModernAppBar(colorScheme, isMobile),
-              
-              // Dashboard Content
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(isMobile ? 16 : 24),
-                  child: Column(
-                    children: [
-                      // Real-time toggle and quick stats
-                      _buildQuickStatsHeader(colorScheme, isMobile),
-                      const SizedBox(height: 24),
-                      
-                      // Main statistics grid
-                      _buildMainStatsGrid(colorScheme, isDesktop, isTablet, isMobile),
-                      const SizedBox(height: 32),
-                      
-                      // Charts and analytics row
-                      if (isDesktop)
-                        _buildDesktopChartsRow(colorScheme)
-                      else
-                        _buildMobileChartsColumn(colorScheme, isMobile),
-                      const SizedBox(height: 32),
-                      
-                      // Popular tours and recent activity
-                      if (isDesktop)
-                        _buildDesktopBottomRow(colorScheme)
-                      else
-                        _buildMobileBottomColumn(colorScheme, isMobile),
-                      const SizedBox(height: 32),
-                      
-                      // Quick actions panel
-                      _buildQuickActionsPanel(colorScheme, isMobile, isTablet),
-                    ],
-                  ),
+            // Modern App Bar
+            _buildModernAppBar(colorScheme, isMobile),
+
+            // Dashboard Content
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(isMobile ? 16 : 24),
+                child: Column(
+                  children: [
+                    // Real-time toggle and quick stats
+                    _buildQuickStatsHeader(colorScheme, isMobile),
+                    const SizedBox(height: 24),
+
+                    // Main statistics grid
+                    _buildMainStatsGrid(
+                      colorScheme,
+                      isDesktop,
+                      isTablet,
+                      isMobile,
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Charts and analytics row
+                    if (isDesktop)
+                      _buildDesktopChartsRow(colorScheme)
+                    else
+                      _buildMobileChartsColumn(colorScheme, isMobile),
+                    const SizedBox(height: 32),
+
+                    // Popular tours and recent activity
+                    if (isDesktop)
+                      _buildDesktopBottomRow(colorScheme)
+                    else
+                      _buildMobileBottomColumn(colorScheme, isMobile),
+                    const SizedBox(height: 32),
+
+                    // Quick actions panel
+                    _buildQuickActionsPanel(colorScheme, isMobile, isTablet),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
+      ),
+    );
   }
 
   Widget _buildModernAppBar(ColorScheme colorScheme, bool isMobile) {
@@ -387,7 +398,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                         padding: EdgeInsets.all(isMobile ? 12 : 16),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [colorScheme.primary, colorScheme.secondary],
+                            colors: [
+                              colorScheme.primary,
+                              colorScheme.secondary,
+                            ],
                           ),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
@@ -411,7 +425,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                           children: [
                             Text(
                               'Admin Dashboard',
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              style: Theme.of(
+                                context,
+                              ).textTheme.headlineSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: colorScheme.onPrimaryContainer,
                               ),
@@ -419,13 +435,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                             if (!isMobile) ...[
                               const SizedBox(height: 4),
                               FutureBuilder<String?>(
-                                future: _authService.getCurrentUser().then((user) => user?.userName),
-                                builder: (context, snapshot) => Text(
-                                  'Welcome back, ${snapshot.data ?? 'Admin'}! Here\'s your business overview.',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
-                                  ),
+                                future: _authService.getCurrentUser().then(
+                                  (user) => user?.userName,
                                 ),
+                                builder:
+                                    (context, snapshot) => Text(
+                                      'Welcome back, ${snapshot.data ?? 'Admin'}! Here\'s your business overview.',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium?.copyWith(
+                                        color: colorScheme.onPrimaryContainer
+                                            .withValues(alpha: 0.8),
+                                      ),
+                                    ),
                               ),
                             ],
                           ],
@@ -433,9 +455,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       ),
                       if (!isMobile)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
-                            color: _isRealTimeMode ? Colors.green : colorScheme.surface,
+                            color:
+                                _isRealTimeMode
+                                    ? Colors.green
+                                    : colorScheme.surface,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
@@ -445,7 +473,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                 width: 8,
                                 height: 8,
                                 decoration: BoxDecoration(
-                                  color: _isRealTimeMode ? Colors.white : Colors.green,
+                                  color:
+                                      _isRealTimeMode
+                                          ? Colors.white
+                                          : Colors.green,
                                   shape: BoxShape.circle,
                                 ),
                               ),
@@ -455,7 +486,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: _isRealTimeMode ? Colors.white : colorScheme.onSurface,
+                                  color:
+                                      _isRealTimeMode
+                                          ? Colors.white
+                                          : colorScheme.onSurface,
                                 ),
                               ),
                             ],
@@ -493,9 +527,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             children: [
               Text(
                 'Real-time Overview',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               Row(
                 children: [
@@ -581,7 +615,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     );
   }
 
-  Widget _buildQuickStat(String title, String value, IconData icon, Color color, String trend) {
+  Widget _buildQuickStat(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+    String trend,
+  ) {
     return Expanded(
       child: Column(
         children: [
@@ -592,9 +632,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               const SizedBox(width: 8),
               Text(
                 title,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
               ),
             ],
           ),
@@ -618,9 +658,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     );
   }
 
-  Widget _buildMainStatsGrid(ColorScheme colorScheme, bool isDesktop, bool isTablet, bool isMobile) {
+  Widget _buildMainStatsGrid(
+    ColorScheme colorScheme,
+    bool isDesktop,
+    bool isTablet,
+    bool isMobile,
+  ) {
     final crossAxisCount = isDesktop ? 4 : (isTablet ? 3 : 2);
-    
+
     final stats = [
       {
         'title': 'Total Tours',
@@ -633,7 +678,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       },
       {
         'title': 'Monthly Revenue',
-        'value': '\$${(_dashboardStats['monthlyRevenue'] ?? 0.0).toStringAsFixed(0)}',
+        'value':
+            '\$${(_dashboardStats['monthlyRevenue'] ?? 0.0).toStringAsFixed(0)}',
         'subtitle': 'This month',
         'icon': Icons.attach_money_rounded,
         'color': Colors.green,
@@ -678,7 +724,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       },
       {
         'title': 'Avg. Booking Value',
-        'value': '\$${(_dashboardStats['avgBookingValue'] ?? 0.0).toStringAsFixed(0)}',
+        'value':
+            '\$${(_dashboardStats['avgBookingValue'] ?? 0.0).toStringAsFixed(0)}',
         'subtitle': 'Per transaction',
         'icon': Icons.monetization_on_rounded,
         'color': Colors.amber,
@@ -715,7 +762,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             final animationValue = Curves.easeOutCubic.transform(
               (_cardController.value - delay).clamp(0.0, 1.0),
             );
-            
+
             return Transform.translate(
               offset: Offset(0, 30 * (1 - animationValue)),
               child: Opacity(
@@ -760,10 +807,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             offset: const Offset(0, 8),
           ),
         ],
-        border: Border.all(
-          color: color.withValues(alpha: 0.1),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.1), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -782,14 +826,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isPositive ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
+                  color:
+                      isPositive
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      isPositive ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                      isPositive
+                          ? Icons.trending_up_rounded
+                          : Icons.trending_down_rounded,
                       color: isPositive ? Colors.green : Colors.red,
                       size: 16,
                     ),
@@ -838,14 +887,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget _buildDesktopChartsRow(ColorScheme colorScheme) {
     return Row(
       children: [
-        Expanded(
-          flex: 2,
-          child: _buildRevenueChart(colorScheme),
-        ),
+        Expanded(flex: 2, child: _buildRevenueChart(colorScheme)),
         const SizedBox(width: 24),
-        Expanded(
-          child: _buildBookingsTrendChart(colorScheme),
-        ),
+        Expanded(child: _buildBookingsTrendChart(colorScheme)),
       ],
     );
   }
@@ -898,7 +942,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.green.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -906,7 +953,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.trending_up_rounded, color: Colors.green, size: 16),
+                    Icon(
+                      Icons.trending_up_rounded,
+                      color: Colors.green,
+                      size: 16,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       '+18.7%',
@@ -973,10 +1024,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                   ),
                 ],
               ),
-              Icon(
-                Icons.bar_chart_rounded,
-                color: colorScheme.primary,
-              ),
+              Icon(Icons.bar_chart_rounded, color: colorScheme.primary),
             ],
           ),
           const SizedBox(height: 24),
@@ -994,11 +1042,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     );
   }
 
-  Widget _buildSimpleLineChart(List<Map<String, dynamic>> data, ColorScheme colorScheme) {
+  Widget _buildSimpleLineChart(
+    List<Map<String, dynamic>> data,
+    ColorScheme colorScheme,
+  ) {
     if (data.isEmpty) return const Center(child: Text('No data available'));
-    
+
     final maxRevenue = data.map((e) => e['revenue'] as double).reduce(math.max);
-    
+
     return CustomPaint(
       painter: LineChartPainter(
         data: data,
@@ -1010,11 +1061,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     );
   }
 
-  Widget _buildSimpleBarChart(List<Map<String, dynamic>> data, ColorScheme colorScheme) {
+  Widget _buildSimpleBarChart(
+    List<Map<String, dynamic>> data,
+    ColorScheme colorScheme,
+  ) {
     if (data.isEmpty) return const Center(child: Text('No data available'));
-    
+
     final maxBookings = data.map((e) => e['bookings'] as int).reduce(math.max);
-    
+
     return CustomPaint(
       painter: BarChartPainter(
         data: data,
@@ -1030,14 +1084,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 2,
-          child: _buildPopularToursPanel(colorScheme),
-        ),
+        Expanded(flex: 2, child: _buildPopularToursPanel(colorScheme)),
         const SizedBox(width: 24),
-        Expanded(
-          child: _buildRecentActivityPanel(colorScheme),
-        ),
+        Expanded(child: _buildRecentActivityPanel(colorScheme)),
       ],
     );
   }
@@ -1074,9 +1123,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             children: [
               Text(
                 'Popular Tours',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               TextButton(
                 onPressed: () => _showComingSoon('Detailed Analytics'),
@@ -1094,16 +1143,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     );
   }
 
-  Widget _buildPopularTourItem(Map<String, dynamic> tour, ColorScheme colorScheme) {
+  Widget _buildPopularTourItem(
+    Map<String, dynamic> tour,
+    ColorScheme colorScheme,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainer.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.1),
-        ),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -1147,7 +1197,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Icon(Icons.people_rounded, color: colorScheme.outline, size: 16),
+                    Icon(
+                      Icons.people_rounded,
+                      color: colorScheme.outline,
+                      size: 16,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       '${tour['bookings']} bookings',
@@ -1205,13 +1259,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             children: [
               Text(
                 'Recent Activity',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               if (_isRealTimeMode)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.green.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -1256,10 +1313,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     );
   }
 
-  Widget _buildActivityItem(Map<String, dynamic> activity, ColorScheme colorScheme) {
+  Widget _buildActivityItem(
+    Map<String, dynamic> activity,
+    ColorScheme colorScheme,
+  ) {
     final time = activity['time'] as DateTime;
     final timeAgo = _getTimeAgo(time);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -1270,11 +1330,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               color: (activity['color'] as Color).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              activity['icon'],
-              color: activity['color'],
-              size: 16,
-            ),
+            child: Icon(activity['icon'], color: activity['color'], size: 16),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1283,9 +1339,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
               children: [
                 Text(
                   activity['title'],
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 Text(
                   activity['description'],
@@ -1310,7 +1366,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   String _getTimeAgo(DateTime time) {
     final now = DateTime.now();
     final difference = now.difference(time);
-    
+
     if (difference.inMinutes < 1) {
       return 'Just now';
     } else if (difference.inMinutes < 60) {
@@ -1322,7 +1378,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     }
   }
 
-  Widget _buildQuickActionsPanel(ColorScheme colorScheme, bool isMobile, bool isTablet) {
+  Widget _buildQuickActionsPanel(
+    ColorScheme colorScheme,
+    bool isMobile,
+    bool isTablet,
+  ) {
     final actions = [
       {
         'title': 'Create New Tour',
@@ -1372,9 +1432,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
         children: [
           Text(
             'Quick Actions',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           GridView.builder(
@@ -1425,9 +1485,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: color.withValues(alpha: 0.2),
-            ),
+            border: Border.all(color: color.withValues(alpha: 0.2)),
           ),
           child: Row(
             children: [
@@ -1461,11 +1519,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                   ],
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: color,
-                size: 16,
-              ),
+              Icon(Icons.arrow_forward_ios_rounded, color: color, size: 16),
             ],
           ),
         ),
@@ -1483,7 +1537,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   void _navigateToDiscountManagement() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const AdminDiscountManagementScreen()),
+      MaterialPageRoute(
+        builder: (context) => const AdminDiscountManagementScreen(),
+      ),
     );
   }
 
@@ -1523,15 +1579,17 @@ class LineChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (data.isEmpty) return;
 
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+    final paint =
+        Paint()
+          ..color = color
+          ..strokeWidth = 3
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round;
 
-    final pointPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
+    final pointPaint =
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.fill;
 
     final path = Path();
     final points = <Offset>[];
@@ -1539,11 +1597,12 @@ class LineChartPainter extends CustomPainter {
     for (int i = 0; i < data.length; i++) {
       final x = (i / (data.length - 1)) * size.width;
       final revenue = data[i]['revenue'] as double;
-      final y = size.height - (revenue / maxValue) * size.height * animationValue;
-      
+      final y =
+          size.height - (revenue / maxValue) * size.height * animationValue;
+
       final point = Offset(x, y);
       points.add(point);
-      
+
       if (i == 0) {
         path.moveTo(x, y);
       } else {
@@ -1565,15 +1624,16 @@ class LineChartPainter extends CustomPainter {
     gradientPath.lineTo(0, size.height);
     gradientPath.close();
 
-    final gradientPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          color.withValues(alpha: 0.3),
-          color.withValues(alpha: 0.1),
-        ],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+    final gradientPaint =
+        Paint()
+          ..shader = LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              color.withValues(alpha: 0.3),
+              color.withValues(alpha: 0.1),
+            ],
+          ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
     canvas.drawPath(gradientPath, gradientPaint);
   }
@@ -1601,9 +1661,10 @@ class BarChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (data.isEmpty) return;
 
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
+    final paint =
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.fill;
 
     final barWidth = size.width / data.length * 0.6;
     final spacing = size.width / data.length * 0.4;
@@ -1611,15 +1672,15 @@ class BarChartPainter extends CustomPainter {
     for (int i = 0; i < data.length; i++) {
       final bookings = data[i]['bookings'] as int;
       final barHeight = (bookings / maxValue) * size.height * animationValue;
-      
+
       final x = i * (barWidth + spacing) + spacing / 2;
       final y = size.height - barHeight;
-      
+
       final rect = RRect.fromRectAndRadius(
         Rect.fromLTWH(x, y, barWidth, barHeight),
         const Radius.circular(4),
       );
-      
+
       canvas.drawRRect(rect, paint);
     }
   }

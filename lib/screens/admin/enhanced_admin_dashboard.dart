@@ -21,7 +21,7 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
   List<RecentBooking> _recentBookings = [];
   List<UserSummary> _topUsers = [];
   List<RevenueData> _revenueData = [];
-  
+
   bool _isLoading = true;
   String? _error;
 
@@ -37,13 +37,9 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
     _animationController.forward();
   }
 
@@ -108,10 +104,7 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
 
   Widget _buildContent() {
     if (_error != null) {
-      return ModernErrorWidget(
-        message: _error!,
-        onRetry: _loadDashboardData,
-      );
+      return ModernErrorWidget(message: _error!, onRetry: _loadDashboardData);
     }
 
     return RefreshIndicator(
@@ -162,11 +155,7 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.admin_panel_settings,
-            size: 48,
-            color: Colors.white,
-          ),
+          Icon(Icons.admin_panel_settings, size: 48, color: Colors.white),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -291,11 +280,7 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
                     color: color.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    Icons.trending_up,
-                    size: 16,
-                    color: color,
-                  ),
+                  child: Icon(Icons.trending_up, size: 16, color: color),
                 ),
               ],
             ),
@@ -310,7 +295,9 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
             Text(
               title,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -328,23 +315,28 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
           children: [
             Text(
               'Revenue Trend (Last 30 Days)',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            Container(
+            SizedBox(
               height: 200,
-              child: _revenueData.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No revenue data available',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              child:
+                  _revenueData.isEmpty
+                      ? Center(
+                        child: Text(
+                          'No revenue data available',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyLarge?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
+                          ),
                         ),
-                      ),
-                    )
-                  : _buildSimpleChart(),
+                      )
+                      : _buildSimpleChart(),
             ),
           ],
         ),
@@ -377,9 +369,9 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
           const SizedBox(height: 8),
           Text(
             'Revenue Chart',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           Text(
             'Total: \$${_revenueData.fold<double>(0, (sum, data) => sum + data.amount).toStringAsFixed(2)}',
@@ -425,9 +417,9 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
       children: [
         Text(
           'Quick Actions',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         GridView.builder(
@@ -466,9 +458,9 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
               children: [
                 Text(
                   'Recent Bookings',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
                 TextButton(
@@ -483,7 +475,9 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
                 child: Text(
                   'No recent bookings',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               )
@@ -524,9 +518,9 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
         children: [
           Text(
             '\$${booking.amount.toStringAsFixed(2)}',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           Text(
             booking.status,
@@ -549,9 +543,9 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
           children: [
             Text(
               'Top Users',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             if (_topUsers.isEmpty)
@@ -559,7 +553,9 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
                 child: Text(
                   'No user data available',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               )
@@ -582,7 +578,9 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
   Widget _buildUserItem(UserSummary user, int rank) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+        backgroundColor: Theme.of(
+          context,
+        ).colorScheme.primary.withValues(alpha: 0.1),
         child: Text(
           '#$rank',
           style: TextStyle(
@@ -602,14 +600,16 @@ class _EnhancedAdminDashboardState extends State<EnhancedAdminDashboard>
         children: [
           Text(
             '\$${user.totalSpent.toStringAsFixed(0)}',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           Text(
             '${user.totalBookings} bookings',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
         ],

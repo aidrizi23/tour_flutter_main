@@ -1361,10 +1361,7 @@ class _CarListScreenState extends State<CarListScreen>
               child: InkWell(
                 onTap: () {
                   HapticFeedback.mediumImpact();
-                  showSeamlessPage(
-                    context,
-                    CarDetailsScreen(carId: car.id),
-                  );
+                  showSeamlessPage(context, CarDetailsScreen(carId: car.id));
                 },
                 borderRadius: BorderRadius.circular(isDesktop ? 24 : 20),
                 hoverColor: colorScheme.primary.withOpacity(0.04),
@@ -1413,8 +1410,9 @@ class _CarListScreenState extends State<CarListScreen>
                                         child,
                                         loadingProgress,
                                       ) {
-                                        if (loadingProgress == null)
+                                        if (loadingProgress == null) {
                                           return child;
+                                        }
                                         return Container(
                                           height: isDesktop ? 220 : 180,
                                           decoration: BoxDecoration(

@@ -9,6 +9,7 @@ import 'widgets/featured_content.dart';
 import 'widgets/stats_overview.dart';
 import 'widgets/testimonials_section.dart';
 import 'widgets/cta_section.dart';
+import 'package:shimmer/shimmer.dart';
 
 class EnhancedHomeScreen extends StatefulWidget {
   const EnhancedHomeScreen({super.key});
@@ -134,7 +135,30 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
   }
 
   Widget _buildLoadingState() {
-    return const Center(child: ModernLoadingIndicator());
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: ListView.builder(
+        itemCount: 4,
+        itemBuilder:
+            (context, index) => Shimmer.fromColors(
+              baseColor: Theme.of(context).colorScheme.surfaceContainerLow,
+              highlightColor: Theme.of(context).colorScheme.surface,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: ModernCard(
+                  child: Container(
+                    height: 120,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      color: Theme.of(context).colorScheme.surface,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+      ),
+    );
   }
 
   Widget _buildContent() {
@@ -147,6 +171,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
     return RefreshIndicator(
       onRefresh: _loadHomeData,
       child: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(
             child: FadeTransition(
@@ -161,10 +186,16 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
           const SliverToBoxAdapter(child: ServicesShowcase()),
           const SliverToBoxAdapter(child: StatsOverview()),
           SliverToBoxAdapter(
-            child: FeaturedContent(
-              featuredTours: _featuredTours,
-              featuredHouses: _featuredHouses,
-              featuredCars: _featuredCars,
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: FeaturedContent(
+                  featuredTours: _featuredTours,
+                  featuredHouses: _featuredHouses,
+                  featuredCars: _featuredCars,
+                ),
+              ),
             ),
           ),
           const SliverToBoxAdapter(child: TestimonialsSection()),
