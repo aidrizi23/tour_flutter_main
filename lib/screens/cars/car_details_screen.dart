@@ -11,6 +11,12 @@ import '../../services/car_booking_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import 'car_payment_screen.dart';
+import 'details/image_gallery.dart';
+import 'details/car_header.dart';
+import 'details/description_section.dart';
+import 'details/features_section.dart';
+import 'details/location_section.dart';
+import 'details/reviews_section.dart';
 
 class CarDetailsScreen extends StatefulWidget {
   final int carId;
@@ -66,19 +72,19 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
     super.initState();
 
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
     _fabController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
     _staggerController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
     _bookingPanelController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
 
@@ -369,22 +375,16 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
       }
 
       // Verify we have payment info before proceeding
-      log(
-        'Payment info retrieved successfully, proceeding to payment screen',
-      );
+      log('Payment info retrieved successfully, proceeding to payment screen');
 
       // Navigate to payment screen
+      if (!mounted) return;
       final result = await Navigator.of(context).push(
         PageRouteBuilder(
           pageBuilder:
               (context, animation, secondaryAnimation) =>
                   CarPaymentScreen(paymentInfo: paymentInfo!),
-          transitionsBuilder: (
-            context,
-            animation,
-            secondaryAnimation,
-            child,
-          ) {
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(
               position: animation.drive(
                 Tween(
@@ -410,7 +410,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
           _isBooking = false;
         });
       }
-        } catch (e) {
+    } catch (e) {
       setState(() {
         _isBooking = false;
       });
@@ -487,7 +487,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                 child: Text(
                   'Loading car details...',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.7),
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
                     fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,
@@ -537,7 +537,7 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                 Text(
                   _errorMessage ?? 'The requested car could not be found.',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.7),
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -572,7 +572,13 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                   background: Stack(
                     fit: StackFit.expand,
                     children: [
-                      _buildEnhancedImageGallery(),
+                      CarImageGallery(
+                        images: _car!.images,
+                        controller: _imageController,
+                        currentIndex: _currentImageIndex,
+                        onPageChanged:
+                            (i) => setState(() => _currentImageIndex = i),
+                      ),
                       // Gradient overlay for better text visibility
                       Container(
                         decoration: BoxDecoration(
@@ -634,11 +640,21 @@ class _CarDetailsScreenState extends State<CarDetailsScreen>
                       scale: _scaleAnimation,
                       child: Column(
                         children: [
-                          _buildEnhancedCarHeader(),
-                          _buildModernCarInfo(),
-                          _buildModernFeatures(),
-                          _buildEnhancedLocationSection(),
-                          _buildModernReviewsSection(),
+                          CarHeader(car: _car!),
+                          CarDescriptionSection(car: _car!),
+                          CarFeaturesSection(features: _car!.features),
+                          CarLocationSection(car: _car!),
+                          CarReviewsSection(
+                            reviews: _reviews,
+                            reviewController: _reviewController,
+                            selectedRating: _selectedRating,
+                            onRatingChanged:
+                                (r) => setState(() => _selectedRating = r),
+                            onSubmit: _submitReview,
+                            submitting: _isSubmittingReview,
+                            averageRating: _car!.averageRating,
+                            reviewCount: _car!.reviewCount,
+                          ),
                           const SizedBox(height: 120), // Space for FAB
                         ],
                       ),

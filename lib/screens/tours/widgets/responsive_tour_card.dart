@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../models/tour_models.dart';
-import '../screens/tours/tour_details_screen.dart';
+import '../../../models/tour_models.dart';
+import '../tour_details_screen.dart';
 
 class ResponsiveTourCard extends StatefulWidget {
   final Tour tour;
@@ -28,16 +28,20 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
   bool _isHovered = false;
   late AnimationController _hoverController;
   late Animation<double> _elevationAnimation;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
     _hoverController = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _elevationAnimation = Tween<double>(begin: 2.0, end: 8.0).animate(
-      CurvedAnimation(parent: _hoverController, curve: Curves.easeInOut),
+    _elevationAnimation = Tween<double>(begin: 2.0, end: 12.0).animate(
+      CurvedAnimation(parent: _hoverController, curve: Curves.easeOutCubic),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
+      CurvedAnimation(parent: _hoverController, curve: Curves.easeOutCubic),
     );
   }
 
@@ -70,27 +74,35 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _elevationAnimation,
+      animation: _hoverController,
       builder: (context, child) {
-        return MouseRegion(
-          onEnter: (_) => _onHover(true),
-          onExit: (_) => _onHover(false),
-          child: Card(
-            elevation: _elevationAnimation.value,
-            shadowColor: Colors.black.withOpacity(0.1),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: _navigateToDetails,
-              borderRadius: BorderRadius.circular(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildImageSection(),
-                  Expanded(child: _buildContentSection()),
-                ],
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: MouseRegion(
+            onEnter: (_) => _onHover(true),
+            onExit: (_) => _onHover(false),
+            child: Card(
+              elevation: _elevationAnimation.value,
+              shadowColor: Colors.black.withValues(alpha: 0.1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Semantics(
+                label:
+                    'Tour: ${widget.tour.name}, Location: ${widget.tour.location}, Price: ${widget.tour.displayPrice}',
+                button: true,
+                child: InkWell(
+                  onTap: _navigateToDetails,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildImageSection(),
+                      Expanded(child: _buildContentSection()),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -131,17 +143,7 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
                                 _buildImagePlaceholder(),
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value:
-                                  loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                              strokeWidth: 2,
-                              color: colorScheme.primary,
-                            ),
-                          );
+                          return _buildShimmerPlaceholder();
                         },
                       ),
                     )
@@ -155,32 +157,50 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
           right: 12,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(
+                context,
+              ).colorScheme.surface.withValues(alpha: 0.9),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: IconButton(
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                widget.onFavoriteToggle?.call();
-              },
-              icon: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  widget.isFavorite ? Icons.favorite : Icons.favorite_border,
-                  key: ValueKey(widget.isFavorite),
-                  color: widget.isFavorite ? Colors.red : Colors.grey.shade600,
-                  size: 20,
+            child: Semantics(
+              label:
+                  widget.isFavorite
+                      ? 'Remove from favorites'
+                      : 'Add to favorites',
+              button: true,
+              child: IconButton(
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  widget.onFavoriteToggle?.call();
+                },
+                icon: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    widget.isFavorite ? Icons.favorite : Icons.favorite_border,
+                    key: ValueKey(widget.isFavorite),
+                    color:
+                        widget.isFavorite
+                            ? Colors.red.shade600
+                            : Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.6),
+                    size: 20,
+                  ),
                 ),
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                padding: const EdgeInsets.all(8),
+                tooltip:
+                    widget.isFavorite
+                        ? 'Remove from favorites'
+                        : 'Add to favorites',
               ),
-              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              padding: const EdgeInsets.all(8),
             ),
           ),
         ),
@@ -193,13 +213,17 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.red,
+                gradient: LinearGradient(
+                  colors: [Colors.red.shade600, Colors.red.shade700],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+                    color: Colors.red.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
@@ -217,6 +241,36 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
     );
   }
 
+  Widget _buildShimmerPlaceholder() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 1000),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colorScheme.surfaceContainerLow,
+            colorScheme.surfaceContainer,
+            colorScheme.surfaceContainerLow,
+          ],
+          stops: const [0.0, 0.5, 1.0],
+        ),
+      ),
+      child: Center(
+        child: SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: colorScheme.primary,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildImagePlaceholder() {
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -226,8 +280,8 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            colorScheme.primary.withOpacity(0.1),
-            colorScheme.secondary.withOpacity(0.1),
+            colorScheme.primary.withValues(alpha: 0.1),
+            colorScheme.secondary.withValues(alpha: 0.1),
           ],
         ),
       ),
@@ -304,7 +358,7 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
                 child: Text(
                   widget.tour.location,
                   style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.7),
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -329,13 +383,13 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
               _buildFeatureChip(
                 widget.tour.activityIcon,
                 widget.tour.activityType,
-                colorScheme.secondaryContainer.withOpacity(0.5),
+                colorScheme.secondaryContainer.withValues(alpha: 0.5),
                 colorScheme.onSecondaryContainer,
               ),
               _buildFeatureChip(
                 Icons.trending_up_outlined,
                 widget.tour.difficultyLevel,
-                widget.tour.difficultyColor.withOpacity(0.2),
+                widget.tour.difficultyColor.withValues(alpha: 0.2),
                 widget.tour.difficultyColor,
               ),
             ],
@@ -355,7 +409,7 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.1),
+                    color: Colors.amber.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -374,7 +428,7 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
                         ' (${widget.tour.reviewCount})',
                         style: TextStyle(
                           fontSize: 11,
-                          color: colorScheme.onSurface.withOpacity(0.6),
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                       ),
                     ],
@@ -392,7 +446,7 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
                       widget.tour.originalPrice,
                       style: textTheme.bodySmall?.copyWith(
                         decoration: TextDecoration.lineThrough,
-                        color: colorScheme.onSurface.withOpacity(0.5),
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
                     ),
                   Row(
@@ -407,7 +461,7 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
                       Text(
                         '/person',
                         style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface.withOpacity(0.6),
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                       ),
                     ],
@@ -425,14 +479,24 @@ class _ResponsiveTourCardState extends State<ResponsiveTourCard>
             child: FilledButton(
               onPressed: _navigateToDetails,
               style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                elevation: 0,
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
               ),
-              child: const Text(
-                'View Details',
-                style: TextStyle(fontWeight: FontWeight.w600),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.visibility_rounded, size: 18),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'View Details',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ],
               ),
             ),
           ),

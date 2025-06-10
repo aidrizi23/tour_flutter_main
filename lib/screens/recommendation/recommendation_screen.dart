@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import '../../models/recommendation_models.dart';
 import '../../models/tour_models.dart';
 import '../../services/recommendation_service.dart';
-import '../../widgets/recommendation_widgets.dart';
+import 'widgets/recommendation_widgets.dart';
 import '../tours/tour_details_screen.dart';
 
 class RecommendationScreen extends StatefulWidget {

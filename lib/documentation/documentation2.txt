@@ -1,0 +1,671 @@
+# Car Rental API Endpoints
+
+## Overview
+This document covers all the endpoints for the Car Rental module, including car management, car reviews, car bookings, and payment processing.
+
+## Base URL
+```
+http://localhost:5076/api
+```
+
+## Authentication
+Most endpoints require authentication via JWT Bearer token:
+```
+Authorization: Bearer <your-jwt-token>
+```
+
+---
+
+## 🚗 Car Management
+
+### 1. Get All Cars
+**GET** `/cars`
+
+Get all cars with optional filtering, pagination, and sorting.
+
+**Query Parameters:**
+- `searchTerm` (string, optional): Search across make, model, description, etc.
+- `make` (string, optional): Filter by car make
+- `model` (string, optional): Filter by car model
+- `minYear` (integer, optional): Minimum year filter
+- `maxYear` (integer, optional): Maximum year filter
+- `category` (string, optional): Filter by category (Economy, Compact, SUV, Luxury, etc.)
+- `minPrice` (decimal, optional): Minimum daily rate
+- `maxPrice` (decimal, optional): Maximum daily rate
+- `location` (string, optional): Filter by location
+- `sortBy` (string, optional): Sort field (make, model, year, price, location, category, seats, created, rating)
+- `ascending` (boolean, optional): Sort direction (default: true)
+- `pageIndex` (integer, optional): Page number (default: 1)
+- `pageSize` (integer, optional): Items per page (default: 10)
+
+**Response:**
+```json
+{
+  "items": [
+    {
+      "id": 1,
+      "make": "Toyota",
+      "model": "Camry",
+      "year": 2023,
+      "description": "Comfortable midsize sedan with excellent fuel economy",
+      "dailyRate": 75.00,
+      "category": "Compact",
+      "transmission": "Automatic",
+      "fuelType": "Petrol",
+      "seats": 5,
+      "mainImageUrl": "https://example.com/car1.jpg",
+      "isAvailable": true,
+      "location": "New York, NY",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "images": [
+        {
+          "id": 1,
+          "imageUrl": "https://example.com/car1-front.jpg",
+          "caption": "Front view",
+          "displayOrder": 1
+        }
+      ],
+      "features": [
+        {
+          "id": 1,
+          "name": "Air Conditioning",
+          "description": "Climate control system"
+        }
+      ],
+      "averageRating": 4.5,
+      "reviewCount": 23
+    }
+  ],
+  "pageIndex": 1,
+  "totalPages": 5,
+  "totalCount": 45,
+  "hasPreviousPage": false,
+  "hasNextPage": true
+}
+```
+
+### 2. Advanced Car Search
+**POST** `/cars/search`
+
+Perform advanced search with comprehensive filter options.
+
+**Request Body:**
+```json
+{
+  "searchTerm": "Toyota SUV",
+  "make": "Toyota",
+  "model": "RAV4",
+  "minYear": 2020,
+  "maxYear": 2024,
+  "category": "SUV",
+  "transmission": "Automatic",
+  "fuelType": "Hybrid",
+  "minSeats": 5,
+  "maxSeats": 7,
+  "minDailyRate": 50.00,
+  "maxDailyRate": 150.00,
+  "location": "Los Angeles",
+  "isAvailable": true,
+  "startDate": "2024-12-01T00:00:00Z",
+  "endDate": "2024-12-05T00:00:00Z",
+  "sortBy": "price",
+  "ascending": true,
+  "pageIndex": 1,
+  "pageSize": 10,
+  "requiredFeatures": ["Air Conditioning", "GPS Navigation"]
+}
+```
+
+**Response:** Same as Get All Cars
+
+### 3. Get Specific Car
+**GET** `/cars/{id}`
+
+Get detailed information about a specific car.
+
+**Parameters:**
+- `id` (integer): Car ID
+
+**Response:**
+```json
+{
+  "id": 1,
+  "make": "Toyota",
+  "model": "Camry",
+  "year": 2023,
+  "description": "Comfortable midsize sedan with excellent fuel economy",
+  "dailyRate": 75.00,
+  "category": "Compact",
+  "transmission": "Automatic",
+  "fuelType": "Petrol",
+  "seats": 5,
+  "mainImageUrl": "https://example.com/car1.jpg",
+  "isAvailable": true,
+  "location": "New York, NY",
+  "createdAt": "2024-01-15T10:00:00Z",
+  "images": [
+    {
+      "id": 1,
+      "imageUrl": "https://example.com/car1-front.jpg",
+      "caption": "Front view",
+      "displayOrder": 1
+    },
+    {
+      "id": 2,
+      "imageUrl": "https://example.com/car1-interior.jpg",
+      "caption": "Interior view",
+      "displayOrder": 2
+    }
+  ],
+  "features": [
+    {
+      "id": 1,
+      "name": "Air Conditioning",
+      "description": "Climate control system"
+    },
+    {
+      "id": 2,
+      "name": "Bluetooth",
+      "description": "Wireless connectivity"
+    }
+  ],
+  "averageRating": 4.5,
+  "reviewCount": 23
+}
+```
+
+---
+
+## ⭐ Car Reviews
+
+### 1. Get Car Reviews
+**GET** `/cars/{id}/reviews`
+
+Get reviews for a specific car with pagination.
+
+**Parameters:**
+- `id` (integer): Car ID
+- `pageIndex` (integer, optional): Page number (default: 1)
+- `pageSize` (integer, optional): Items per page (default: 10)
+
+**Response:**
+```json
+{
+  "items": [
+    {
+      "id": 1,
+      "comment": "Great car, very comfortable for long drives!",
+      "rating": 5,
+      "createdAt": "2024-11-10T14:30:00Z",
+      "userName": "john.doe"
+    },
+    {
+      "id": 2,
+      "comment": "Good value for money, minor issues with GPS",
+      "rating": 4,
+      "createdAt": "2024-11-08T09:15:00Z",
+      "userName": "jane.smith"
+    }
+  ],
+  "pageIndex": 1,
+  "totalPages": 3,
+  "totalCount": 23,
+  "hasPreviousPage": false,
+  "hasNextPage": true
+}
+```
+
+### 2. Add Car Review
+**POST** `/cars/reviews`
+
+Add a review for a car. Requires authentication.
+
+**Request Body:**
+```json
+{
+  "carId": 1,
+  "comment": "Excellent experience with this car. Very smooth ride!",
+  "rating": 5
+}
+```
+
+**Response:**
+```json
+{
+  "id": 25,
+  "comment": "Excellent experience with this car. Very smooth ride!",
+  "rating": 5,
+  "createdAt": "2024-11-15T16:45:00Z",
+  "userName": "current.user"
+}
+```
+
+---
+
+## 📅 Car Availability
+
+### Check Car Availability
+**POST** `/cars/check-availability`
+
+Check if a car is available for specific dates and calculate total price.
+
+**Request Body:**
+```json
+{
+  "carId": 1,
+  "startDate": "2024-12-01T00:00:00Z",
+  "endDate": "2024-12-05T00:00:00Z"
+}
+```
+
+**Response:**
+```json
+{
+  "isAvailable": true,
+  "totalPrice": 375.00,
+  "totalDays": 5
+}
+```
+
+---
+
+## 🚙 Car Bookings
+
+### 1. Get User Bookings
+**GET** `/carbookings`
+
+Get all car bookings for the current user. Requires authentication.
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "carId": 5,
+    "carName": "Toyota RAV4 (2023)",
+    "bookingDate": "2024-11-15T10:00:00Z",
+    "rentalStartDate": "2024-12-01T10:00:00Z",
+    "rentalEndDate": "2024-12-05T10:00:00Z",
+    "totalAmount": 375.00,
+    "status": "Confirmed",
+    "notes": "Need GPS navigation system",
+    "paymentMethod": "pm_1234567890",
+    "paymentStatus": "Paid",
+    "paymentDate": "2024-11-15T10:05:00Z",
+    "transactionId": "pi_1234567890abc"
+  }
+]
+```
+
+### 2. Get Specific Booking
+**GET** `/carbookings/{id}`
+
+Get details of a specific car booking. Requires authentication.
+
+**Parameters:**
+- `id` (integer): Booking ID
+
+**Response:**
+```json
+{
+  "id": 1,
+  "carId": 5,
+  "carName": "Toyota RAV4 (2023)",
+  "bookingDate": "2024-11-15T10:00:00Z",
+  "rentalStartDate": "2024-12-01T10:00:00Z",
+  "rentalEndDate": "2024-12-05T10:00:00Z",
+  "totalAmount": 375.00,
+  "status": "Confirmed",
+  "notes": "Need GPS navigation system",
+  "paymentMethod": "pm_1234567890",
+  "paymentStatus": "Paid",
+  "paymentDate": "2024-11-15T10:05:00Z",
+  "transactionId": "pi_1234567890abc"
+}
+```
+
+### 3. Create Car Booking
+**POST** `/carbookings`
+
+Create a new car booking. Requires authentication.
+
+**Request Body:**
+```json
+{
+  "carId": 5,
+  "rentalStartDate": "2024-12-01T10:00:00Z",
+  "rentalEndDate": "2024-12-05T10:00:00Z",
+  "notes": "Need GPS navigation system"
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "carId": 5,
+  "carName": "Toyota RAV4 (2023)",
+  "bookingDate": "2024-11-15T10:00:00Z",
+  "rentalStartDate": "2024-12-01T10:00:00Z",
+  "rentalEndDate": "2024-12-05T10:00:00Z",
+  "totalAmount": 375.00,
+  "status": "Pending",
+  "notes": "Need GPS navigation system",
+  "paymentMethod": null,
+  "paymentStatus": "Pending",
+  "paymentDate": null,
+  "transactionId": null
+}
+```
+
+### 4. Quick Book with Immediate Payment
+**POST** `/carbookings/quick-book`
+
+Create a booking and immediately initiate payment. Requires authentication.
+
+**Request Body:**
+```json
+{
+  "carId": 5,
+  "rentalStartDate": "2024-12-01T10:00:00Z",
+  "rentalEndDate": "2024-12-05T10:00:00Z",
+  "notes": "Need GPS navigation system",
+  "initiatePaymentImmediately": true
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "carId": 5,
+  "carName": "Toyota RAV4 (2023)",
+  "bookingDate": "2024-11-15T10:00:00Z",
+  "rentalStartDate": "2024-12-01T10:00:00Z",
+  "rentalEndDate": "2024-12-05T10:00:00Z",
+  "totalAmount": 375.00,
+  "status": "Pending",
+  "notes": "Need GPS navigation system",
+  "paymentMethod": null,
+  "paymentStatus": "Pending",
+  "paymentDate": null,
+  "transactionId": "pi_1234567890abc"
+}
+```
+
+### 5. Get Booking Payment Info
+**GET** `/carbookings/{id}/payment-info`
+
+Get payment information for a booking. Requires authentication.
+
+**Parameters:**
+- `id` (integer): Booking ID
+
+**Response:**
+```json
+{
+  "bookingId": 1,
+  "carId": 5,
+  "carName": "Toyota RAV4 (2023)",
+  "carImageUrl": "https://example.com/rav4.jpg",
+  "rentalStartDate": "2024-12-01T10:00:00Z",
+  "rentalEndDate": "2024-12-05T10:00:00Z",
+  "totalDays": 5,
+  "dailyRate": 75.00,
+  "totalAmount": 375.00,
+  "paymentStatus": "Pending",
+  "paymentMethod": null,
+  "transactionId": "pi_1234567890abc"
+}
+```
+
+### 6. Update Booking Metadata
+**PUT** `/carbookings/{id}/metadata`
+
+Update booking dates, notes, etc. Requires authentication.
+
+**Parameters:**
+- `id` (integer): Booking ID
+
+**Request Body:**
+```json
+{
+  "rentalStartDate": "2024-12-02T10:00:00Z",
+  "rentalEndDate": "2024-12-06T10:00:00Z",
+  "notes": "Updated: Need child car seat"
+}
+```
+
+**Response:**
+```json
+{
+  "bookingId": 1,
+  "rentalStartDate": "2024-12-02T10:00:00Z",
+  "rentalEndDate": "2024-12-06T10:00:00Z",
+  "totalDays": 5,
+  "totalAmount": 375.00,
+  "notes": "Updated: Need child car seat"
+}
+```
+
+### 7. Initiate Payment
+**POST** `/carbookings/{id}/initiate-payment`
+
+Initiate payment for a booking. Requires authentication.
+
+**Parameters:**
+- `id` (integer): Booking ID
+
+**Response:**
+```json
+{
+  "clientSecret": "pi_1234567890abc_secret_XYZ123",
+  "paymentIntentId": "pi_1234567890abc",
+  "amount": 375.00,
+  "currency": "usd",
+  "status": "requires_payment_method"
+}
+```
+
+### 8. Process Payment
+**POST** `/carbookings/{id}/process-payment`
+
+Process payment for a booking. Requires authentication.
+
+**Parameters:**
+- `id` (integer): Booking ID
+
+**Request Body:**
+```json
+{
+  "paymentMethod": "pm_1234567890",
+  "paymentIntentId": "pi_1234567890abc",
+  "stripeToken": "tok_1234567890"
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "carId": 5,
+  "carName": "Toyota RAV4 (2023)",
+  "bookingDate": "2024-11-15T10:00:00Z",
+  "rentalStartDate": "2024-12-01T10:00:00Z",
+  "rentalEndDate": "2024-12-05T10:00:00Z",
+  "totalAmount": 375.00,
+  "status": "Confirmed",
+  "notes": "Need GPS navigation system",
+  "paymentMethod": "pm_1234567890",
+  "paymentStatus": "Paid",
+  "paymentDate": "2024-11-15T10:05:00Z",
+  "transactionId": "pi_1234567890abc"
+}
+```
+
+### 9. Cancel Booking
+**POST** `/carbookings/{id}/cancel`
+
+Cancel a car booking. Requires authentication.
+
+**Parameters:**
+- `id` (integer): Booking ID
+
+**Response:**
+```json
+{
+  "message": "Booking cancelled successfully"
+}
+```
+
+### 10. Check Booking Availability
+**GET** `/carbookings/check-availability`
+
+Check car availability and calculate price for specific dates.
+
+**Query Parameters:**
+- `carId` (integer): Car ID
+- `startDate` (datetime): Rental start date
+- `endDate` (datetime): Rental end date
+
+**Response:**
+```json
+{
+  "isAvailable": true,
+  "totalPrice": 375.00,
+  "totalDays": 5
+}
+```
+
+---
+
+## 📱 Frontend Workflow
+
+### 1. Car Discovery Flow
+```
+1. User lands on car rental page
+   ↓
+2. Call GET /cars with default pagination
+   ↓
+3. Display cars in a grid/list view
+   ↓
+4. User applies filters (make, model, price, dates)
+   ↓
+5. Call POST /cars/search with filter criteria
+   ↓
+6. Update car list with filtered results
+   ↓
+7. User clicks on a specific car
+   ↓
+8. Call GET /cars/{id} to get detailed information
+   ↓
+9. Display car details, images, features, and reviews
+   ↓
+10. Call GET /cars/{id}/reviews to load more reviews if needed
+```
+
+### 2. Car Booking Flow (Standard)
+```
+1. User is on car details page
+   ↓
+2. User selects rental dates
+   ↓
+3. Call POST /cars/check-availability to validate dates and get price
+   ↓
+4. Display availability status and total price
+   ↓
+5. User clicks "Book Now"
+   ↓
+6. Call POST /carbookings to create booking
+   ↓
+7. Redirect to booking confirmation page
+   ↓
+8. Display booking details with "Pay Now" button
+   ↓
+9. User clicks "Pay Now"
+   ↓
+10. Call POST /carbookings/{id}/initiate-payment
+   ↓
+11. Use returned client_secret with Stripe.js for payment
+   ↓
+12. After successful Stripe payment, call POST /carbookings/{id}/process-payment
+   ↓
+13. Display payment success and confirmation
+```
+
+### 3. Quick Booking Flow
+```
+1. User is on car details page with selected dates
+   ↓
+2. User clicks "Quick Book & Pay"
+   ↓
+3. Call POST /carbookings/quick-book
+   ↓
+4. Immediately redirect to Stripe payment with client_secret
+   ↓
+5. After successful payment, call POST /carbookings/{id}/process-payment
+   ↓
+6. Display booking confirmation
+```
+
+### 4. Booking Management Flow
+```
+1. User goes to "My Bookings" page
+   ↓
+2. Call GET /carbookings to fetch all user bookings
+   ↓
+3. Display bookings list with status indicators
+   ↓
+4. User clicks on a specific booking
+   ↓
+5. Call GET /carbookings/{id} for detailed view
+   ↓
+6. Option to edit booking (if not paid)
+   ↓
+7. Call PUT /carbookings/{id}/metadata to update details
+   ↓
+8. Option to cancel booking
+   ↓
+9. Call POST /carbookings/{id}/cancel
+   ↓
+10. Handle refund based on cancellation policy
+```
+
+### 5. Error Handling
+```
+- Always check response status codes
+- Handle 401 (Unauthorized) by redirecting to login
+- Handle 404 (Not Found) with user-friendly messages
+- Handle 400 (Bad Request) by showing validation errors
+- Handle 500 (Server Error) with generic error message
+- Implement retry logic for network failures
+```
+
+### 6. State Management Recommendations
+```
+1. Store car list in component state or state management solution
+2. Cache car details to avoid repeated API calls
+3. Store booking state during payment flow
+4. Implement optimistic updates for better UX
+5. Use loading states for all API calls
+6. Store authentication token for API requests
+```
+
+## 🔐 Authentication Headers
+For all authenticated endpoints, include:
+```
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+```
+
+## 📝 Notes for Frontend Developer
+1. All dates are in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ)
+2. All monetary values are in decimal format (e.g., 375.00)
+3. Images URLs should have fallback placeholders
+4. Implement proper error boundaries for robustness
+5. Use pagination controls for lists
+6. Add loading skeletons for better perceived performance
+7. Implement search debouncing to avoid excessive API calls
+8. Cache static data (car details) when possible
+9. Handle offline scenarios gracefully
+10. Implement proper form validation before API calls
