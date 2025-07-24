@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:tour_flutter_main/models/auth_models.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
-import 'screens/tours/tour_list_screen_new.dart';
-import 'screens/cars/car_list_screen.dart';
-import 'screens/houses/house_list_screen.dart';
+import 'screens/tours/tour_list_screen_unified.dart';
+import 'screens/cars/car_list_screen_unified.dart';
+import 'screens/houses/house_list_screen_unified.dart';
 import 'screens/admin/admin_tour_create_screen.dart';
 import 'screens/admin/admin_panel_screen.dart';
 import 'screens/profile/profile_screen.dart';
@@ -52,8 +52,8 @@ class MyApp extends StatelessWidget {
           routes: {
             '/login': (context) => const LoginScreen(),
             '/register': (context) => const RegisterScreen(),
-            '/tours': (context) => const TourListScreenNew(),
-            '/cars': (context) => const CarListScreen(),
+            '/tours': (context) => const TourListScreenUnified(),
+            '/cars': (context) => const CarListScreenUnified(),
             '/admin-panel': (context) => const AdminPanelScreen(),
             '/admin/create-tour': (context) => const AdminTourCreateScreen(),
             '/profile': (context) => const ProfileScreen(),
@@ -182,6 +182,28 @@ class MyApp extends StatelessWidget {
         ),
       ),
       scaffoldBackgroundColor: backgroundColor,
+      // Enhanced performance settings
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      // Improved tap target size for mobile
+      materialTapTargetSize: MaterialTapTargetSize.padded,
+      // Enhanced typography with better readability
+      textTheme: const TextTheme(
+        displayLarge: TextStyle(fontWeight: FontWeight.w300, letterSpacing: -0.5),
+        displayMedium: TextStyle(fontWeight: FontWeight.w300, letterSpacing: -0.25),
+        displaySmall: TextStyle(fontWeight: FontWeight.w400, letterSpacing: 0),
+        headlineLarge: TextStyle(fontWeight: FontWeight.w600, letterSpacing: -0.25),
+        headlineMedium: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0),
+        headlineSmall: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.15),
+        titleLarge: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0),
+        titleMedium: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.1),
+        titleSmall: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.1),
+        bodyLarge: TextStyle(fontWeight: FontWeight.w400, letterSpacing: 0.5),
+        bodyMedium: TextStyle(fontWeight: FontWeight.w400, letterSpacing: 0.25),
+        bodySmall: TextStyle(fontWeight: FontWeight.w400, letterSpacing: 0.4),
+        labelLarge: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.25),
+        labelMedium: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.25),
+        labelSmall: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.5),
+      ),
     );
   }
 
@@ -301,6 +323,28 @@ class MyApp extends StatelessWidget {
         ),
       ),
       scaffoldBackgroundColor: backgroundColor,
+      // Enhanced performance settings
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      // Improved tap target size for mobile
+      materialTapTargetSize: MaterialTapTargetSize.padded,
+      // Enhanced typography with better readability
+      textTheme: const TextTheme(
+        displayLarge: TextStyle(fontWeight: FontWeight.w300, letterSpacing: -0.5),
+        displayMedium: TextStyle(fontWeight: FontWeight.w300, letterSpacing: -0.25),
+        displaySmall: TextStyle(fontWeight: FontWeight.w400, letterSpacing: 0),
+        headlineLarge: TextStyle(fontWeight: FontWeight.w600, letterSpacing: -0.25),
+        headlineMedium: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0),
+        headlineSmall: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.15),
+        titleLarge: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0),
+        titleMedium: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.1),
+        titleSmall: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.1),
+        bodyLarge: TextStyle(fontWeight: FontWeight.w400, letterSpacing: 0.5),
+        bodyMedium: TextStyle(fontWeight: FontWeight.w400, letterSpacing: 0.25),
+        bodySmall: TextStyle(fontWeight: FontWeight.w400, letterSpacing: 0.4),
+        labelLarge: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.25),
+        labelMedium: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.25),
+        labelSmall: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.5),
+      ),
     );
   }
 }
@@ -386,7 +430,7 @@ class _AuthWrapperState extends State<AuthWrapper>
                     return Transform.scale(
                       scale: _pulseAnimation.value,
                       child: Container(
-                        padding: const EdgeInsets.all(32),
+                        padding: const EdgeInsets.all(36),
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.surface,
                           shape: BoxShape.circle,
@@ -394,16 +438,33 @@ class _AuthWrapperState extends State<AuthWrapper>
                             BoxShadow(
                               color: Theme.of(
                                 context,
-                              ).colorScheme.primary.withOpacity(0.2),
-                              blurRadius: 20,
-                              spreadRadius: 5,
+                              ).colorScheme.primary.withOpacity(0.3),
+                              blurRadius: 30,
+                              spreadRadius: 8,
+                            ),
+                            BoxShadow(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.secondary.withOpacity(0.1),
+                              blurRadius: 50,
+                              spreadRadius: 20,
                             ),
                           ],
                         ),
-                        child: Icon(
-                          Icons.travel_explore_rounded,
-                          size: 64,
-                          color: Theme.of(context).colorScheme.primary,
+                        child: ShaderMask(
+                          shaderCallback: (bounds) => LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Theme.of(context).colorScheme.primary,
+                              Theme.of(context).colorScheme.secondary,
+                            ],
+                          ).createShader(bounds),
+                          child: const Icon(
+                            Icons.travel_explore_rounded,
+                            size: 72,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     );
@@ -459,19 +520,19 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isAdmin = false;
 
   final List<Widget> _userScreens = [
-    const TourListScreenNew(),
+    const TourListScreenUnified(),
     const RecommendationScreen(),
-    const CarListScreen(),
-    const HouseListScreen(),
+    const CarListScreenUnified(),
+    const HouseListScreenUnified(),
     const BookingScreen(),
     const ProfileScreen(),
   ];
 
   final List<Widget> _adminScreens = [
-    const TourListScreenNew(),
+    const TourListScreenUnified(),
     const RecommendationScreen(),
-    const CarListScreen(),
-    const HouseListScreen(),
+    const CarListScreenUnified(),
+    const HouseListScreenUnified(),
     const BookingScreen(),
     const AdminPanelScreen(),
     const ProfileScreen(),
@@ -507,7 +568,31 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
       isAdmin: _isAdmin,
-      child: IndexedStack(index: _currentIndex, children: screens),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (child, animation) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.1, 0),
+              end: Offset.zero,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              ),
+            ),
+            child: FadeTransition(
+              opacity: animation,
+              child: child,
+            ),
+          );
+        },
+        child: IndexedStack(
+          key: ValueKey(_currentIndex),
+          index: _currentIndex,
+          children: screens,
+        ),
+      ),
     );
   }
 }

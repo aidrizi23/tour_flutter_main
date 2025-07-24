@@ -743,13 +743,14 @@ class UnifiedEmptyState extends StatelessWidget {
   }
 }
 
-/// Unified responsive grid layout
+/// Unified responsive grid layout with enhanced performance
 class UnifiedResponsiveGrid<T> extends StatelessWidget {
   final List<T> items;
   final Widget Function(T item, int index) itemBuilder;
   final Widget Function()? loadingMoreBuilder;
   final bool isLoadingMore;
   final double maxContentWidth;
+  final Duration animationDuration;
 
   const UnifiedResponsiveGrid({
     super.key,
@@ -758,6 +759,7 @@ class UnifiedResponsiveGrid<T> extends StatelessWidget {
     this.loadingMoreBuilder,
     this.isLoadingMore = false,
     this.maxContentWidth = 1400,
+    this.animationDuration = const Duration(milliseconds: 350),
   });
 
   @override
@@ -766,42 +768,79 @@ class UnifiedResponsiveGrid<T> extends StatelessWidget {
     final isDesktop = screenWidth > 1200;
     final isTablet = screenWidth > 600 && screenWidth <= 1200;
 
-    // Calculate responsive constraints
+    // Calculate responsive constraints with enhanced ratios
     int crossAxisCount;
     double childAspectRatio;
+    double crossAxisSpacing;
+    double mainAxisSpacing;
 
     if (isDesktop) {
       crossAxisCount = screenWidth > 1600 ? 4 : 3;
-      childAspectRatio = 0.75;
+      childAspectRatio = 0.72;
+      crossAxisSpacing = 20;
+      mainAxisSpacing = 24;
     } else if (isTablet) {
       crossAxisCount = 2;
-      childAspectRatio = 0.8;
+      childAspectRatio = 0.75;
+      crossAxisSpacing = 16;
+      mainAxisSpacing = 20;
     } else {
       crossAxisCount = 1;
-      childAspectRatio = 1.15;
+      childAspectRatio = 1.1;
+      crossAxisSpacing = 16;
+      mainAxisSpacing = 16;
     }
 
     return Center(
       child: Container(
         constraints: BoxConstraints(maxWidth: maxContentWidth),
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isDesktop ? 20 : 16),
         child: Column(
           children: [
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: childAspectRatio,
+            // Enhanced grid with staggered animations
+            AnimatedSwitcher(
+              duration: animationDuration,
+              child: GridView.builder(
+                key: ValueKey(items.length),
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: crossAxisSpacing,
+                  mainAxisSpacing: mainAxisSpacing,
+                  childAspectRatio: childAspectRatio,
+                ),
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  return TweenAnimationBuilder<double>(
+                    duration: Duration(
+                      milliseconds: 200 + (index * 50).clamp(0, 800),
+                    ),
+                    tween: Tween<double>(begin: 0, end: 1),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, child) {
+                      return Transform.translate(
+                        offset: Offset(0, 20 * (1 - value)),
+                        child: Opacity(
+                          opacity: value,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: itemBuilder(items[index], index),
+                  );
+                },
               ),
-              itemCount: items.length,
-              itemBuilder: (context, index) => itemBuilder(items[index], index),
             ),
+            
+            // Enhanced loading more indicator
             if (isLoadingMore && loadingMoreBuilder != null) ...[
-              const SizedBox(height: 20),
-              loadingMoreBuilder!(),
+              const SizedBox(height: 24),
+              AnimatedOpacity(
+                opacity: isLoadingMore ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: loadingMoreBuilder!(),
+              ),
             ],
           ],
         ),
