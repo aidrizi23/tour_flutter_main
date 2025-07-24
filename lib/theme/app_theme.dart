@@ -5,9 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   /// Light [ThemeData] inspired by modern web aesthetics.
   static ThemeData light() {
-    const primaryColor = Color(0xFF0D6EFD); // Bootstrap blue
-    const secondaryColor = Color(0xFF6610F2); // Accent purple
-    const accentColor = Color(0xFF198754); // Success green
+    const primaryColor = Color(0xFF003B95); // Booking.com blue
+    const secondaryColor = Color(0xFFFFB700); // Accent yellow
+    const accentColor = Color(0xFF00A698); // Complimentary teal
     const backgroundColor = Color(0xFFF8F9FA);
     const surfaceColor = Color(0xFFFFFFFF);
     const cardColor = Color(0xFFFFFFFF);
@@ -100,9 +100,9 @@ class AppTheme {
 
   /// Dark [ThemeData] providing a complementary palette.
   static ThemeData dark() {
-    const primaryColor = Color(0xFF0D6EFD); // Same base blue
-    const secondaryColor = Color(0xFF7C4DFF);
-    const accentColor = Color(0xFF20C997);
+    const primaryColor = Color(0xFF003B95); // Same base blue
+    const secondaryColor = Color(0xFFFFB700);
+    const accentColor = Color(0xFF00A698);
     const backgroundColor = Color(0xFF121212);
     const surfaceColor = Color(0xFF1E1E1E);
     const cardColor = Color(0xFF2C2C2C);
