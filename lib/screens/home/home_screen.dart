@@ -8,6 +8,8 @@ import '../admin/admin_tour_create_screen.dart';
 import '../profile/profile_screen.dart';
 import '../booking/booking_screen.dart';
 import '../home/home_web_screen.dart';
+import '../home/home_mobile_screen.dart';
+import '../favorites/favorites_screen.dart';
 import '../recommendation/recommendation_screen.dart';
 import '../../widgets/resizable_navigation_rail.dart';
 
@@ -42,6 +44,12 @@ class _HomeScreenState extends State<HomeScreen> {
     const ProfileScreen(),
   ];
 
+  final List<Widget> _mobileScreens = [
+    const HomeMobileScreen(),
+    const FavoritesScreen(),
+    const ProfileScreen(),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -59,115 +67,146 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screens = _isAdmin ? _adminScreens : _userScreens;
-    final colorScheme = Theme.of(context).colorScheme;
     final bool isDesktop = MediaQuery.of(context).size.width >= 800;
+    final screens =
+        isDesktop ? (_isAdmin ? _adminScreens : _userScreens) : _mobileScreens;
+    final colorScheme = Theme.of(context).colorScheme;
 
-    final navigationDestinations = <NavigationDestination>[
-      NavigationDestination(
-        icon: const Icon(Icons.home_outlined),
-        selectedIcon: Icon(Icons.home, color: colorScheme.primary),
-        label: 'Home',
-      ),
-      NavigationDestination(
-        icon: const Icon(Icons.explore_outlined),
-        selectedIcon: Icon(Icons.explore, color: colorScheme.primary),
-        label: 'Discover',
-      ),
-      NavigationDestination(
-        icon: const Icon(Icons.recommend_outlined),
-        selectedIcon: Icon(Icons.recommend, color: colorScheme.primary),
-        label: 'For You',
-      ),
-      NavigationDestination(
-        icon: const Icon(Icons.directions_car_outlined),
-        selectedIcon: Icon(Icons.directions_car, color: colorScheme.primary),
-        label: 'Cars',
-      ),
-      NavigationDestination(
-        icon: const Icon(Icons.bookmark_border_outlined),
-        selectedIcon: Icon(Icons.bookmark, color: colorScheme.primary),
-        label: 'Bookings',
-      ),
-      if (_isAdmin)
-        NavigationDestination(
-          icon: const Icon(Icons.admin_panel_settings_outlined),
-          selectedIcon: Icon(
-            Icons.admin_panel_settings,
-            color: colorScheme.primary,
-          ),
-          label: 'Admin',
-        ),
-      NavigationDestination(
-        icon: const Icon(Icons.person_outline),
-        selectedIcon: Icon(Icons.person, color: colorScheme.primary),
-        label: 'Profile',
-      ),
-    ];
+    final navigationDestinations =
+        isDesktop
+            ? <NavigationDestination>[
+              NavigationDestination(
+                icon: const Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home, color: colorScheme.primary),
+                label: 'Home',
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.explore_outlined),
+                selectedIcon: Icon(Icons.explore, color: colorScheme.primary),
+                label: 'Discover',
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.recommend_outlined),
+                selectedIcon: Icon(Icons.recommend, color: colorScheme.primary),
+                label: 'For You',
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.directions_car_outlined),
+                selectedIcon: Icon(
+                  Icons.directions_car,
+                  color: colorScheme.primary,
+                ),
+                label: 'Cars',
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.bookmark_border_outlined),
+                selectedIcon: Icon(Icons.bookmark, color: colorScheme.primary),
+                label: 'Bookings',
+              ),
+              if (_isAdmin)
+                NavigationDestination(
+                  icon: const Icon(Icons.admin_panel_settings_outlined),
+                  selectedIcon: Icon(
+                    Icons.admin_panel_settings,
+                    color: colorScheme.primary,
+                  ),
+                  label: 'Admin',
+                ),
+              NavigationDestination(
+                icon: const Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person, color: colorScheme.primary),
+                label: 'Profile',
+              ),
+            ]
+            : <NavigationDestination>[
+              NavigationDestination(
+                icon: const Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home, color: colorScheme.primary),
+                label: 'Home',
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.favorite_outline),
+                selectedIcon: Icon(Icons.favorite, color: colorScheme.primary),
+                label: 'Favorites',
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person, color: colorScheme.primary),
+                label: 'Profile',
+              ),
+            ];
 
     return Scaffold(
-      body: isDesktop
-          ? Row(
-              children: [
-                ResizableNavigationRail(
-                  selectedIndex: _currentIndex,
-                  onDestinationSelected: (index) {
-                    if (index != _currentIndex) {
-                      setState(() => _currentIndex = index);
-                      HapticFeedback.selectionClick();
-                    }
-                  },
-                  backgroundColor: colorScheme.surface,
-                  selectedIconTheme: IconThemeData(color: colorScheme.primary),
-                  indicatorColor: colorScheme.primary.withOpacity(0.1),
-                  destinations: navigationDestinations
-                      .map(
-                        (e) => NavigationRailDestination(
-                          icon: e.icon,
-                          selectedIcon: e.selectedIcon!,
-                          label: Text(e.label),
-                        ),
-                      )
-                      .toList(),
-                ),
-                const VerticalDivider(width: 1),
-                Expanded(
-                  child: IndexedStack(index: _currentIndex, children: screens),
-                ),
-              ],
-            )
-          : IndexedStack(index: _currentIndex, children: screens),
-      bottomNavigationBar: isDesktop
-          ? null
-          : Container(
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, -2),
+      body:
+          isDesktop
+              ? Row(
+                children: [
+                  ResizableNavigationRail(
+                    selectedIndex: _currentIndex,
+                    onDestinationSelected: (index) {
+                      if (index != _currentIndex) {
+                        setState(() => _currentIndex = index);
+                        HapticFeedback.selectionClick();
+                      }
+                    },
+                    backgroundColor: colorScheme.surface,
+                    selectedIconTheme: IconThemeData(
+                      color: colorScheme.primary,
+                    ),
+                    indicatorColor: colorScheme.primary.withOpacity(0.1),
+                    destinations:
+                        navigationDestinations
+                            .map(
+                              (e) => NavigationRailDestination(
+                                icon: e.icon,
+                                selectedIcon: e.selectedIcon!,
+                                label: Text(e.label),
+                              ),
+                            )
+                            .toList(),
+                  ),
+                  const VerticalDivider(width: 1),
+                  Expanded(
+                    child: IndexedStack(
+                      index: _currentIndex,
+                      children: screens,
+                    ),
                   ),
                 ],
-              ),
-              child: SafeArea(
-                child: NavigationBar(
-                  selectedIndex: _currentIndex,
-                  onDestinationSelected: (index) {
-                    if (index != _currentIndex) {
-                      setState(() {
-                        _currentIndex = index;
-                      });
-                      HapticFeedback.selectionClick();
-                    }
-                  },
-                  backgroundColor: colorScheme.surface,
-                  surfaceTintColor: colorScheme.surface,
-                  indicatorColor: colorScheme.primary.withOpacity(0.1),
-                  destinations: navigationDestinations,
+              )
+              : IndexedStack(index: _currentIndex, children: screens),
+      bottomNavigationBar:
+          isDesktop
+              ? null
+              : Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: NavigationBar(
+                    selectedIndex: _currentIndex,
+                    onDestinationSelected: (index) {
+                      if (index != _currentIndex) {
+                        setState(() {
+                          _currentIndex = index;
+                        });
+                        HapticFeedback.selectionClick();
+                      }
+                    },
+                    backgroundColor: colorScheme.surface,
+                    surfaceTintColor: colorScheme.surface,
+                    indicatorColor: colorScheme.primary.withOpacity(0.1),
+                    destinations: navigationDestinations,
+                  ),
                 ),
               ),
-            ),
     );
   }
 }
