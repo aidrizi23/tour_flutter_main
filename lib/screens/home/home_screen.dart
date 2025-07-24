@@ -137,6 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ];
 
     return Scaffold(
+      extendBody: !isDesktop,
       body:
           isDesktop
               ? Row(
@@ -175,38 +176,40 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               )
               : IndexedStack(index: _currentIndex, children: screens),
-      bottomNavigationBar:
-          isDesktop
-              ? null
-              : Container(
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, -2),
+      bottomNavigationBar: isDesktop
+          ? null
+          : ClipRRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface.withOpacity(0.6),
+                    border: Border(
+                      top: BorderSide(
+                        color: colorScheme.outline.withOpacity(0.1),
+                      ),
                     ),
-                  ],
-                ),
-                child: SafeArea(
-                  child: NavigationBar(
-                    selectedIndex: _currentIndex,
-                    onDestinationSelected: (index) {
-                      if (index != _currentIndex) {
-                        setState(() {
-                          _currentIndex = index;
-                        });
-                        HapticFeedback.selectionClick();
-                      }
-                    },
-                    backgroundColor: colorScheme.surface,
-                    surfaceTintColor: colorScheme.surface,
-                    indicatorColor: colorScheme.primary.withOpacity(0.1),
-                    destinations: navigationDestinations,
+                  ),
+                  child: SafeArea(
+                    child: NavigationBar(
+                      selectedIndex: _currentIndex,
+                      onDestinationSelected: (index) {
+                        if (index != _currentIndex) {
+                          setState(() {
+                            _currentIndex = index;
+                          });
+                          HapticFeedback.selectionClick();
+                        }
+                      },
+                      backgroundColor: Colors.transparent,
+                      surfaceTintColor: Colors.transparent,
+                      indicatorColor: colorScheme.primary.withOpacity(0.1),
+                      destinations: navigationDestinations,
+                    ),
                   ),
                 ),
               ),
+            ),
     );
   }
 }

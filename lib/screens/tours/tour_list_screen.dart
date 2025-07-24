@@ -412,20 +412,24 @@ class _TourListScreenState extends State<TourListScreen> {
             ),
 
             // Filters Panel
-            if (_showFilters)
-              SliverToBoxAdapter(
-                child: Container(
-                  color: colorScheme.surface,
-                  child: Center(
-                    child: Container(
-                      constraints: BoxConstraints(maxWidth: maxContentWidth),
-                      margin: const EdgeInsets.all(16),
-                      child: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+            SliverToBoxAdapter(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: !_showFilters
+                    ? const SizedBox.shrink()
+                    : Container(
+                        color: colorScheme.surface,
+                        child: Center(
+                          child: Container(
+                            constraints:
+                                BoxConstraints(maxWidth: maxContentWidth),
+                            margin: const EdgeInsets.all(16),
+                            child: Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
