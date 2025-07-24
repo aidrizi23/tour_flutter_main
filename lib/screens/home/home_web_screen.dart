@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'widgets/hero_section.dart';
 import 'widgets/features_section.dart';
 import 'widgets/inspiration_section.dart';
+import 'widgets/quick_access_section.dart';
+import 'widgets/footer.dart';
 
 /// A simple landing page styled like a modern website.
 class HomeWebScreen extends StatelessWidget {
@@ -39,9 +41,10 @@ class HomeWebScreen extends StatelessWidget {
       body: const CustomScrollView(
         slivers: [
           SliverToBoxAdapter(child: HomeHeroSection()),
+          SliverToBoxAdapter(child: HomeQuickAccessSection()),
           SliverToBoxAdapter(child: HomeFeaturesSection()),
           SliverToBoxAdapter(child: HomeInspirationSection()),
-          SliverToBoxAdapter(child: SizedBox(height: 40)),
+          SliverToBoxAdapter(child: HomeFooter()),
         ],
       ),
     );
