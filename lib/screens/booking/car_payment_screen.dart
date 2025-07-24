@@ -181,9 +181,10 @@ class _CarPaymentScreenState extends State<CarPaymentScreen>
             begin: Offset(0, _slideAnimation.value),
             end: Offset.zero,
           ).animate(_animationController),
-          child: CustomScrollView(
-            controller: _scrollController,
-            slivers: [
+          child: SafeArea(
+            child: CustomScrollView(
+              controller: _scrollController,
+              slivers: [
               SliverToBoxAdapter(
                 child: Column(
                   children: [
