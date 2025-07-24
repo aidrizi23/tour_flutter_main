@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/tours/tour_list_screen.dart';
-import 'screens/houses/house_list_screen_unified.dart';
-import 'screens/cars/car_list_screen_unified.dart';
+import 'screens/houses/house_list_screen.dart';
+import 'screens/cars/car_list_screen.dart';
 
 void main() {
   runApp(const TestUnifiedSystemApp());
@@ -67,7 +67,7 @@ class TestHomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const HouseListScreenUnified(),
+                    builder: (context) => const HouseListScreen(),
                   ),
                 );
               },
@@ -83,7 +83,7 @@ class TestHomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const CarListScreenUnified(),
+                    builder: (context) => const CarListScreen(),
                   ),
                 );
               },
