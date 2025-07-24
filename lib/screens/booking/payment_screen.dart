@@ -278,11 +278,12 @@ class _PaymentScreenState extends State<PaymentScreen>
         opacity: _fadeAnimation,
         child: SlideTransition(
           position: _slideAnimation,
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(isMobile ? 16 : 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(isMobile ? 16 : 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 // Payment Summary Section
                 _buildPaymentSummary(),
                 const SizedBox(height: 24),
