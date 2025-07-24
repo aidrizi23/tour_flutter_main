@@ -26,7 +26,7 @@ void main() async {
   try {
     await StripeService.init();
   } catch (e) {
-    debugPrint("Stripe initialization failed: \$e");
+    debugPrint("Stripe initialization failed: $e");
   }
 
   runApp(

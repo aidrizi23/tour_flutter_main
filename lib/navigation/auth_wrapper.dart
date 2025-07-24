@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:tour_flutter_main/main.dart';
 import 'package:tour_flutter_main/screens/home/home_screen.dart';
 import '../services/auth_service.dart';
 import '../screens/auth/login_screen.dart';
 
 class AuthWrapper extends StatefulWidget {
-  const AuthWrapper({super.key});
+  final Widget child;
+  const AuthWrapper({super.key, required this.child});
 
   @override
   State<AuthWrapper> createState() => _AuthWrapperState();
@@ -134,6 +134,17 @@ class _AuthWrapperState extends State<AuthWrapper>
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
+                const SizedBox(height: 32),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _isLoading = false;
+                      _isLoggedIn = false;
+                    });
+                    _loadingController.stop();
+                  },
+                  child: const Text('Go to Login'),
+                )
               ],
             ),
           ),
@@ -141,6 +152,6 @@ class _AuthWrapperState extends State<AuthWrapper>
       );
     }
 
-    return _isLoggedIn ? const EnhancedHomeScreen() : const LoginScreen();
+    return _isLoggedIn ? widget.child : const LoginScreen();
   }
 }
