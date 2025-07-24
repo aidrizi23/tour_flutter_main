@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../services/auth_service.dart';
-import '../cars/car_list_screen.dart';
-import '../tours/tour_list_screen.dart';
+
+import '../main/main_screen.dart';
 import '../admin/admin_panel_screen.dart';
-import '../admin/admin_tour_create_screen.dart';
 import '../profile/profile_screen.dart';
 import '../booking/booking_screen.dart';
 import '../home/home_web_screen.dart';
 import '../home/home_mobile_screen.dart';
 import '../favorites/favorites_screen.dart';
 import '../recommendation/recommendation_screen.dart';
-import '../../widgets/resizable_navigation_rail.dart';
+import '../../widgets/desktop_scaffold.dart';
+import '../../widgets/sleek_bottom_nav_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,19 +26,15 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isAdmin = false;
 
   final List<Widget> _userScreens = [
-    const HomeWebScreen(),
-    const TourListScreen(),
+    const MainScreen(),
     const RecommendationScreen(),
-    const CarListScreen(),
     const BookingScreen(),
     const ProfileScreen(),
   ];
 
   final List<Widget> _adminScreens = [
-    const HomeWebScreen(),
-    const TourListScreen(),
+    const MainScreen(),
     const RecommendationScreen(),
-    const CarListScreen(),
     const BookingScreen(),
     const AdminPanelScreen(),
     const ProfileScreen(),
@@ -210,6 +206,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-    );
+          );
   }
 }

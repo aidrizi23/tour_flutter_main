@@ -37,7 +37,7 @@ class _TourListScreenState extends State<TourListScreen> {
 
   List<String> _categories = [];
   List<String> _locations = [];
-  bool _showFilters = false;
+  
 
   @override
   void initState() {
@@ -167,9 +167,116 @@ class _TourListScreenState extends State<TourListScreen> {
   }
 
   void _toggleFilters() {
-    setState(() {
-      _showFilters = !_showFilters;
-    });
+    _showFilterBottomSheet();
+  }
+
+  void _showFilterBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.85,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            child: Column(
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'Filters',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          _clearFilters();
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Reset'),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Filter options
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                    children: [
+                      _buildFiltersContent(),
+                    ],
+                  ),
+                ),
+
+                // Apply button
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, -1),
+                      ),
+                    ],
+                  ),
+                  child: FilledButton(
+                    onPressed: () {
+                      _applyFilters();
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Apply Filters'),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 
   void _clearFilters() {
@@ -188,7 +295,6 @@ class _TourListScreenState extends State<TourListScreen> {
   }
 
   void _applyFilters() {
-    _toggleFilters();
     _loadTours(isRefresh: true);
   }
 
@@ -240,56 +346,7 @@ class _TourListScreenState extends State<TourListScreen> {
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            // App Bar
-            SliverAppBar(
-              expandedHeight: 120,
-              floating: false,
-              pinned: true,
-              backgroundColor: colorScheme.primary,
-              foregroundColor: Colors.white,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [colorScheme.primary, colorScheme.secondary],
-                    ),
-                  ),
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            'Discover Tours',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.headlineMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _totalCount > 0
-                                ? '$_totalCount experiences'
-                                : 'Find your adventure',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white.withOpacity(0.9),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            
 
             // Search and Filters
             SliverToBoxAdapter(
@@ -332,33 +389,9 @@ class _TourListScreenState extends State<TourListScreen> {
                                         color: colorScheme.outline,
                                       ),
                                     ),
-                                  Container(
-                                    margin: const EdgeInsets.only(right: 8),
-                                    child: FilledButton.icon(
-                                      onPressed: _toggleFilters,
-                                      icon: Icon(
-                                        _showFilters
-                                            ? Icons.filter_alt
-                                            : Icons.filter_alt_outlined,
-                                        size: 18,
-                                      ),
-                                      label: const Text('Filters'),
-                                      style: FilledButton.styleFrom(
-                                        backgroundColor:
-                                            _showFilters
-                                                ? colorScheme.primary
-                                                : colorScheme
-                                                    .surfaceContainerHigh,
-                                        foregroundColor:
-                                            _showFilters
-                                                ? Colors.white
-                                                : colorScheme.onSurface,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 8,
-                                        ),
-                                      ),
-                                    ),
+                                  IconButton(
+                                    onPressed: _toggleFilters,
+                                    icon: const Icon(Icons.filter_list),
                                   ),
                                 ],
                               ),
@@ -372,38 +405,7 @@ class _TourListScreenState extends State<TourListScreen> {
                           ),
                         ),
 
-                        // Quick Filters
-                        if (!isMobile) ...[
-                          const SizedBox(height: 16),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              _buildQuickFilter(
-                                'All',
-                                _selectedCategory == null,
-                                () {
-                                  setState(() => _selectedCategory = null);
-                                  _loadTours(isRefresh: true);
-                                },
-                              ),
-                              ...(_categories
-                                  .take(5)
-                                  .map(
-                                    (category) => _buildQuickFilter(
-                                      category,
-                                      _selectedCategory == category,
-                                      () {
-                                        setState(
-                                          () => _selectedCategory = category,
-                                        );
-                                        _loadTours(isRefresh: true);
-                                      },
-                                    ),
-                                  )),
-                            ],
-                          ),
-                        ],
+                        
                       ],
                     ),
                   ),
@@ -411,61 +413,7 @@ class _TourListScreenState extends State<TourListScreen> {
               ),
             ),
 
-            // Filters Panel
-            SliverToBoxAdapter(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: !_showFilters
-                    ? const SizedBox.shrink()
-                    : Container(
-                        color: colorScheme.surface,
-                        child: Center(
-                          child: Container(
-                            constraints:
-                                BoxConstraints(maxWidth: maxContentWidth),
-                            margin: const EdgeInsets.all(16),
-                            child: Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Filter Results',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleLarge
-                                        ?.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                  Row(
-                                    children: [
-                                      TextButton(
-                                        onPressed: _clearFilters,
-                                        child: const Text('Clear All'),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      FilledButton(
-                                        onPressed: _applyFilters,
-                                        child: const Text('Apply'),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 20),
-                              _buildFiltersContent(isDesktop, isTablet),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            
 
             // Content
             if (_isLoading && _tours.isEmpty)
@@ -525,81 +473,20 @@ class _TourListScreenState extends State<TourListScreen> {
     );
   }
 
-  Widget _buildQuickFilter(String label, bool isSelected, VoidCallback onTap) {
-    final colorScheme = Theme.of(context).colorScheme;
+  
 
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) {
-        HapticFeedback.lightImpact();
-        onTap();
-      },
-      backgroundColor: colorScheme.surface,
-      selectedColor: colorScheme.primaryContainer,
-      checkmarkColor: colorScheme.primary,
-      labelStyle: TextStyle(
-        color: isSelected ? colorScheme.primary : colorScheme.onSurface,
-        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color:
-              isSelected
-                  ? colorScheme.primary
-                  : colorScheme.outline.withOpacity(0.3),
-        ),
-      ),
+  Widget _buildFiltersContent() {
+    return Column(
+      children: [
+        _buildLocationFilter(),
+        const SizedBox(height: 16),
+        _buildActivityFilter(),
+        const SizedBox(height: 16),
+        _buildDifficultyFilter(),
+        const SizedBox(height: 16),
+        _buildSortFilter(),
+      ],
     );
-  }
-
-  Widget _buildFiltersContent(bool isDesktop, bool isTablet) {
-    if (isDesktop) {
-      return Row(
-        children: [
-          Expanded(child: _buildLocationFilter()),
-          const SizedBox(width: 16),
-          Expanded(child: _buildActivityFilter()),
-          const SizedBox(width: 16),
-          Expanded(child: _buildDifficultyFilter()),
-          const SizedBox(width: 16),
-          Expanded(child: _buildSortFilter()),
-        ],
-      );
-    } else if (isTablet) {
-      return Column(
-        children: [
-          Row(
-            children: [
-              Expanded(child: _buildLocationFilter()),
-              const SizedBox(width: 16),
-              Expanded(child: _buildActivityFilter()),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: _buildDifficultyFilter()),
-              const SizedBox(width: 16),
-              Expanded(child: _buildSortFilter()),
-            ],
-          ),
-        ],
-      );
-    } else {
-      return Column(
-        children: [
-          _buildLocationFilter(),
-          const SizedBox(height: 16),
-          _buildActivityFilter(),
-          const SizedBox(height: 16),
-          _buildDifficultyFilter(),
-          const SizedBox(height: 16),
-          _buildSortFilter(),
-        ],
-      );
-    }
   }
 
   Widget _buildLocationFilter() {
@@ -666,7 +553,7 @@ class _TourListScreenState extends State<TourListScreen> {
           decoration: const InputDecoration(
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
-          items:
+          items: 
               options.map((option) {
                 return DropdownMenuItem(value: option, child: Text(option));
               }).toList(),

@@ -288,7 +288,7 @@ class _CarListScreenState extends State<CarListScreen>
 
     return Scaffold(
       backgroundColor: colorScheme.surfaceContainerLowest,
-      appBar: _buildAppBar(context),
+      
       body: RefreshIndicator(
         key: _refreshIndicatorKey,
         onRefresh: () => _loadCars(isRefresh: true),
@@ -415,61 +415,7 @@ class _CarListScreenState extends State<CarListScreen>
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return AppBar(
-      elevation: 0,
-      backgroundColor: colorScheme.primary,
-      foregroundColor: colorScheme.onPrimary,
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Car Rentals',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: colorScheme.onPrimary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            'Find the perfect ride for your journey',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onPrimary.withOpacity(0.9),
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        IconButton(
-          onPressed: () {
-            // TODO: Add favorites/saved cars feature
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Saved cars feature coming soon!'),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            );
-          },
-          icon: const Icon(Icons.bookmark_border_rounded),
-          color: colorScheme.onPrimary,
-          tooltip: 'Saved Cars',
-        ),
-      ],
-      flexibleSpace: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.9)],
-          ),
-        ),
-      ),
-    );
-  }
+  
 
   Widget _buildSearchAndFilters(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -1192,46 +1138,48 @@ class _CarListScreenState extends State<CarListScreen>
   Widget _buildErrorState() {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: colorScheme.errorContainer,
-                shape: BoxShape.circle,
+    return SingleChildScrollView(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: colorScheme.errorContainer,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.error_outline_rounded,
+                  size: 64,
+                  color: colorScheme.error,
+                ),
               ),
-              child: Icon(
-                Icons.error_outline_rounded,
-                size: 64,
-                color: colorScheme.error,
+              const SizedBox(height: 24),
+              Text(
+                'Oops! Something went wrong',
+                style: Theme.of(
+                  context,
+                ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Oops! Something went wrong',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              _errorMessage ?? 'Failed to load cars',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.7),
+              const SizedBox(height: 12),
+              Text(
+                _errorMessage ?? 'Failed to load cars',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            FilledButton.icon(
-              onPressed: () => _loadCars(isRefresh: true),
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Try Again'),
-            ),
-          ],
+              const SizedBox(height: 32),
+              FilledButton.icon(
+                onPressed: () => _loadCars(isRefresh: true),
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Try Again'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1240,46 +1188,48 @@ class _CarListScreenState extends State<CarListScreen>
   Widget _buildEmptyState() {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(20),
+    return SingleChildScrollView(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  Icons.directions_car_outlined,
+                  size: 64,
+                  color: colorScheme.outline,
+                ),
               ),
-              child: Icon(
-                Icons.directions_car_outlined,
-                size: 64,
-                color: colorScheme.outline,
+              const SizedBox(height: 24),
+              Text(
+                'No cars found',
+                style: Theme.of(
+                  context,
+                ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No cars found',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Try adjusting your search criteria or rental dates',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.7),
+              const SizedBox(height: 12),
+              Text(
+                'Try adjusting your search criteria or rental dates',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.7),
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            OutlinedButton.icon(
-              onPressed: _clearFilters,
-              icon: const Icon(Icons.clear_all_rounded),
-              label: const Text('Clear Filters'),
-            ),
-          ],
+              const SizedBox(height: 32),
+              OutlinedButton.icon(
+                onPressed: _clearFilters,
+                icon: const Icon(Icons.clear_all_rounded),
+                label: const Text('Clear Filters'),
+              ),
+            ],
+          ),
         ),
       ),
     );

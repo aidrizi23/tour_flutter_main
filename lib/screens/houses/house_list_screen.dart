@@ -782,23 +782,7 @@ class _HouseListScreenState extends State<HouseListScreen>
     final isTablet = screenWidth > 600 && screenWidth <= 900;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Find Accommodations'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.favorite_border),
-            onPressed: () {
-              // TODO: Implement favorites
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Favorites coming soon!'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+      
       body: Column(
         children: [
           // Search and filter bar
