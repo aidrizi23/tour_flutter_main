@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/unified_filter_system.dart';
 
 class TourImage {
   final int id;
@@ -288,35 +289,27 @@ class PaginatedTours {
 }
 
 // Filter classes for tour search
-class TourFilterRequest {
-  final String? searchTerm;
-  final String? location;
+class TourFilterRequest extends BaseFilterRequest {
   final String? category;
   final String? difficultyLevel;
   final String? activityType;
-  final double? minPrice;
-  final double? maxPrice;
   final int? minDuration;
   final int? maxDuration;
-  final String? sortBy;
-  final bool? ascending;
-  final int? pageIndex;
-  final int? pageSize;
 
   TourFilterRequest({
-    this.searchTerm,
-    this.location,
+    super.searchTerm,
+    super.location,
     this.category,
     this.difficultyLevel,
     this.activityType,
-    this.minPrice,
-    this.maxPrice,
+    super.minPrice,
+    super.maxPrice,
     this.minDuration,
     this.maxDuration,
-    this.sortBy,
-    this.ascending,
-    this.pageIndex,
-    this.pageSize,
+    super.sortBy = 'name',
+    super.ascending = true,
+    super.pageIndex = 0,
+    super.pageSize = 20,
   });
 
   Map<String, String> toQueryParams() {
@@ -341,10 +334,10 @@ class TourFilterRequest {
     if (maxPrice != null) params['maxPrice'] = maxPrice.toString();
     if (minDuration != null) params['minDuration'] = minDuration.toString();
     if (maxDuration != null) params['maxDuration'] = maxDuration.toString();
-    if (sortBy != null && sortBy!.isNotEmpty) params['sortBy'] = sortBy!;
-    if (ascending != null) params['ascending'] = ascending.toString();
-    if (pageIndex != null) params['pageIndex'] = pageIndex.toString();
-    if (pageSize != null) params['pageSize'] = pageSize.toString();
+    params['sortBy'] = sortBy;
+    params['ascending'] = ascending.toString();
+    params['pageIndex'] = pageIndex.toString();
+    params['pageSize'] = pageSize.toString();
 
     return params;
   }

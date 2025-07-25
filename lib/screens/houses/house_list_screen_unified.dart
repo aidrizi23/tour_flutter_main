@@ -94,9 +94,11 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
       maxPrice: filters?['maxPrice']?.toDouble(),
       minBedrooms: filters?['minBedrooms']?.round(),
       maxBedrooms: filters?['maxBedrooms']?.round(),
-      city: filters?['location']?.split(',').first.trim(),
-      country: filters?['location']?.contains(',') == true
-          ? filters?['location']?.split(',').last.trim()
+      city: filters?['location'] is String 
+          ? (filters!['location'] as String).split(',').first.trim()
+          : null,
+      country: filters?['location'] is String && (filters!['location'] as String).contains(',')
+          ? (filters!['location'] as String).split(',').last.trim()
           : null,
       minGuests: filters?['guestCount'] ?? 2,
       availableFrom: filters?['checkInDate'],

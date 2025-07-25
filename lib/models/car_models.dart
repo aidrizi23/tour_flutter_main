@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/unified_filter_system.dart';
 
 class CarImage {
   final int id;
@@ -254,8 +255,7 @@ class PaginatedCars {
 }
 
 // Filter classes for car search
-class CarFilterRequest {
-  final String? searchTerm;
+class CarFilterRequest extends BaseFilterRequest {
   final String? make;
   final String? model;
   final int? minYear;
@@ -267,18 +267,13 @@ class CarFilterRequest {
   final int? maxSeats;
   final double? minDailyRate;
   final double? maxDailyRate;
-  final String? location;
   final bool? isAvailable;
   final DateTime? startDate;
   final DateTime? endDate;
-  final String? sortBy;
-  final bool? ascending;
-  final int? pageIndex;
-  final int? pageSize;
   final List<String>? requiredFeatures;
 
   CarFilterRequest({
-    this.searchTerm,
+    super.searchTerm,
     this.make,
     this.model,
     this.minYear,
@@ -290,16 +285,19 @@ class CarFilterRequest {
     this.maxSeats,
     this.minDailyRate,
     this.maxDailyRate,
-    this.location,
+    super.location,
     this.isAvailable,
     this.startDate,
     this.endDate,
-    this.sortBy,
-    this.ascending,
-    this.pageIndex,
-    this.pageSize,
+    super.sortBy = 'make',
+    super.ascending = true,
+    super.pageIndex = 0,
+    super.pageSize = 20,
     this.requiredFeatures,
-  });
+  }) : super(
+         minPrice: minDailyRate,
+         maxPrice: maxDailyRate,
+       );
 
   Map<String, String> toQueryParams() {
     final Map<String, String> params = {};
@@ -330,10 +328,10 @@ class CarFilterRequest {
     if (isAvailable != null) params['isAvailable'] = isAvailable.toString();
     if (startDate != null) params['startDate'] = startDate!.toIso8601String();
     if (endDate != null) params['endDate'] = endDate!.toIso8601String();
-    if (sortBy != null && sortBy!.isNotEmpty) params['sortBy'] = sortBy!;
-    if (ascending != null) params['ascending'] = ascending.toString();
-    if (pageIndex != null) params['pageIndex'] = pageIndex.toString();
-    if (pageSize != null) params['pageSize'] = pageSize.toString();
+    params['sortBy'] = sortBy;
+    params['ascending'] = ascending.toString();
+    params['pageIndex'] = pageIndex.toString();
+    params['pageSize'] = pageSize.toString();
 
     return params;
   }
@@ -361,10 +359,10 @@ class CarFilterRequest {
     if (isAvailable != null) data['isAvailable'] = isAvailable!;
     if (startDate != null) data['startDate'] = startDate!.toIso8601String();
     if (endDate != null) data['endDate'] = endDate!.toIso8601String();
-    if (sortBy != null && sortBy!.isNotEmpty) data['sortBy'] = sortBy!;
-    if (ascending != null) data['ascending'] = ascending!;
-    if (pageIndex != null) data['pageIndex'] = pageIndex!;
-    if (pageSize != null) data['pageSize'] = pageSize!;
+    data['sortBy'] = sortBy;
+    data['ascending'] = ascending;
+    data['pageIndex'] = pageIndex;
+    data['pageSize'] = pageSize;
     if (requiredFeatures != null && requiredFeatures!.isNotEmpty) {
       data['requiredFeatures'] = requiredFeatures!;
     }

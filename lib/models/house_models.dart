@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/unified_filter_system.dart';
 
 class HouseImage {
   final int id;
@@ -254,8 +255,7 @@ class PaginatedHouses {
   }
 }
 
-class HouseFilterRequest {
-  final String? searchTerm;
+class HouseFilterRequest extends BaseFilterRequest {
   final String? city;
   final String? country;
   final String? propertyType;
@@ -264,17 +264,11 @@ class HouseFilterRequest {
   final int? minBathrooms;
   final int? maxBathrooms;
   final int? minGuests;
-  final double? minPrice;
-  final double? maxPrice;
   final DateTime? availableFrom;
   final DateTime? availableTo;
-  final String? sortBy;
-  final bool? ascending;
-  final int? pageIndex;
-  final int? pageSize;
 
   HouseFilterRequest({
-    this.searchTerm,
+    super.searchTerm,
     this.city,
     this.country,
     this.propertyType,
@@ -283,15 +277,17 @@ class HouseFilterRequest {
     this.minBathrooms,
     this.maxBathrooms,
     this.minGuests,
-    this.minPrice,
-    this.maxPrice,
+    super.minPrice,
+    super.maxPrice,
     this.availableFrom,
     this.availableTo,
-    this.sortBy,
-    this.ascending,
-    this.pageIndex,
-    this.pageSize,
-  });
+    super.sortBy = 'name',
+    super.ascending = true,
+    super.pageIndex = 0,
+    super.pageSize = 20,
+  }) : super(
+         location: city != null && country != null ? '$city, $country' : city ?? country,
+       );
 
   Map<String, String> toQueryParams() {
     final Map<String, String> params = {};
@@ -317,10 +313,10 @@ class HouseFilterRequest {
     if (availableTo != null) {
       params['availableTo'] = availableTo!.toIso8601String();
     }
-    if (sortBy != null && sortBy!.isNotEmpty) params['sortBy'] = sortBy!;
-    if (ascending != null) params['ascending'] = ascending.toString();
-    if (pageIndex != null) params['pageIndex'] = pageIndex.toString();
-    if (pageSize != null) params['pageSize'] = pageSize.toString();
+    params['sortBy'] = sortBy;
+    params['ascending'] = ascending.toString();
+    params['pageIndex'] = pageIndex.toString();
+    params['pageSize'] = pageSize.toString();
 
     return params;
   }
@@ -349,10 +345,10 @@ class HouseFilterRequest {
     if (availableTo != null) {
       data['availableTo'] = availableTo!.toIso8601String();
     }
-    if (sortBy != null && sortBy!.isNotEmpty) data['sortBy'] = sortBy!;
-    if (ascending != null) data['ascending'] = ascending!;
-    if (pageIndex != null) data['pageIndex'] = pageIndex!;
-    if (pageSize != null) data['pageSize'] = pageSize!;
+    data['sortBy'] = sortBy;
+    data['ascending'] = ascending;
+    data['pageIndex'] = pageIndex;
+    data['pageSize'] = pageSize;
 
     return data;
   }

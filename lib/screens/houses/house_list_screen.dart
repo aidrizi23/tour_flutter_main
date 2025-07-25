@@ -18,7 +18,8 @@ class HouseListScreen extends StatelessWidget {
   }
 }
 
-class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRequest> {
+class HouseListScreenConfig
+    extends UnifiedListScreenConfig<House, HouseFilterRequest> {
   final HouseService _houseService = HouseService();
   List<String> _propertyTypes = [];
   List<String> _popularDestinations = [];
@@ -45,7 +46,8 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
   String get emptyStateTitle => 'No accommodations found';
 
   @override
-  String get emptyStateSubtitle => 'Try adjusting your filters to find more options';
+  String get emptyStateSubtitle =>
+      'Try adjusting your filters to find more options';
 
   @override
   String get loadingMessage => 'Finding perfect accommodations for you...';
@@ -87,6 +89,20 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
     int pageIndex = 1,
     int pageSize = 10,
   }) {
+    String? location = filters?['location'];
+    String? city;
+    String? country;
+    if (location != null && location is String && location.contains(',')) {
+      city = location.split(',').first.trim();
+      country = location.split(',').last.trim();
+    } else if (location != null &&
+        location is String &&
+        location.isNotEmpty &&
+        location != 'Any Location') {
+      city = location.trim();
+      country = null;
+    }
+
     return HouseFilterRequest(
       searchTerm: searchTerm,
       propertyType: filters?['propertyType'],
@@ -94,10 +110,8 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
       maxPrice: filters?['maxPrice']?.toDouble(),
       minBedrooms: filters?['minBedrooms']?.round(),
       maxBedrooms: filters?['maxBedrooms']?.round(),
-      city: filters?['location']?.split(',').first.trim(),
-      country: filters?['location']?.contains(',') == true
-          ? filters?['location']?.split(',').last.trim()
-          : null,
+      city: city,
+      country: country,
       minGuests: filters?['guestCount'] ?? 2,
       availableFrom: filters?['checkInDate'],
       availableTo: filters?['checkOutDate'],
@@ -165,15 +179,15 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
           children: [
             Text(
               'Price Range',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             Text(
               '\$${priceRange.start.round()} - \$${priceRange.end.round()}',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.primary,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: colorScheme.primary),
             ),
           ],
         ),
@@ -215,15 +229,15 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
           children: [
             Text(
               'Bedrooms',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             Text(
               '${bedroomRange.start.round()} - ${bedroomRange.end.round()}',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.primary,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: colorScheme.primary),
             ),
           ],
         ),
@@ -258,9 +272,9 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
       children: [
         Text(
           'Guests',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         Row(
@@ -270,9 +284,10 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
             Row(
               children: [
                 IconButton(
-                  onPressed: guestCount > 1
-                      ? () => onFilterChanged('guestCount', guestCount - 1)
-                      : null,
+                  onPressed:
+                      guestCount > 1
+                          ? () => onFilterChanged('guestCount', guestCount - 1)
+                          : null,
                   icon: const Icon(Icons.remove_circle_outline),
                 ),
                 Text(
@@ -283,9 +298,10 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
                   ),
                 ),
                 IconButton(
-                  onPressed: guestCount < 10
-                      ? () => onFilterChanged('guestCount', guestCount + 1)
-                      : null,
+                  onPressed:
+                      guestCount < 10
+                          ? () => onFilterChanged('guestCount', guestCount + 1)
+                          : null,
                   icon: const Icon(Icons.add_circle_outline),
                 ),
               ],
@@ -323,9 +339,9 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
       children: [
         Text(
           'Check-in & Check-out Dates',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         Row(
@@ -369,9 +385,10 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
     return GestureDetector(
       onTap: () async {
         final now = DateTime.now();
-        final firstDate = minDate != null && minDate.isAfter(now)
-            ? minDate.add(const Duration(days: 1))
-            : now;
+        final firstDate =
+            minDate != null && minDate.isAfter(now)
+                ? minDate.add(const Duration(days: 1))
+                : now;
 
         final date = await showDatePicker(
           context: context,
@@ -387,15 +404,17 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: selectedDate != null
-                ? colorScheme.primary
-                : colorScheme.outline.withValues(alpha: 0.3),
+            color:
+                selectedDate != null
+                    ? colorScheme.primary
+                    : colorScheme.outline.withValues(alpha: 0.3),
             width: selectedDate != null ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12),
-          color: selectedDate != null
-              ? colorScheme.primary.withValues(alpha: 0.1)
-              : null,
+          color:
+              selectedDate != null
+                  ? colorScheme.primary.withValues(alpha: 0.1)
+                  : null,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -413,9 +432,10 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
                 Icon(
                   icon,
                   size: 18,
-                  color: selectedDate != null
-                      ? colorScheme.primary
-                      : colorScheme.onSurface.withValues(alpha: 0.5),
+                  color:
+                      selectedDate != null
+                          ? colorScheme.primary
+                          : colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -424,13 +444,15 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
                         ? DateFormat('MMM d, yyyy').format(selectedDate)
                         : 'Select date',
                     style: TextStyle(
-                      fontWeight: selectedDate != null
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                      fontWeight:
+                          selectedDate != null
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                       fontSize: 16,
-                      color: selectedDate != null
-                          ? colorScheme.onSurface
-                          : colorScheme.onSurface.withValues(alpha: 0.5),
+                      color:
+                          selectedDate != null
+                              ? colorScheme.onSurface
+                              : colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -444,7 +466,14 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
   }
 
   @override
-  Widget buildItemCard(BuildContext context, House house, int index, bool isMobile, bool isTablet, bool isDesktop) {
+  Widget buildItemCard(
+    BuildContext context,
+    House house,
+    int index,
+    bool isMobile,
+    bool isTablet,
+    bool isDesktop,
+  ) {
     return _buildHouseCard(context, house);
   }
 
@@ -480,9 +509,7 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
         children: [
           // Image with property type badge
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(16),
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: AspectRatio(
               aspectRatio: 16 / 9,
               child: Stack(
@@ -490,33 +517,35 @@ class HouseListScreenConfig extends UnifiedListScreenConfig<House, HouseFilterRe
                 children: [
                   house.mainImageUrl != null
                       ? Image.network(
-                          house.mainImageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: colorScheme.surfaceContainerLow,
-                              child: Center(
-                                child: Icon(
-                                  house.propertyTypeIconData,
-                                  size: 48,
-                                  color: colorScheme.onSurfaceVariant
-                                      .withValues(alpha: 0.5),
+                        house.mainImageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: colorScheme.surfaceContainerLow,
+                            child: Center(
+                              child: Icon(
+                                house.propertyTypeIconData,
+                                size: 48,
+                                color: colorScheme.onSurfaceVariant.withValues(
+                                  alpha: 0.5,
                                 ),
                               ),
-                            );
-                          },
-                        )
+                            ),
+                          );
+                        },
+                      )
                       : Container(
-                          color: colorScheme.surfaceContainerLow,
-                          child: Center(
-                            child: Icon(
-                              house.propertyTypeIconData,
-                              size: 48,
-                              color: colorScheme.onSurfaceVariant
-                                  .withValues(alpha: 0.5),
+                        color: colorScheme.surfaceContainerLow,
+                        child: Center(
+                          child: Icon(
+                            house.propertyTypeIconData,
+                            size: 48,
+                            color: colorScheme.onSurfaceVariant.withValues(
+                              alpha: 0.5,
                             ),
                           ),
                         ),
+                      ),
 
                   // Property type badge
                   Positioned(

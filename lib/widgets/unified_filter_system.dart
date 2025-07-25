@@ -391,7 +391,7 @@ class UnifiedFilterPanel extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 16),
             child: Row(
               children: [
-                for (int j = i; j < i + 4 && j < filterSections.length) ...[
+                for (int j = i; j < i + 4 && j < filterSections.length; j++) ...[
                   Expanded(child: filterSections[j]),
                   if (j < i + 3 && j < filterSections.length - 1)
                     const SizedBox(width: 16),
