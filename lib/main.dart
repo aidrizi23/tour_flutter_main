@@ -12,10 +12,11 @@ import 'screens/profile/profile_screen.dart';
 import 'screens/booking/booking_screen.dart';
 import 'screens/recommendation/recommendation_screen.dart';
 import 'screens/settings/settings_screen.dart';
-import 'widgets/responsive_layout.dart';
+import 'widgets/enhanced_responsive_layout.dart';
 import 'services/auth_service.dart';
 import 'services/stripe_service.dart';
 import 'providers/theme_provider.dart';
+import 'utils/animation_utils.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,18 +49,7 @@ class MyApp extends StatelessWidget {
           darkTheme: _buildDarkTheme(),
           themeMode: themeProvider.themeMode,
           home: const AuthWrapper(),
-          routes: {
-            '/login': (context) => const LoginScreen(),
-            '/register': (context) => const RegisterScreen(),
-            '/tours': (context) => const TourListScreenUnified(),
-            '/cars': (context) => const CarListScreenUnified(),
-            '/admin-panel': (context) => const AdminPanelScreen(),
-            '/admin/create-tour': (context) => const AdminTourCreateScreen(),
-            '/profile': (context) => const ProfileScreen(),
-            '/bookings': (context) => const BookingScreen(),
-            '/recommendations': (context) => const RecommendationScreen(),
-            '/settings': (context) => const SettingsScreen(),
-          },
+          onGenerateRoute: _generateRoute,
         );
       },
     );
@@ -187,12 +177,27 @@ class MyApp extends StatelessWidget {
       materialTapTargetSize: MaterialTapTargetSize.padded,
       // Enhanced typography with better readability
       textTheme: const TextTheme(
-        displayLarge: TextStyle(fontWeight: FontWeight.w300, letterSpacing: -0.5),
-        displayMedium: TextStyle(fontWeight: FontWeight.w300, letterSpacing: -0.25),
+        displayLarge: TextStyle(
+          fontWeight: FontWeight.w300,
+          letterSpacing: -0.5,
+        ),
+        displayMedium: TextStyle(
+          fontWeight: FontWeight.w300,
+          letterSpacing: -0.25,
+        ),
         displaySmall: TextStyle(fontWeight: FontWeight.w400, letterSpacing: 0),
-        headlineLarge: TextStyle(fontWeight: FontWeight.w600, letterSpacing: -0.25),
-        headlineMedium: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0),
-        headlineSmall: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.15),
+        headlineLarge: TextStyle(
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.25,
+        ),
+        headlineMedium: TextStyle(
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0,
+        ),
+        headlineSmall: TextStyle(
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.15,
+        ),
         titleLarge: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0),
         titleMedium: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.1),
         titleSmall: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.1),
@@ -200,7 +205,10 @@ class MyApp extends StatelessWidget {
         bodyMedium: TextStyle(fontWeight: FontWeight.w400, letterSpacing: 0.25),
         bodySmall: TextStyle(fontWeight: FontWeight.w400, letterSpacing: 0.4),
         labelLarge: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.25),
-        labelMedium: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.25),
+        labelMedium: TextStyle(
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.25,
+        ),
         labelSmall: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.5),
       ),
     );
@@ -328,12 +336,27 @@ class MyApp extends StatelessWidget {
       materialTapTargetSize: MaterialTapTargetSize.padded,
       // Enhanced typography with better readability
       textTheme: const TextTheme(
-        displayLarge: TextStyle(fontWeight: FontWeight.w300, letterSpacing: -0.5),
-        displayMedium: TextStyle(fontWeight: FontWeight.w300, letterSpacing: -0.25),
+        displayLarge: TextStyle(
+          fontWeight: FontWeight.w300,
+          letterSpacing: -0.5,
+        ),
+        displayMedium: TextStyle(
+          fontWeight: FontWeight.w300,
+          letterSpacing: -0.25,
+        ),
         displaySmall: TextStyle(fontWeight: FontWeight.w400, letterSpacing: 0),
-        headlineLarge: TextStyle(fontWeight: FontWeight.w600, letterSpacing: -0.25),
-        headlineMedium: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0),
-        headlineSmall: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.15),
+        headlineLarge: TextStyle(
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.25,
+        ),
+        headlineMedium: TextStyle(
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0,
+        ),
+        headlineSmall: TextStyle(
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.15,
+        ),
         titleLarge: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0),
         titleMedium: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.1),
         titleSmall: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.1),
@@ -341,10 +364,56 @@ class MyApp extends StatelessWidget {
         bodyMedium: TextStyle(fontWeight: FontWeight.w400, letterSpacing: 0.25),
         bodySmall: TextStyle(fontWeight: FontWeight.w400, letterSpacing: 0.4),
         labelLarge: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.25),
-        labelMedium: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.25),
+        labelMedium: TextStyle(
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.25,
+        ),
         labelSmall: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.5),
       ),
     );
+  }
+
+  // Custom route generator for smooth page transitions
+  Route<dynamic>? _generateRoute(RouteSettings settings) {
+    Widget page;
+
+    switch (settings.name) {
+      case '/login':
+        page = const LoginScreen();
+        break;
+      case '/register':
+        page = const RegisterScreen();
+        break;
+      case '/tours':
+        page = const TourListScreenUnified();
+        break;
+      case '/cars':
+        page = const CarListScreenUnified();
+        break;
+      case '/admin-panel':
+        page = const AdminPanelScreen();
+        break;
+      case '/admin/create-tour':
+        page = const AdminTourCreateScreen();
+        break;
+      case '/profile':
+        page = const ProfileScreen();
+        break;
+      case '/bookings':
+        page = const BookingScreen();
+        break;
+      case '/recommendations':
+        page = const RecommendationScreen();
+        break;
+      case '/settings':
+        page = const SettingsScreen();
+        break;
+      default:
+        page = const AuthWrapper();
+    }
+
+    // Use smooth page transitions
+    return SmoothPageRoute(page: page);
   }
 }
 
@@ -451,14 +520,15 @@ class _AuthWrapperState extends State<AuthWrapper>
                           ],
                         ),
                         child: ShaderMask(
-                          shaderCallback: (bounds) => LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Theme.of(context).colorScheme.primary,
-                              Theme.of(context).colorScheme.secondary,
-                            ],
-                          ).createShader(bounds),
+                          shaderCallback:
+                              (bounds) => LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Theme.of(context).colorScheme.primary,
+                                  Theme.of(context).colorScheme.secondary,
+                                ],
+                              ).createShader(bounds),
                           child: const Icon(
                             Icons.travel_explore_rounded,
                             size: 72,
@@ -502,7 +572,30 @@ class _AuthWrapperState extends State<AuthWrapper>
       );
     }
 
-    return _isLoggedIn ? const HomeScreen() : const LoginScreen();
+    return AnimatedSwitcher(
+      duration: AnimationDurations.slow,
+      transitionBuilder: (child, animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.1),
+              end: Offset.zero,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: AnimationCurves.smoothOut,
+              ),
+            ),
+            child: child,
+          ),
+        );
+      },
+      child:
+          _isLoggedIn
+              ? const HomeScreen(key: ValueKey('home'))
+              : const LoginScreen(key: ValueKey('login')),
+    );
   }
 }
 
@@ -556,32 +649,34 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final screens = _isAdmin ? _adminScreens : _userScreens;
 
-    return ResponsiveLayout(
+    return EnhancedResponsiveLayout(
       currentIndex: _currentIndex,
       onDestinationSelected: (index) {
         if (index != _currentIndex) {
           setState(() {
             _currentIndex = index;
           });
-          HapticFeedback.selectionClick();
         }
       },
       isAdmin: _isAdmin,
       child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
+        duration: AnimationDurations.normal,
         transitionBuilder: (child, animation) {
           return SlideTransition(
             position: Tween<Offset>(
-              begin: const Offset(0.1, 0),
+              begin: const Offset(0.05, 0),
               end: Offset.zero,
             ).animate(
               CurvedAnimation(
                 parent: animation,
-                curve: Curves.easeOutCubic,
+                curve: AnimationCurves.smoothOut,
               ),
             ),
             child: FadeTransition(
-              opacity: animation,
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: const Interval(0.3, 1.0),
+              ),
               child: child,
             ),
           );

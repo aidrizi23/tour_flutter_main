@@ -61,20 +61,22 @@ class _UnifiedSearchBarState extends State<UnifiedSearchBar> {
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _isFocused 
-              ? colorScheme.primary 
-              : colorScheme.outline.withValues(alpha: 0.2),
+          color:
+              _isFocused
+                  ? colorScheme.primary
+                  : colorScheme.outline.withValues(alpha: 0.2),
           width: _isFocused ? 2 : 1,
         ),
-        boxShadow: _isFocused 
-            ? [
-                BoxShadow(
-                  color: colorScheme.primary.withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
+        boxShadow:
+            _isFocused
+                ? [
+                  BoxShadow(
+                    color: colorScheme.primary.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+                : null,
       ),
       child: Focus(
         onFocusChange: (hasFocus) {
@@ -91,9 +93,7 @@ class _UnifiedSearchBarState extends State<UnifiedSearchBar> {
             ),
             prefixIcon: Icon(
               Icons.search_rounded,
-              color: _isFocused 
-                  ? colorScheme.primary 
-                  : colorScheme.outline,
+              color: _isFocused ? colorScheme.primary : colorScheme.outline,
             ),
             suffixIcon: Row(
               mainAxisSize: MainAxisSize.min,
@@ -104,10 +104,7 @@ class _UnifiedSearchBarState extends State<UnifiedSearchBar> {
                       widget.controller.clear();
                       widget.onChanged?.call('');
                     },
-                    icon: Icon(
-                      Icons.clear_rounded,
-                      color: colorScheme.outline,
-                    ),
+                    icon: Icon(Icons.clear_rounded, color: colorScheme.outline),
                     tooltip: 'Clear search',
                   ),
                 if (widget.onFiltersPressed != null)
@@ -123,12 +120,14 @@ class _UnifiedSearchBarState extends State<UnifiedSearchBar> {
                       ),
                       label: Text(isMobile ? 'Filter' : 'Filters'),
                       style: FilledButton.styleFrom(
-                        backgroundColor: widget.showFilters
-                            ? colorScheme.primary
-                            : colorScheme.surfaceContainerHigh,
-                        foregroundColor: widget.showFilters
-                            ? Colors.white
-                            : colorScheme.onSurface,
+                        backgroundColor:
+                            widget.showFilters
+                                ? colorScheme.primary
+                                : colorScheme.surfaceContainerHigh,
+                        foregroundColor:
+                            widget.showFilters
+                                ? Colors.white
+                                : colorScheme.onSurface,
                         padding: EdgeInsets.symmetric(
                           horizontal: isMobile ? 12 : 16,
                           vertical: 8,
@@ -189,7 +188,9 @@ class UnifiedScreenHeader extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      style: Theme.of(
+                        context,
+                      ).textTheme.headlineLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
                         fontSize: isMobile ? 28 : 32,
@@ -197,7 +198,7 @@ class UnifiedScreenHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      itemCount != null 
+                      itemCount != null
                           ? '$itemCount amazing $itemType await you'
                           : subtitle,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -213,11 +214,7 @@ class UnifiedScreenHeader extends StatelessWidget {
                   color: colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(
-                  icon,
-                  color: colorScheme.primary,
-                  size: 32,
-                ),
+                child: Icon(icon, color: colorScheme.primary, size: 32),
               ),
             ],
           ),
@@ -250,12 +247,13 @@ class UnifiedQuickFilters extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
-          children: options.map((option) {
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: _buildQuickFilterChip(context, option),
-            );
-          }).toList(),
+          children:
+              options.map((option) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: _buildQuickFilterChip(context, option),
+                );
+              }).toList(),
         ),
       );
     }
@@ -263,7 +261,10 @@ class UnifiedQuickFilters extends StatelessWidget {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: options.map((option) => _buildQuickFilterChip(context, option)).toList(),
+      children:
+          options
+              .map((option) => _buildQuickFilterChip(context, option))
+              .toList(),
     );
   }
 
@@ -288,9 +289,10 @@ class UnifiedQuickFilters extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(
-          color: isSelected
-              ? colorScheme.primary
-              : colorScheme.outline.withValues(alpha: 0.3),
+          color:
+              isSelected
+                  ? colorScheme.primary
+                  : colorScheme.outline.withValues(alpha: 0.3),
         ),
       ),
     );
@@ -301,10 +303,7 @@ class QuickFilterOption {
   final String label;
   final String? value;
 
-  const QuickFilterOption({
-    required this.label,
-    this.value,
-  });
+  const QuickFilterOption({required this.label, this.value});
 }
 
 /// Unified filter panel component
@@ -391,7 +390,7 @@ class UnifiedFilterPanel extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 16),
             child: Row(
               children: [
-                for (int j = i; j < i + 4 && j < filterSections.length; j++) ...[
+                for (int j = i; j < i + 4 && j < filterSections.length;) ...[
                   Expanded(child: filterSections[j]),
                   if (j < i + 3 && j < filterSections.length - 1)
                     const SizedBox(width: 16),
@@ -425,12 +424,15 @@ class UnifiedFilterPanel extends StatelessWidget {
 
   Widget _buildMobileLayout() {
     return Column(
-      children: filterSections
-          .map((section) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: section,
-              ))
-          .toList(),
+      children:
+          filterSections
+              .map(
+                (section) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: section,
+                ),
+              )
+              .toList(),
     );
   }
 }
@@ -459,9 +461,9 @@ class UnifiedDropdownFilter extends StatelessWidget {
       children: [
         Text(
           title,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
@@ -469,13 +471,12 @@ class UnifiedDropdownFilter extends StatelessWidget {
           decoration: const InputDecoration(
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
-          items: options.map((option) {
-            return DropdownMenuItem(
-              value: option,
-              child: Text(option),
-            );
-          }).toList(),
-          onChanged: (value) => onChanged(value == defaultOption ? null : value),
+          items:
+              options.map((option) {
+                return DropdownMenuItem(value: option, child: Text(option));
+              }).toList(),
+          onChanged:
+              (value) => onChanged(value == defaultOption ? null : value),
         ),
       ],
     );
@@ -578,9 +579,9 @@ class UnifiedErrorState extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               title,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
@@ -677,9 +678,9 @@ class UnifiedEmptyState extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               title,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
@@ -743,14 +744,13 @@ class UnifiedEmptyState extends StatelessWidget {
   }
 }
 
-/// Unified responsive grid layout with enhanced performance
+/// Unified responsive grid layout
 class UnifiedResponsiveGrid<T> extends StatelessWidget {
   final List<T> items;
   final Widget Function(T item, int index) itemBuilder;
   final Widget Function()? loadingMoreBuilder;
   final bool isLoadingMore;
   final double maxContentWidth;
-  final Duration animationDuration;
 
   const UnifiedResponsiveGrid({
     super.key,
@@ -759,7 +759,6 @@ class UnifiedResponsiveGrid<T> extends StatelessWidget {
     this.loadingMoreBuilder,
     this.isLoadingMore = false,
     this.maxContentWidth = 1400,
-    this.animationDuration = const Duration(milliseconds: 350),
   });
 
   @override
@@ -768,79 +767,42 @@ class UnifiedResponsiveGrid<T> extends StatelessWidget {
     final isDesktop = screenWidth > 1200;
     final isTablet = screenWidth > 600 && screenWidth <= 1200;
 
-    // Calculate responsive constraints with enhanced ratios
+    // Calculate responsive constraints
     int crossAxisCount;
     double childAspectRatio;
-    double crossAxisSpacing;
-    double mainAxisSpacing;
 
     if (isDesktop) {
       crossAxisCount = screenWidth > 1600 ? 4 : 3;
-      childAspectRatio = 0.72;
-      crossAxisSpacing = 20;
-      mainAxisSpacing = 24;
+      childAspectRatio = 0.75;
     } else if (isTablet) {
       crossAxisCount = 2;
-      childAspectRatio = 0.75;
-      crossAxisSpacing = 16;
-      mainAxisSpacing = 20;
+      childAspectRatio = 0.8;
     } else {
       crossAxisCount = 1;
-      childAspectRatio = 1.1;
-      crossAxisSpacing = 16;
-      mainAxisSpacing = 16;
+      childAspectRatio = 1.15;
     }
 
     return Center(
       child: Container(
         constraints: BoxConstraints(maxWidth: maxContentWidth),
-        padding: EdgeInsets.all(isDesktop ? 20 : 16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Enhanced grid with staggered animations
-            AnimatedSwitcher(
-              duration: animationDuration,
-              child: GridView.builder(
-                key: ValueKey(items.length),
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: crossAxisSpacing,
-                  mainAxisSpacing: mainAxisSpacing,
-                  childAspectRatio: childAspectRatio,
-                ),
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  return TweenAnimationBuilder<double>(
-                    duration: Duration(
-                      milliseconds: 200 + (index * 50).clamp(0, 800),
-                    ),
-                    tween: Tween<double>(begin: 0, end: 1),
-                    curve: Curves.easeOutCubic,
-                    builder: (context, value, child) {
-                      return Transform.translate(
-                        offset: Offset(0, 20 * (1 - value)),
-                        child: Opacity(
-                          opacity: value,
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: itemBuilder(items[index], index),
-                  );
-                },
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: childAspectRatio,
               ),
+              itemCount: items.length,
+              itemBuilder: (context, index) => itemBuilder(items[index], index),
             ),
-            
-            // Enhanced loading more indicator
             if (isLoadingMore && loadingMoreBuilder != null) ...[
-              const SizedBox(height: 24),
-              AnimatedOpacity(
-                opacity: isLoadingMore ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 300),
-                child: loadingMoreBuilder!(),
-              ),
+              const SizedBox(height: 20),
+              loadingMoreBuilder!(),
             ],
           ],
         ),
